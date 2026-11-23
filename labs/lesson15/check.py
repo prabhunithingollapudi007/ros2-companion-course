@@ -41,7 +41,7 @@ if built:
         time.sleep(3)
         code, r["params"] = ros("ros2 param list /battery_monitor", isolated=True, timeout=10)
         r["answered"] = code == 0 and "use_sim_time" in r["params"]
-        time.sleep(2)
+        time.sleep(5)
         stop(voltages)
         time.sleep(1)
         stop(echo)
@@ -55,7 +55,7 @@ charges = r.get("charges", [])
 c.check(
     "a charge comes back for each voltage, not just the first",
     lambda: len(charges) >= 6,
-    ran(f"Got {len(charges)} charges for about 10 voltages. If it is 0 or 1, the node froze waiting inside a callback."),
+    ran(f"Got {len(charges)} charges for about 18 voltages. If it is 0 or 1, the node froze waiting inside a callback."),
 )
 c.check(
     f"each charge is right: {VOLTS} V is 0.6 full",

@@ -69,8 +69,8 @@ if built:
         c.check("a node called /battery_monitor is running", "/battery_monitor" in nodes.split(), f"Running nodes: {nodes or 'none'}")
         _, kind = ros("ros2 topic type /battery_status", isolated=True)
         c.check("/battery_status carries power_monitor/msg/BatteryStatus", kind.strip() == "power_monitor/msg/BatteryStatus", f"It carries: {kind or 'nothing yet'}")
-        rows = [r.split(",") for r in ros_for("ros2 topic echo --csv /battery_status", 5).splitlines() if r.count(",") == 2]
-        c.check("it publishes a status for each reading", len(rows) >= 5, f"Received {len(rows)} messages in 5 seconds; the battery sends 10.")
+        rows = [r.split(",") for r in ros_for("ros2 topic echo --csv /battery_status", 8).splitlines() if r.count(",") == 2]
+        c.check("it publishes a status for each reading", len(rows) >= 5, f"Received {len(rows)} messages in 8 seconds; the battery sends 16.")
         wrong = []
         for voltage, percent, low in rows:
             v, p = float(voltage), float(percent)

@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from checklib import WS, Checker, background, package_xml, ros, stop  # noqa: E402
+from checklib import WS, Checker, background, package_xml, ros, ros_for, stop  # noqa: E402
 
 PKG = WS / "src" / "heartbeat"
 EXE = WS / "install" / "heartbeat" / "lib" / "heartbeat" / "heartbeat"
@@ -24,6 +24,14 @@ def beats(seconds):
     time.sleep(seconds)
     stop(echo)
     return [int(n) for n in re.findall(r"^alive (\d+)$", echo.stdout.read().decode(errors="replace"), re.M)]
+
+
+def rate():
+    """The publishing rate ros2 topic hz measures on /heartbeat, or None. It times the
+    messages themselves, so it does not depend on how long the tool takes to start."""
+    out = ros_for("ros2 topic hz /heartbeat", 8)
+    values = re.findall(r"average rate: ([\d.]+)", out)
+    return float(values[-1]) if values else None
 
 
 def command(running):
@@ -47,11 +55,12 @@ if built:
     try:
         time.sleep(2)
         r["first"] = beats(5)
+        r["hz"] = rate()
         command(False)
         time.sleep(1)
         r["paused"] = beats(2)
         command(True)
-        r["resumed"] = beats(4)
+        r["resumed"] = beats(6)
         _, r["rate"] = ros("ros2 param get /heartbeat rate", isolated=True)
     finally:
         stop(node)
@@ -59,7 +68,7 @@ if LAUNCH.is_file():
     launched = background("ros2 launch heartbeat heartbeat.launch.xml")
     try:
         time.sleep(3)
-        r["launched rate"] = beats(5)
+        r["launched hz"] = rate()
         _, r["launch param"] = ros("ros2 param get /heartbeat rate", isolated=True)
     finally:
         stop(launched)
@@ -68,8 +77,8 @@ ran = lambda hint: hint if built else "Needs the node: build it first."
 first = r.get("first", [])
 c.check(
     "it publishes alive 1, alive 2, ... on /heartbeat, twice a second by default",
-    lambda: len(first) >= 4 and len(first) <= 12 and first == list(range(first[0], first[0] + len(first))),
-    ran(f"In 5 s it published {first}."),
+    lambda: len(first) >= 3 and first == list(range(first[0], first[0] + len(first))) and 1.5 < r["hz"] < 2.5,
+    ran(f"It published {first}, at {r.get('hz')} per second."),
 )
 c.check("rate is a parameter, 2.0 by default", lambda: "Double value is: 2.0" in r["rate"], ran(f"ros2 param get printed: {r.get('rate')}"))
 c.check(
@@ -79,8 +88,8 @@ c.check(
 )
 c.check(
     "launch/heartbeat.launch.xml starts it at rate 5",
-    lambda: "Double value is: 5.0" in r["launch param"] and len(r["launched rate"]) >= 11,
-    f"With the launch file: {r.get('launch param')}, {len(r.get('launched rate', []))} beats in 5 s."
+    lambda: "Double value is: 5.0" in r["launch param"] and 4.0 < r["launched hz"] < 6.0,
+    f"With the launch file: {r.get('launch param')}, at {r.get('launched hz')} per second."
     if LAUNCH.is_file()
     else "Port launch/heartbeat.launch to launch/heartbeat.launch.xml and install it.",
 )

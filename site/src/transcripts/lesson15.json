@@ -12,52 +12,52 @@
   "runs": {
     "demo-build": {
       "command": "colcon build",
-      "output": "Starting >>> executors_demo\nFinished <<< executors_demo [5.20s]\n\nSummary: 1 package finished [5.29s]",
+      "output": "Starting >>> executors_demo\nFinished <<< executors_demo [4.26s]\n\nSummary: 1 package finished [4.35s]",
       "ended": "exit",
       "cwd": "/labs/ws"
     },
     "busy-1-same": {
       "command": "source install/setup.bash && ros2 run executors_demo busy_node 1 same",
-      "output": "[INFO] [1795442111.109361588] [busy_node]: slow ran 2 times, fast ticked 26 times",
+      "output": "[INFO] [1795447629.288707088] [busy_node]: slow ran 2 times, fast ticked 26 times",
       "ended": "exit",
       "cwd": "/labs/ws"
     },
     "busy-2-same": {
       "command": "source install/setup.bash && ros2 run executors_demo busy_node 2 same",
-      "output": "[INFO] [1795442117.205624147] [busy_node]: slow ran 2 times, fast ticked 26 times",
+      "output": "[INFO] [1795447635.428588968] [busy_node]: slow ran 2 times, fast ticked 26 times",
       "ended": "exit",
       "cwd": "/labs/ws"
     },
     "busy-2-separate": {
       "command": "source install/setup.bash && ros2 run executors_demo busy_node 2 separate",
-      "output": "[INFO] [1795442123.276611994] [busy_node]: slow ran 2 times, fast ticked 44 times",
+      "output": "[INFO] [1795447641.592064540] [busy_node]: slow ran 2 times, fast ticked 45 times",
       "ended": "exit",
       "cwd": "/labs/ws"
     },
     "caller-wait": {
       "command": "source install/setup.bash && ros2 run executors_demo caller wait",
-      "output": "[WARN] [1795442136.109252021] [caller]: 1 + 100: no answer after 2 s\n[WARN] [1795442138.109837006] [caller]: 2 + 100: no answer after 2 s",
+      "output": "[WARN] [1795447653.419465181] [caller]: 1 + 100: no answer after 2 s\n[WARN] [1795447655.421644191] [caller]: 2 + 100: no answer after 2 s",
       "ended": "stopped",
       "cwd": "/labs/ws",
       "truncated": true
     },
     "caller-groups": {
       "command": "source install/setup.bash && ros2 run executors_demo caller groups",
-      "output": "[INFO] [1795442143.727936511] [caller]: 1 + 100 = 101\n[INFO] [1795442144.726071218] [caller]: 2 + 100 = 102",
+      "output": "[INFO] [1795447661.000454154] [caller]: 1 + 100 = 101\n[INFO] [1795447662.000637395] [caller]: 2 + 100 = 102",
       "ended": "stopped",
       "cwd": "/labs/ws",
       "truncated": true
     },
     "caller-callback": {
       "command": "source install/setup.bash && ros2 run executors_demo caller callback",
-      "output": "[INFO] [1795442148.873051170] [caller]: 1 + 100 = 101\n[INFO] [1795442149.873213242] [caller]: 2 + 100 = 102",
+      "output": "[INFO] [1795447666.265610137] [caller]: 1 + 100 = 101\n[INFO] [1795447667.265272123] [caller]: 2 + 100 = 102",
       "ended": "stopped",
       "cwd": "/labs/ws",
       "truncated": true
     },
     "lab-build-broken": {
       "command": "colcon build",
-      "output": "Starting >>> battery_interfaces\nFinished <<< battery_interfaces [4.78s]\nStarting >>> battery_monitor\nFinished <<< battery_monitor [7.72s]\n\nSummary: 2 packages finished [12.6s]",
+      "output": "Starting >>> battery_interfaces\nFinished <<< battery_interfaces [4.70s]\nStarting >>> battery_monitor\nFinished <<< battery_monitor [7.73s]\n\nSummary: 2 packages finished [12.5s]",
       "ended": "exit",
       "cwd": "/labs/ws"
     },
@@ -73,12 +73,12 @@
     },
     "lab-check-early": {
       "command": "python3 /labs/lesson15/check.py",
-      "output": "Lesson 15 lab: checking /labs/ws\n  PASS  battery_interfaces is built\n  PASS  battery_monitor is built\n  FAIL  a charge comes back for each voltage, not just the first\n        Got 0 charges for about 10 voltages. If it is 0 or 1, the node froze waiting inside a callback.\n  FAIL  each charge is right: 3.84 V is 0.6 full\n        Got []\n  FAIL  while it works, it still answers ros2 param list\n        ros2 param list /battery_monitor got no answer: the node's only thread is stuck.\n2 of 5 checks passed.",
+      "output": "Lesson 15 lab: checking /labs/ws\n  PASS  battery_interfaces is built\n  PASS  battery_monitor is built\n  FAIL  a charge comes back for each voltage, not just the first\n        Got 0 charges for about 18 voltages. If it is 0 or 1, the node froze waiting inside a callback.\n  FAIL  each charge is right: 3.84 V is 0.6 full\n        Got []\n  FAIL  while it works, it still answers ros2 param list\n        ros2 param list /battery_monitor got no answer: the node's only thread is stuck.\n2 of 5 checks passed.",
       "ended": "exit"
     },
     "lab-build": {
       "command": "colcon build --packages-select battery_monitor",
-      "output": "Starting >>> battery_monitor\nFinished <<< battery_monitor [6.91s]\n\nSummary: 1 package finished [7.01s]",
+      "output": "Starting >>> battery_monitor\nFinished <<< battery_monitor [6.71s]\n\nSummary: 1 package finished [6.80s]",
       "ended": "exit",
       "cwd": "/labs/ws"
     },

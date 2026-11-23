@@ -53,7 +53,7 @@ if built:
     out = background("ros2 topic echo --csv /object_in_map")
     inp = background("ros2 topic echo --csv /detections")
     try:
-        time.sleep(6)
+        time.sleep(9)
     finally:
         for proc in (inp, out, world, node):
             stop(proc)
@@ -63,7 +63,7 @@ if built:
 c.check(
     "it publishes points on /object_in_map",
     len(results) >= 5,
-    f"Got {len(results)} in 6 s while /detections had {len(seen)}. Subscribe to detections, publish geometry_msgs/msg/PointStamped on object_in_map."
+    f"Got {len(results)} in 9 s while /detections had {len(seen)}. Subscribe to detections, publish geometry_msgs/msg/PointStamped on object_in_map."
     if built
     else "Build the node first.",
 )

@@ -64,7 +64,9 @@ import time
 SETUP = "source /opt/ros/jazzy/setup.bash"
 LOGS = "/tmp/rec"
 ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
-DEFAULT_TIMEOUT = 40.0
+# Only there to stop a command that hangs. Lab checkers that run a simulation take
+# a minute or more, and longer on slow machines such as CI's.
+DEFAULT_TIMEOUT = 240.0
 
 
 # Printed by ros2 bag only because the recorder runs commands without a terminal.
