@@ -1,0 +1,4 @@
+node_modules/
+dist/
+# The ETH slides and exercises are for local reference only; do not publish them.
+materials/

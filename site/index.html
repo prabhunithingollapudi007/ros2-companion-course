@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The build replaces the title and adds each page's own description,
+         address and preview tags: see scripts/prerender.mjs and src/seo.ts. -->
+    <title>ROS 2 Companion: a visual course in 17 lessons</title>
+    <script>
+      // Apply a saved light or dark theme before the page is drawn.
+      try {
+        var t = localStorage.getItem('ros-companion.theme')
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t)
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

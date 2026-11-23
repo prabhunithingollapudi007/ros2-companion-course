@@ -1,0 +1,85 @@
+<!doctype html>
+<!--
+  The picture shown when a link to the site is shared (public/social-card.png).
+  To regenerate it, open this file in a 1200 x 630 window and take a screenshot,
+  for example with a Chromium browser:
+
+    chrome --headless --hide-scrollbars --window-size=1200,630 \
+      --screenshot=site/public/social-card.png site/scripts/social-card.html
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Social card</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; }
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #0d0d0d;
+        color: #f0efec;
+        font-family: system-ui, 'Segoe UI', sans-serif;
+        display: grid;
+        grid-template-columns: 1fr 440px;
+        gap: 56px;
+        padding: 72px 76px 72px 80px;
+        align-items: center;
+      }
+      .kicker { font-size: 21px; letter-spacing: 0.14em; text-transform: uppercase; color: #898781; font-weight: 600; }
+      h1 {
+        font-family: Charter, 'Sitka Text', Cambria, Georgia, serif;
+        font-size: 76px;
+        line-height: 1.04;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        margin: 22px 0 26px;
+      }
+      p { font-size: 27px; line-height: 1.38; color: #c3c2b7; max-width: 560px; }
+      .chips { display: flex; gap: 9px; margin-top: 30px; white-space: nowrap; }
+      .chip { font-size: 18px; padding: 6px 13px; border-radius: 999px; background: #16263b; color: #86b6ef; font-weight: 600; }
+      svg { display: block; }
+      .name { font: 600 19px ui-monospace, 'Cascadia Code', Consolas, monospace; fill: #f0efec; }
+      .topic { font: 600 17px ui-monospace, 'Cascadia Code', Consolas, monospace; fill: #86b6ef; }
+      .caption { font-size: 19px; color: #898781; margin-top: 16px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="kicker">Unofficial · ETH Programming for Robotics</div>
+      <h1>ROS 2 Companion</h1>
+      <p>A visual course in 17 lessons: figures, interactive playgrounds, quizzes and hands&#8209;on labs.</p>
+      <div class="chips">
+        <span class="chip">Nodes &amp; topics</span><span class="chip">TF2</span>
+        <span class="chip">Gazebo</span><span class="chip">Actions</span><span class="chip">QoS</span>
+      </div>
+    </div>
+    <div>
+      <!-- Nodes are drawn as ellipses and topics as boxes, the way rqt_graph draws them. -->
+      <svg width="440" height="440" viewBox="0 0 440 440" role="img" aria-label="Three nodes passing messages through two topics: a lidar driver publishes scans, a planner turns them into velocity commands, and a base controller receives them">
+        <defs>
+          <marker id="tip" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M1 1 9 5 1 9" fill="none" stroke="#c3c2b7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </marker>
+        </defs>
+        <g fill="none" stroke="#c3c2b7" stroke-width="2.4" stroke-linecap="round" marker-end="url(#tip)">
+          <path d="M220 74V110" />
+          <path d="M220 160V190" />
+          <path d="M220 250V280" />
+          <path d="M220 330V366" />
+        </g>
+        <ellipse cx="220" cy="42" rx="124" ry="32" fill="#242423" stroke="#3987e5" stroke-width="2.4" />
+        <text x="220" y="48" text-anchor="middle" class="name">/lidar_driver</text>
+        <rect x="150" y="112" width="140" height="46" rx="8" fill="#16263b" stroke="#256abf" stroke-width="1.8" />
+        <text x="220" y="141" text-anchor="middle" class="topic">/scan</text>
+        <ellipse cx="220" cy="220" rx="124" ry="32" fill="#242423" stroke="#3987e5" stroke-width="2.4" />
+        <text x="220" y="226" text-anchor="middle" class="name">/planner</text>
+        <rect x="150" y="282" width="140" height="46" rx="8" fill="#16263b" stroke="#256abf" stroke-width="1.8" />
+        <text x="220" y="311" text-anchor="middle" class="topic">/cmd_vel</text>
+        <ellipse cx="220" cy="398" rx="124" ry="32" fill="#242423" stroke="#3987e5" stroke-width="2.4" />
+        <text x="220" y="404" text-anchor="middle" class="name">/base_controller</text>
+      </svg>
+      <div class="caption">Nodes and topics, Lesson 2</div>
+    </div>
+  </body>
+</html>

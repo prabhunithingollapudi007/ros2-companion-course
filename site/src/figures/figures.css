@@ -1,0 +1,175 @@
+/* Static lesson diagrams. Colours are the site tokens, so both themes work. */
+.figure {
+  margin: 1.6em 0;
+  padding: 16px 16px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-1);
+  font-family: var(--font-ui);
+}
+.figure-scroll {
+  overflow-x: auto;
+}
+.figure-svg {
+  display: block;
+  width: 100%;
+  min-width: 560px;
+  height: auto;
+  font-family: var(--font-ui);
+}
+.figure figcaption {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.fig-box {
+  fill: var(--surface-2);
+  stroke: var(--border-strong);
+  stroke-width: 1.2;
+}
+.fig-box-accent {
+  fill: var(--accent-wash);
+  stroke: var(--accent);
+  stroke-width: 1.6;
+}
+.fig-node {
+  fill: var(--surface-1);
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+}
+.fig-node-accent {
+  fill: var(--accent-wash);
+  stroke: var(--accent);
+  stroke-width: 1.8;
+}
+.fig-chip {
+  fill: var(--surface-2);
+}
+.fig-chip-accent {
+  fill: var(--accent-wash);
+}
+.fig-dot {
+  fill: var(--text-primary);
+}
+.fig-dot-s1 {
+  fill: var(--series-1);
+  stroke: var(--surface-1);
+  stroke-width: 2;
+}
+.fig-dot-s2 {
+  fill: var(--series-2);
+  stroke: var(--surface-1);
+  stroke-width: 2;
+}
+.fig-line {
+  fill: none;
+  stroke: var(--text-secondary);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.fig-line-muted {
+  fill: none;
+  stroke: var(--axis);
+  stroke-width: 1.2;
+}
+.fig-line-s1 {
+  fill: none;
+  stroke: var(--series-1);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.fig-line-s2 {
+  fill: none;
+  stroke: var(--series-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.fig-line-s3 {
+  fill: none;
+  stroke: var(--series-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.fig-faded {
+  opacity: 0.4;
+}
+.fig-fill-ink {
+  fill: var(--text-secondary);
+}
+.fig-fill-muted {
+  fill: var(--axis);
+}
+.fig-fill-s1 {
+  fill: var(--series-1);
+}
+.fig-fill-s2 {
+  fill: var(--series-2);
+}
+.fig-fill-s3 {
+  fill: var(--series-3);
+}
+.fig-text {
+  fill: var(--text-primary);
+  font-size: 14px;
+}
+.fig-strong {
+  fill: var(--text-primary);
+  font-size: 14px;
+  font-weight: 650;
+}
+.fig-big {
+  fill: var(--text-primary);
+  font-size: 17px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.fig-small {
+  fill: var(--text-secondary);
+  font-size: 12.5px;
+}
+.fig-label {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.fig-math {
+  fill: var(--text-primary);
+  font-family: KaTeX_Math, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 16px;
+}
+.fig-math-small {
+  fill: var(--text-secondary);
+  font-family: KaTeX_Math, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 14.5px;
+}
+
+/* Names of nodes, topics and message types are set in the monospace face,
+   the way they appear in a terminal. */
+.fig-mono {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.fig-mono-strong {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.fig-topic {
+  fill: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+.fig-dash {
+  stroke-dasharray: 5 5;
+}

@@ -1,0 +1,186 @@
+import { BigPicture, Bridge, PlainWords, Recap, Reveal, TryThis } from '../components/Blocks'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal, TerminalPair } from '../components/Terminal'
+import { Discovery, MessageAnatomy, MysteryGraph, RobotGraph } from '../figures/lesson02'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { LiveGraph } from '../playgrounds/lesson02/LiveGraph'
+import { TwoRobots } from '../playgrounds/lesson02/TwoRobots'
+import { lesson02 } from '../transcripts'
+import { lesson02Lab } from './lesson02.lab'
+import { lesson02Quiz } from './lesson02.quiz'
+
+export const r = lesson02.runs
+
+<BigPicture>
+
+A running ROS system is not one program. It is a set of small programs, called **nodes**, passing **messages** to each other over named channels, called **topics**. This lesson is about seeing that structure: what the pieces are, how they find each other, and how to inspect a live system from the terminal. No code yet; Lessons 3 and 4 write some.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson02} />
+
+## A robot is a graph
+
+<RobotGraph />
+
+Three words carry the whole lesson:
+
+- A **node** is one running program with one job: read a camera, find a line, steer.
+- A **topic** is a named stream of messages, such as `/image`. Nodes **publish** to it, **subscribe** to it, or both.
+- A **message** is one piece of data on a topic. Every topic has a fixed message type: an image, a velocity command, a battery reading.
+
+<PlainWords>
+
+A topic works like a radio channel. Anyone can broadcast on it, anyone can tune in, and the broadcaster does not need to know who is listening. Splitting a robot this way means each piece can be written, tested, restarted or replaced on its own.
+
+</PlainWords>
+
+## Watch two nodes talk
+
+ROS's demo packages include two tiny nodes: `talker` publishes a greeting once a second, and `listener` prints whatever it receives. Here they are in two terminals of the course container.
+
+<TerminalPair>
+  <Terminal title="Terminal 1" run={r.talker} />
+  <Terminal title="Terminal 2" run={r.listener} />
+</TerminalPair>
+
+A third terminal can ask what is running. `ros2 node list` names the nodes; `ros2 topic list -t` names the topics, each with its message type.
+
+<Terminal title="Terminal 3" run={[r['node-list'], r['topic-list']]} />
+
+`/chatter` is the demo's topic. The other two are in every ROS system: `/rosout` carries every node's log messages, and `/parameter_events` reports changes to nodes' settings (Lesson 12). Two more commands count and describe:
+
+<Terminal title="Terminal 3" run={[r['topic-info'], r['node-info']]} />
+
+Now build graphs of your own. The terminal underneath is worked out from the drawing, in the same format the real command uses.
+
+<LiveGraph />
+
+<TryThis>
+
+- **Start two more subscribers.** One publisher now delivers three copies of every message: three connections.
+- **Move a subscriber to `/chatter2`.** It is still running, but it hears nothing. Names must match exactly.
+- **Change the publisher's type to `Int32`.** The topic turns red: one name, two types, and no connection.
+- **Start a second publisher on `/chatter`.** Every subscriber now hears both, mixed together.
+
+</TryThis>
+
+## Messages have types
+
+A message type lists exactly which fields a message has, and `ros2 interface show` prints it. Mobile robots are driven with `geometry_msgs/msg/Twist`:
+
+<MessageAnatomy />
+
+<Terminal run={r['interface-twist']} />
+
+The full name reads package, kind, name: the `Twist` **msg** in the `geometry_msgs` package. Services and actions (Lessons 10 and 11) are the other two kinds. The demo's `std_msgs/msg/String` has a single field, and its own definition says it is meant for examples:
+
+<Terminal run={r['interface-string']} />
+
+You can publish from the terminal too. To the listener, your message is just another message on `/chatter`:
+
+<TerminalPair>
+  <Terminal title="Terminal 3" run={r['topic-pub']} />
+  <Terminal title="Terminal 2, the listener" run={{ command: r.listener.command, output: r['listener-heard'].output, ended: 'running', tail: true }} />
+</TerminalPair>
+
+### One name, two types
+
+What if two nodes use the same topic name with different types? Here an `Int32` publisher joins the talker on `/chatter`:
+
+<Terminal run={[r['mismatch-pub'], r['mismatch-list'], r['mismatch-info'], r['mismatch-echo']]} />
+
+The listener went on printing greetings and never received the 42. ROS does not stop you making this mistake. The only sign is a topic listed with two types.
+
+## How nodes find each other
+
+<Discovery />
+
+There is no central server. A new node announces itself, the others reply with what they publish and subscribe to, and matching ends connect directly. Nodes keep announcing themselves while they run and say so when they stop, which is why nodes can start in any order. (Matching ends must also agree on quality-of-service settings; that is Lesson 14.)
+
+<Bridge title="ROS 1">
+
+ROS 1 had a central program, the master (`roscore`), that every node registered with. ROS 2 has none. Older tutorials, and some course pages, still mention the master; in ROS 2 it does not exist.
+
+</Bridge>
+
+The command-line tools join the graph too. A running `ros2 topic echo` is counted as a subscription, but `ros2 node list` hides it; `-a` shows hidden nodes:
+
+<Terminal run={[r['topic-info-while-echo'], r['node-list-while-echo'], r['node-list-all']]} />
+
+## Domain IDs: one network, separate graphs
+
+Discovery reaches every node on the network that shares a **domain ID**, and every node uses domain 0 unless told otherwise. On one robot that is what you want. In a room of robots, or of students, it means everyone's nodes see everyone else's.
+
+<TwoRobots />
+
+The domain is set with the environment variable `ROS_DOMAIN_ID`. Here a talker runs in the default domain, and a listener is started in domain 1:
+
+<TerminalPair>
+  <Terminal title="Terminal 2" run={r['domain1-listener']} />
+  <Terminal title="Terminal 3" run={[r['domain0-node-list'], r['domain1-node-list-after'], r['domain1-export']]} />
+</TerminalPair>
+
+The listener prints nothing and reports no error: it is waiting on a `/chatter` that, in its domain, nobody publishes. That silence is the usual symptom of a wrong domain ID. Prefixing a command sets the domain for that command; `export` sets it for the rest of the terminal session, and a line in `~/.bashrc` sets it for every new terminal. The ROS documentation recommends a number from 0 to 101: the domain ID decides which network ports ROS uses, and other values can run out of ports or clash with ones the operating system hands out. ETH's course has each student pick their own for exactly this reason.
+
+## Your inspection toolkit
+
+| To find out | Run |
+| --- | --- |
+| which nodes are running | `ros2 node list` |
+| what one node publishes and subscribes to | `ros2 node info /node` |
+| which topics exist, with their types | `ros2 topic list -t` |
+| how many publishers and subscribers a topic has | `ros2 topic info /topic` (add `--verbose` to name them) |
+| what a message type contains | `ros2 interface show package/msg/Type` |
+| what is being sent | `ros2 topic echo /topic` (add `--once` for one message) |
+| how often | `ros2 topic hz /topic` |
+| how a node reacts to a message | `ros2 topic pub --once /topic type "{field: value}"` |
+
+`echo` and `hz` run until you press Ctrl+C:
+
+<TerminalPair>
+  <Terminal run={r['topic-echo']} />
+  <Terminal run={r['topic-hz']} />
+</TerminalPair>
+
+## Lab: a robot you have not seen
+
+The lab starts the software of a small wheeled robot: a few nodes that read sensors, estimate position, plan and drive the motors. Work out how it fits together using only the commands above. Start it in the first terminal, explore from the second, and answer the questions. Opening the robot's source file before you finish would spoil it.
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1, the robot', first: 'python3 /labs/lesson02/mystery_graph.py', height: 150 },
+    { title: 'Terminal 2, for exploring', first: 'ros2 node list', height: 380 },
+  ]}
+/>
+
+In a freshly started container, the first `ros2` command also starts a background helper that keeps track of the graph, and it can answer before it has found everything. If a list comes back empty or short, run the command again.
+
+<LabQuestions questions={lesson02Lab} />
+
+Then draw the graph on paper, seven nodes and eight topics, and compare it with this:
+
+<Reveal title="The lab robot, drawn as a graph">
+
+<MysteryGraph />
+
+</Reveal>
+
+## Quiz
+
+<Quiz questions={lesson02Quiz} />
+
+<Recap>
+
+- A ROS system is a **graph**: **nodes** (programs with one job) exchanging **messages** over named **topics**.
+- Any number of nodes can publish or subscribe to a topic, and every subscriber gets every message. Publishers do not need to know who listens.
+- A publisher and a subscription connect only if the **topic name and message type both match**. A mismatch fails silently; `ros2 topic list -t` shows two types.
+- A type such as `geometry_msgs/msg/Twist` is package, kind, name. `ros2 interface show` prints its fields.
+- There is **no central server**: nodes discover each other. ROS 1's master is gone.
+- Nodes see each other only within the same **`ROS_DOMAIN_ID`** (0 by default). A wrong domain gives silence, not an error.
+- The toolkit: `node list`, `node info`, `topic list -t`, `topic info`, `interface show`, `topic echo`, `topic hz`, `topic pub`.
+- Next: where your own nodes will live, and how to build them.
+
+</Recap>

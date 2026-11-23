@@ -1,0 +1,77 @@
+/* A terminal looks like a terminal in both themes: always a dark panel. */
+.terminal {
+  margin: 1.2em 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #151514;
+  font-family: var(--font-ui);
+}
+.terminal-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 7px 12px;
+  border-bottom: 1px solid #2c2c2a;
+  background: #1f1f1d;
+}
+.terminal-title {
+  color: #e8e6e1;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+.terminal-tag {
+  color: #9d9b95;
+  font-size: 0.74rem;
+}
+.terminal.is-simulated .terminal-tag {
+  color: #f0a77f;
+}
+.terminal-copy {
+  margin-left: auto;
+  padding: 2px 9px;
+  border: 1px solid #3a3a37;
+  border-radius: 6px;
+  background: transparent;
+  color: #c3c2b7;
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+.terminal-copy:hover {
+  background: #2a2a28;
+}
+.terminal-body {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  color: #d9d7d0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre;
+  tab-size: 4;
+}
+.terminal-prompt {
+  color: #86b6ef;
+  user-select: none;
+}
+.terminal-cmd {
+  color: #ffffff;
+  font-weight: 600;
+}
+.terminal-note {
+  color: #8f8d87;
+  font-style: italic;
+}
+
+/* Two terminals side by side when there is room, stacked when not. */
+.terminal-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr));
+  gap: 0 12px;
+}
+.terminal-pair > .terminal {
+  min-width: 0;
+}

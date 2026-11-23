@@ -1,0 +1,21 @@
+# The course container: ROS 2 Jazzy with a web terminal that the lesson pages embed.
+#
+#   docker compose -f docker/compose.yaml up -d --build    start it (the first build downloads about 1 GB)
+#   docker compose -f docker/compose.yaml down             stop it
+#
+# While it runs, http://localhost:7681 is a terminal inside the container.
+
+name: ros-companion
+
+services:
+  ros:
+    build: .
+    image: ros-companion:jazzy
+    init: true
+    ports:
+      # Reachable from this computer only, never from the network.
+      - "127.0.0.1:7681:7681"
+    volumes:
+      # The labs folder of this repository, so lab files are ordinary files on your disk.
+      - ../labs:/labs
+    stop_grace_period: 2s

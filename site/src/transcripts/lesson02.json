@@ -1,0 +1,273 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "empty-node-list": {
+      "command": "ros2 node list",
+      "output": "",
+      "ended": "exit"
+    },
+    "empty-topic-list": {
+      "command": "ros2 topic list",
+      "output": "/parameter_events\n/rosout",
+      "ended": "exit"
+    },
+    "topic-info-one": {
+      "command": "ros2 topic info /chatter",
+      "output": "Type: std_msgs/msg/String\nPublisher count: 1\nSubscription count: 0",
+      "ended": "exit"
+    },
+    "node-list": {
+      "command": "ros2 node list",
+      "output": "/listener\n/talker",
+      "ended": "exit"
+    },
+    "node-info": {
+      "command": "ros2 node info /talker",
+      "output": "/talker\n  Subscribers:\n    /parameter_events: rcl_interfaces/msg/ParameterEvent\n  Publishers:\n    /chatter: std_msgs/msg/String\n    /parameter_events: rcl_interfaces/msg/ParameterEvent\n    /rosout: rcl_interfaces/msg/Log",
+      "ended": "exit",
+      "truncated": true
+    },
+    "topic-list": {
+      "command": "ros2 topic list -t",
+      "output": "/chatter [std_msgs/msg/String]\n/parameter_events [rcl_interfaces/msg/ParameterEvent]\n/rosout [rcl_interfaces/msg/Log]",
+      "ended": "exit"
+    },
+    "topic-info": {
+      "command": "ros2 topic info /chatter",
+      "output": "Type: std_msgs/msg/String\nPublisher count: 1\nSubscription count: 1",
+      "ended": "exit"
+    },
+    "topic-type": {
+      "command": "ros2 topic type /chatter",
+      "output": "std_msgs/msg/String",
+      "ended": "exit"
+    },
+    "interface-string": {
+      "command": "ros2 interface show std_msgs/msg/String",
+      "output": "# This was originally provided as an example message.\n# It is deprecated as of Foxy\n# It is recommended to create your own semantically meaningful message.\n# However if you would like to continue using this please use the equivalent in example_msgs.\n\nstring data",
+      "ended": "exit"
+    },
+    "interface-twist": {
+      "command": "ros2 interface show geometry_msgs/msg/Twist",
+      "output": "# This expresses velocity in free space broken into its linear and angular parts.\n\nVector3  linear\n\tfloat64 x\n\tfloat64 y\n\tfloat64 z\nVector3  angular\n\tfloat64 x\n\tfloat64 y\n\tfloat64 z",
+      "ended": "exit"
+    },
+    "topic-echo": {
+      "command": "ros2 topic echo /chatter",
+      "output": "data: 'Hello World: 10'\n---\ndata: 'Hello World: 11'\n---",
+      "ended": "stopped",
+      "truncated": true
+    },
+    "topic-hz": {
+      "command": "ros2 topic hz /chatter",
+      "output": "average rate: 1.000\n\tmin: 0.999s max: 1.000s std dev: 0.00029s window: 3",
+      "ended": "stopped",
+      "truncated": true
+    },
+    "topic-pub": {
+      "command": "ros2 topic pub --once /chatter std_msgs/msg/String \"{data: 'hello from the terminal'}\"",
+      "output": "publisher: beginning loop\npublishing #1: std_msgs.msg.String(data='hello from the terminal')",
+      "ended": "exit"
+    },
+    "listener-heard": {
+      "command": "grep -F 'hello from the terminal' /tmp/rec/listener.log",
+      "output": "[INFO] [1795429010.578633756] [listener]: I heard: [hello from the terminal]",
+      "ended": "exit"
+    },
+    "topic-info-while-echo": {
+      "command": "ros2 topic info /chatter",
+      "output": "Type: std_msgs/msg/String\nPublisher count: 1\nSubscription count: 2",
+      "ended": "exit"
+    },
+    "node-list-while-echo": {
+      "command": "ros2 node list",
+      "output": "/listener\n/talker",
+      "ended": "exit"
+    },
+    "node-list-all": {
+      "command": "ros2 node list -a",
+      "output": "/_ros2cli_253\n/_ros2cli_daemon_0_8f91cd59ada241a4b09f60d364e55ba5\n/listener\n/talker",
+      "ended": "exit"
+    },
+    "talker": {
+      "command": "ros2 run demo_nodes_cpp talker",
+      "output": "[INFO] [1795428991.449616828] [talker]: Publishing: 'Hello World: 1'\n[INFO] [1795428992.449686994] [talker]: Publishing: 'Hello World: 2'\n[INFO] [1795428993.449591881] [talker]: Publishing: 'Hello World: 3'",
+      "ended": "running",
+      "truncated": true
+    },
+    "listener": {
+      "command": "ros2 run demo_nodes_cpp listener",
+      "output": "[INFO] [1795428994.450047878] [listener]: I heard: [Hello World: 4]\n[INFO] [1795428995.449840897] [listener]: I heard: [Hello World: 5]\n[INFO] [1795428996.450517388] [listener]: I heard: [Hello World: 6]",
+      "ended": "running",
+      "truncated": true
+    },
+    "mismatch-list": {
+      "command": "ros2 topic list -t",
+      "output": "/chatter [std_msgs/msg/Int32, std_msgs/msg/String]\n/parameter_events [rcl_interfaces/msg/ParameterEvent]\n/rosout [rcl_interfaces/msg/Log]",
+      "ended": "exit"
+    },
+    "mismatch-info": {
+      "command": "ros2 topic info /chatter",
+      "output": "Type: ['std_msgs/msg/Int32', 'std_msgs/msg/String']\nPublisher count: 2\nSubscription count: 1",
+      "ended": "exit"
+    },
+    "mismatch-echo": {
+      "command": "ros2 topic echo /chatter --once",
+      "output": "Cannot echo topic '/chatter', as it contains more than one type: [std_msgs/msg/Int32, std_msgs/msg/String]",
+      "ended": "exit"
+    },
+    "mismatch-heard-hello": {
+      "command": "grep -c 'I heard: \\[Hello World' /tmp/rec/mismatch-listener.log",
+      "output": "7",
+      "ended": "exit"
+    },
+    "mismatch-heard-42": {
+      "command": "grep -c 'I heard: \\[42' /tmp/rec/mismatch-listener.log",
+      "output": "0",
+      "ended": "exit"
+    },
+    "mismatch-listener": {
+      "command": "ros2 run demo_nodes_cpp listener",
+      "output": "[INFO] [1795429021.205261229] [listener]: I heard: [Hello World: 3]\n[INFO] [1795429022.205385221] [listener]: I heard: [Hello World: 4]",
+      "ended": "running",
+      "truncated": true
+    },
+    "mismatch-pub": {
+      "command": "ros2 topic pub --rate 2 /chatter std_msgs/msg/Int32 \"{data: 42}\"",
+      "output": "publisher: beginning loop\npublishing #1: std_msgs.msg.Int32(data=42)\n",
+      "ended": "running",
+      "truncated": true
+    },
+    "domain0-node-list": {
+      "command": "ros2 node list",
+      "output": "/talker",
+      "ended": "exit"
+    },
+    "domain1-node-list": {
+      "command": "ROS_DOMAIN_ID=1 ros2 node list",
+      "output": "",
+      "ended": "exit"
+    },
+    "domain1-topic-list": {
+      "command": "ROS_DOMAIN_ID=1 ros2 topic list",
+      "output": "/parameter_events\n/rosout",
+      "ended": "exit"
+    },
+    "domain1-node-list-after": {
+      "command": "ROS_DOMAIN_ID=1 ros2 node list",
+      "output": "/listener",
+      "ended": "exit"
+    },
+    "domain1-export": {
+      "command": "export ROS_DOMAIN_ID=1; ros2 node list",
+      "output": "/listener",
+      "ended": "exit"
+    },
+    "domain0-node-list-after": {
+      "command": "ros2 node list",
+      "output": "/talker",
+      "ended": "exit"
+    },
+    "domain1-listener": {
+      "command": "ROS_DOMAIN_ID=1 ros2 run demo_nodes_cpp listener",
+      "output": "",
+      "ended": "running"
+    },
+    "lab-node-list": {
+      "command": "ros2 node list",
+      "output": "/lidar\n/motor_driver\n/obstacle_detector\n/odometry\n/planner\n/safety_stop\n/wheel_encoder",
+      "ended": "exit"
+    },
+    "lab-topic-list": {
+      "command": "ros2 topic list -t",
+      "output": "/battery [sensor_msgs/msg/BatteryState]\n/cmd_vel [geometry_msgs/msg/Twist]\n/emergency_stop [std_msgs/msg/Empty]\n/joint_states [sensor_msgs/msg/JointState]\n/motor_state [std_msgs/msg/String]\n/obstacle [std_msgs/msg/Bool]\n/odom [nav_msgs/msg/Odometry]\n/parameter_events [rcl_interfaces/msg/ParameterEvent]\n/rosout [rcl_interfaces/msg/Log]\n/scan [sensor_msgs/msg/LaserScan]",
+      "ended": "exit"
+    },
+    "lab-scan-info": {
+      "command": "ros2 topic info --verbose /scan",
+      "output": "Type: sensor_msgs/msg/LaserScan\n\nPublisher count: 1\n\nNode name: lidar\nNode namespace: /",
+      "ended": "exit",
+      "truncated": true
+    },
+    "lab-odom-type": {
+      "command": "ros2 topic type /odom",
+      "output": "nav_msgs/msg/Odometry",
+      "ended": "exit"
+    },
+    "lab-cmd-vel-info": {
+      "command": "ros2 topic info /cmd_vel",
+      "output": "Type: geometry_msgs/msg/Twist\nPublisher count: 2\nSubscription count: 1",
+      "ended": "exit"
+    },
+    "lab-cmd-vel-who": {
+      "command": "ros2 topic info --verbose /cmd_vel | grep -E 'Node name|Endpoint type'",
+      "output": "Node name: planner\nNode namespace: /\nEndpoint type: PUBLISHER\nNode name: safety_stop\nNode namespace: /\nEndpoint type: PUBLISHER\nNode name: motor_driver\nNode namespace: /\nEndpoint type: SUBSCRIPTION",
+      "ended": "exit"
+    },
+    "lab-all-counts": {
+      "command": "for t in $(ros2 topic list); do printf '%-18s %s\\n' \"$t\" \"$(ros2 topic info $t | tail -n 2 | tr '\\n' ' ')\"; done",
+      "output": "/battery           Publisher count: 1 Subscription count: 0\n/cmd_vel           Publisher count: 2 Subscription count: 1\n/emergency_stop    Publisher count: 0 Subscription count: 1\n/joint_states      Publisher count: 1 Subscription count: 1\n/motor_state       Publisher count: 1 Subscription count: 1\n/obstacle          Publisher count: 1 Subscription count: 2\n/odom              Publisher count: 1 Subscription count: 1\n/parameter_events  Publisher count: 8 Subscription count: 0\n/rosout            Publisher count: 8 Subscription count: 0\n/scan              Publisher count: 1 Subscription count: 1",
+      "ended": "exit"
+    },
+    "lab-battery-info": {
+      "command": "ros2 topic info /battery",
+      "output": "Type: sensor_msgs/msg/BatteryState\nPublisher count: 1\nSubscription count: 0",
+      "ended": "exit"
+    },
+    "lab-estop-info": {
+      "command": "ros2 topic info /emergency_stop",
+      "output": "Type: std_msgs/msg/Empty\nPublisher count: 0\nSubscription count: 1",
+      "ended": "exit"
+    },
+    "lab-joint-hz": {
+      "command": "ros2 topic hz /joint_states",
+      "output": "average rate: 50.000\n\tmin: 0.019s max: 0.021s std dev: 0.00032s window: 52",
+      "ended": "stopped",
+      "truncated": true
+    },
+    "lab-cmd-vel-echo": {
+      "command": "ros2 topic echo /cmd_vel --once",
+      "output": "linear:\n  x: 0.25\n  y: 0.0\n  z: 0.0\nangular:\n  x: 0.0\n  y: 0.0\n  z: 0.1\n---",
+      "ended": "exit"
+    },
+    "lab-battery-interface": {
+      "command": "ros2 interface show sensor_msgs/msg/BatteryState",
+      "output": "# Constants are chosen to match the enums in the linux kernel\n# defined in include/linux/power_supply.h as of version 3.7\n# The one difference is for style reasons the constants are\n# all uppercase not mixed case.\n\n# Power supply status constants\nuint8 POWER_SUPPLY_STATUS_UNKNOWN = 0\nuint8 POWER_SUPPLY_STATUS_CHARGING = 1\nuint8 POWER_SUPPLY_STATUS_DISCHARGING = 2\nuint8 POWER_SUPPLY_STATUS_NOT_CHARGING = 3\nuint8 POWER_SUPPLY_STATUS_FULL = 4\n\n# Power supply health constants\nuint8 POWER_SUPPLY_HEALTH_UNKNOWN = 0\nuint8 POWER_SUPPLY_HEALTH_GOOD = 1\nuint8 POWER_SUPPLY_HEALTH_OVERHEAT = 2\nuint8 POWER_SUPPLY_HEALTH_DEAD = 3\nuint8 POWER_SUPPLY_HEALTH_OVERVOLTAGE = 4\nuint8 POWER_SUPPLY_HEALTH_UNSPEC_FAILURE = 5\nuint8 POWER_SUPPLY_HEALTH_COLD = 6\nuint8 POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE = 7\nuint8 POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE = 8\n\n# Power supply technology (chemistry) constants\nuint8 POWER_SUPPLY_TECHNOLOGY_UNKNOWN = 0 # Unknown battery technology\nuint8 POWER_SUPPLY_TECHNOLOGY_NIMH = 1    # Nickel-Metal Hydride battery\nuint8 POWER_SUPPLY_TECHNOLOGY_LION = 2    # Lithium-ion battery\nuint8 POWER_SUPPLY_TECHNOLOGY_LIPO = 3    # Lithium Polymer battery\nuint8 POWER_SUPPLY_TECHNOLOGY_LIFE = 4    # Lithium Iron Phosphate battery\nuint8 POWER_SUPPLY_TECHNOLOGY_NICD = 5    # Nickel-Cadmium battery\nuint8 POWER_SUPPLY_TECHNOLOGY_LIMN = 6    # Lithium Manganese Dioxide battery\nuint8 POWER_SUPPLY_TECHNOLOGY_TERNARY = 7 # Ternary Lithium battery\nuint8 POWER_SUPPLY_TECHNOLOGY_VRLA = 8    # Valve Regulated Lead-Acid battery\n\nstd_msgs/Header  header\n\tbuiltin_interfaces/Time stamp\n\t\tint32 sec\n\t\tuint32 nanosec\n\tstring frame_id\nfloat32 voltage          # Voltage in Volts (Mandatory)\nfloat32 temperature      # Temperature in Degrees Celsius (If unmeasured NaN)\nfloat32 current          # Negative when discharging (A)  (If unmeasured NaN)\nfloat32 charge           # Current charge in Ah  (If unmeasured NaN)\nfloat32 capacity         # Capacity in Ah (last full capacity)  (If unmeasured NaN)\nfloat32 design_capacity  # Capacity in Ah (design capacity)  (If unmeasured NaN)\nfloat32 percentage       # Charge percentage on 0 to 1 range  (If unmeasured NaN)\nuint8   power_supply_status     # The charging status as reported. Values defined above\nuint8   power_supply_health     # The battery health metric. Values defined above\nuint8   power_supply_technology # The battery chemistry. Values defined above\nbool    present          # True if the battery is present\n\nfloat32[] cell_voltage   # An array of individual cell voltages for each cell in the pack\n                         # If individual voltages unknown but number of cells known set each to NaN\nfloat32[] cell_temperature # An array of individual cell temperatures for each cell in the pack\n                           # If individual temperatures unknown but number of cells known set each to NaN\nstring location          # The location into which the battery is inserted. (slot number or plug)\nstring serial_number     # The best approximation of the battery serial number",
+      "ended": "exit"
+    },
+    "lab-motor-before": {
+      "command": "ros2 topic echo /motor_state --once",
+      "output": "data: running\n---",
+      "ended": "exit"
+    },
+    "lab-estop-pub": {
+      "command": "ros2 topic pub --once /emergency_stop std_msgs/msg/Empty \"{}\"",
+      "output": "publisher: beginning loop\npublishing #1: std_msgs.msg.Empty()",
+      "ended": "exit"
+    },
+    "lab-motor-after": {
+      "command": "ros2 topic echo /motor_state --once",
+      "output": "data: stopped\n---",
+      "ended": "exit"
+    },
+    "lab-cmd-vel-after": {
+      "command": "ros2 topic echo /cmd_vel --once",
+      "output": "linear:\n  x: 0.0\n  y: 0.0\n  z: 0.0\nangular:\n  x: 0.0\n  y: 0.0\n  z: 0.0\n---",
+      "ended": "exit"
+    },
+    "lab-start": {
+      "command": "python3 /labs/lesson02/mystery_graph.py",
+      "output": "The robot's software is running.\nLeave this terminal alone and explore from the other one. Press Ctrl+C here to stop it.\n[WARN] [1795429062.806445414] [motor_driver]: Emergency stop received: motors are off.",
+      "ended": "running"
+    }
+  }
+}

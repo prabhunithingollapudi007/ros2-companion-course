@@ -1,0 +1,286 @@
+{
+  "scenarios": [
+    {
+      "name": "nothing running",
+      "steps": [
+        {
+          "id": "empty-node-list",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "empty-topic-list",
+          "cmd": "ros2 topic list"
+        }
+      ]
+    },
+    {
+      "name": "talker and listener",
+      "steps": [
+        {
+          "id": "talker",
+          "cmd": "ros2 run demo_nodes_cpp talker",
+          "background": true,
+          "settle": 3,
+          "lines": 3,
+          "mask": "numbers"
+        },
+        {
+          "id": "topic-info-one",
+          "cmd": "ros2 topic info /chatter"
+        },
+        {
+          "id": "listener",
+          "cmd": "ros2 run demo_nodes_cpp listener",
+          "background": true,
+          "settle": 3,
+          "lines": 3,
+          "mask": "numbers"
+        },
+        {
+          "id": "node-list",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "node-info",
+          "cmd": "ros2 node info /talker",
+          "lines": 7
+        },
+        {
+          "id": "topic-list",
+          "cmd": "ros2 topic list -t"
+        },
+        {
+          "id": "topic-info",
+          "cmd": "ros2 topic info /chatter"
+        },
+        {
+          "id": "topic-type",
+          "cmd": "ros2 topic type /chatter"
+        },
+        {
+          "id": "interface-string",
+          "cmd": "ros2 interface show std_msgs/msg/String"
+        },
+        {
+          "id": "interface-twist",
+          "cmd": "ros2 interface show geometry_msgs/msg/Twist"
+        },
+        {
+          "id": "topic-echo",
+          "cmd": "ros2 topic echo /chatter",
+          "seconds": 4.5,
+          "lines": 4,
+          "mask": "numbers"
+        },
+        {
+          "id": "topic-hz",
+          "cmd": "ros2 topic hz /chatter",
+          "seconds": 5.6,
+          "lines": 2,
+          "mask": "numbers"
+        },
+        {
+          "id": "topic-pub",
+          "cmd": "ros2 topic pub --once /chatter std_msgs/msg/String \"{data: 'hello from the terminal'}\""
+        },
+        {
+          "cmd": "sleep 0.5"
+        },
+        {
+          "id": "listener-heard",
+          "cmd": "grep -F 'hello from the terminal' /tmp/rec/listener.log",
+          "mask": "numbers"
+        },
+        {
+          "cmd": "ros2 topic echo /chatter",
+          "background": true,
+          "settle": 3
+        },
+        {
+          "id": "topic-info-while-echo",
+          "cmd": "ros2 topic info /chatter"
+        },
+        {
+          "id": "node-list-while-echo",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "node-list-all",
+          "cmd": "ros2 node list -a"
+        }
+      ]
+    },
+    {
+      "name": "two types on one topic",
+      "steps": [
+        {
+          "cmd": "ros2 run demo_nodes_cpp talker",
+          "background": true,
+          "settle": 2
+        },
+        {
+          "id": "mismatch-listener",
+          "cmd": "ros2 run demo_nodes_cpp listener",
+          "background": true,
+          "settle": 2,
+          "lines": 2,
+          "mask": "numbers"
+        },
+        {
+          "id": "mismatch-pub",
+          "cmd": "ros2 topic pub --rate 2 /chatter std_msgs/msg/Int32 \"{data: 42}\"",
+          "background": true,
+          "settle": 4,
+          "lines": 3,
+          "mask": "numbers"
+        },
+        {
+          "id": "mismatch-list",
+          "cmd": "ros2 topic list -t"
+        },
+        {
+          "id": "mismatch-info",
+          "cmd": "ros2 topic info /chatter"
+        },
+        {
+          "id": "mismatch-echo",
+          "cmd": "ros2 topic echo /chatter --once",
+          "mayFail": true
+        },
+        {
+          "id": "mismatch-heard-hello",
+          "cmd": "grep -c 'I heard: \\[Hello World' /tmp/rec/mismatch-listener.log",
+          "mask": "numbers"
+        },
+        {
+          "id": "mismatch-heard-42",
+          "cmd": "grep -c 'I heard: \\[42' /tmp/rec/mismatch-listener.log",
+          "mayFail": true
+        }
+      ]
+    },
+    {
+      "name": "two domains",
+      "steps": [
+        {
+          "cmd": "ros2 run demo_nodes_cpp talker",
+          "background": true,
+          "settle": 3
+        },
+        {
+          "id": "domain0-node-list",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "domain1-node-list",
+          "cmd": "ROS_DOMAIN_ID=1 ros2 node list"
+        },
+        {
+          "id": "domain1-topic-list",
+          "cmd": "ROS_DOMAIN_ID=1 ros2 topic list"
+        },
+        {
+          "id": "domain1-listener",
+          "cmd": "ROS_DOMAIN_ID=1 ros2 run demo_nodes_cpp listener",
+          "background": true,
+          "settle": 4
+        },
+        {
+          "id": "domain1-node-list-after",
+          "cmd": "ROS_DOMAIN_ID=1 ros2 node list"
+        },
+        {
+          "id": "domain1-export",
+          "cmd": "export ROS_DOMAIN_ID=1; ros2 node list"
+        },
+        {
+          "id": "domain0-node-list-after",
+          "cmd": "ros2 node list"
+        }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        {
+          "id": "lab-start",
+          "cmd": "python3 /labs/lesson02/mystery_graph.py",
+          "background": true,
+          "settle": 5
+        },
+        {
+          "id": "lab-node-list",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "lab-topic-list",
+          "cmd": "ros2 topic list -t"
+        },
+        {
+          "id": "lab-scan-info",
+          "cmd": "ros2 topic info --verbose /scan",
+          "lines": 6
+        },
+        {
+          "id": "lab-odom-type",
+          "cmd": "ros2 topic type /odom"
+        },
+        {
+          "id": "lab-cmd-vel-info",
+          "cmd": "ros2 topic info /cmd_vel"
+        },
+        {
+          "id": "lab-cmd-vel-who",
+          "cmd": "ros2 topic info --verbose /cmd_vel | grep -E 'Node name|Endpoint type'"
+        },
+        {
+          "id": "lab-all-counts",
+          "cmd": "for t in $(ros2 topic list); do printf '%-18s %s\\n' \"$t\" \"$(ros2 topic info $t | tail -n 2 | tr '\\n' ' ')\"; done"
+        },
+        {
+          "id": "lab-battery-info",
+          "cmd": "ros2 topic info /battery"
+        },
+        {
+          "id": "lab-estop-info",
+          "cmd": "ros2 topic info /emergency_stop"
+        },
+        {
+          "id": "lab-joint-hz",
+          "cmd": "ros2 topic hz /joint_states",
+          "seconds": 5.6,
+          "lines": 2,
+          "mask": "numbers"
+        },
+        {
+          "id": "lab-cmd-vel-echo",
+          "cmd": "ros2 topic echo /cmd_vel --once"
+        },
+        {
+          "id": "lab-battery-interface",
+          "cmd": "ros2 interface show sensor_msgs/msg/BatteryState"
+        },
+        {
+          "id": "lab-motor-before",
+          "cmd": "ros2 topic echo /motor_state --once"
+        },
+        {
+          "id": "lab-estop-pub",
+          "cmd": "ros2 topic pub --once /emergency_stop std_msgs/msg/Empty \"{}\""
+        },
+        {
+          "cmd": "sleep 1.5"
+        },
+        {
+          "id": "lab-motor-after",
+          "cmd": "ros2 topic echo /motor_state --once"
+        },
+        {
+          "id": "lab-cmd-vel-after",
+          "cmd": "ros2 topic echo /cmd_vel --once"
+        }
+      ]
+    }
+  ]
+}

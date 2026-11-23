@@ -1,0 +1,152 @@
+/* Marks shared by the playgrounds. Colours are the site tokens, so both themes work. */
+@import '../figures/figures.css';
+
+.graph-svg {
+  display: block;
+  width: 100%;
+  min-width: 560px;
+  height: auto;
+  font-family: var(--font-ui);
+}
+
+/* An edge between a node and its topic. */
+.edge-live {
+  fill: none;
+  stroke: var(--series-1);
+  stroke-width: 2;
+}
+.edge-dead {
+  fill: none;
+  stroke: var(--axis);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 5;
+}
+.edge-type {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.edge-type.is-dead {
+  fill: var(--text-muted);
+}
+
+/* One message in flight. */
+.msg-dot {
+  fill: var(--series-1);
+  stroke: var(--surface-1);
+  stroke-width: 1.5;
+}
+.msg-dot.is-stray {
+  fill: var(--series-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .msg-dot {
+    display: none;
+  }
+}
+
+.topic-box {
+  fill: var(--accent-wash);
+  stroke: var(--accent);
+  stroke-width: 1.4;
+}
+.topic-box.is-mixed {
+  fill: var(--bad-wash);
+  stroke: var(--bad);
+}
+.topic-warning {
+  fill: var(--bad);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.fig-node-warn {
+  fill: var(--bad-wash);
+  stroke: var(--bad);
+  stroke-width: 1.8;
+}
+
+/* The list of nodes above the live graph. */
+.graph-editor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
+  margin-bottom: 10px;
+}
+.graph-editor-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.graph-editor-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.graph-editor-name {
+  min-width: 8.5em;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.graph-editor select,
+.select-field select {
+  padding: 4px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.select-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.btn-small {
+  padding: 4px 10px;
+  font-size: 0.82rem;
+}
+
+.chart-title {
+  margin: 10px 0 6px;
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  margin: 12px 0 14px;
+}
+.card {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--page);
+}
+.card-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.card-value {
+  margin: 4px 0 2px;
+  font-size: 1.3rem;
+  font-weight: 650;
+}
+.card-note {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 700px) {
+  .graph-editor {
+    grid-template-columns: 1fr;
+  }
+}
