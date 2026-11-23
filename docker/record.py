@@ -114,8 +114,13 @@ def read(log_path):
         return clean(f.read().decode("utf-8", errors="replace"))
 
 
+# ros2 topic pub prints this, once or several times, only while discovery is still going on.
+WAITING = r"^Waiting for at least \d+ matching subscription\(s\)\.\.\.$"
+
+
 def keep(text, lines, from_end=False, ignore=()):
-    if ignore and text:
+    ignore = (WAITING, *ignore)
+    if text:
         patterns = [re.compile(p) for p in ignore]
         text = "\n".join(line for line in text.split("\n") if not any(p.search(line) for p in patterns))
     if not lines or not text:
