@@ -5,8 +5,8 @@
       "steps": [
         { "id": "static-pub", "cmd": "ros2 run tf2_ros static_transform_publisher --x 0.5 --y -0.2 --yaw 0.3 --frame-id map --child-frame-id odom", "background": true, "settle": 2 },
         { "id": "tf-static-echo", "cmd": "ros2 topic echo --once /tf_static", "mask": "stamps" },
-        { "id": "tf2-echo-static", "cmd": "ros2 run tf2_ros tf2_echo map odom", "seconds": 3.5, "lines": 9, "ignore": ["argument target_frame - frame does not exist"] },
-        { "id": "tf2-echo-inverse", "cmd": "ros2 run tf2_ros tf2_echo odom map", "seconds": 3.5, "lines": 3, "ignore": ["argument target_frame - frame does not exist"] },
+        { "id": "tf2-echo-static", "cmd": "ros2 run tf2_ros tf2_echo map odom", "seconds": 3.5, "lines": 9, "ignore": ["Waiting for transform"] },
+        { "id": "tf2-echo-inverse", "cmd": "ros2 run tf2_ros tf2_echo odom map", "seconds": 3.5, "lines": 3, "ignore": ["Waiting for transform"] },
         { "id": "tf2-echo-missing", "cmd": "ros2 run tf2_ros tf2_echo map nowhere 2>&1", "seconds": 4, "lines": 1, "ignore": ["argument target_frame - frame does not exist"] }
       ]
     },
@@ -19,7 +19,7 @@
         { "id": "demo-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
         { "id": "world-launch", "cmd": "source install/setup.bash && ros2 launch frames_demo rover_world.launch.py", "cwd": "/labs/ws", "background": true, "settle": 8, "lines": 8, "mask": "numbers", "check": false, "why": "Lines from five processes arrive in varying order; world-frames checks the tree they make." },
         { "id": "world-frames", "cmd": "ros2 run tf2_tools view_frames 2>&1 | sed -n 1,2p && grep -o '\"[a-z_]*\" -> \"[a-z_]*\"' frames_*.gv | sort", "cwd": "/tmp" },
-        { "id": "tf2-echo-moving", "cmd": "ros2 run tf2_ros tf2_echo map camera", "seconds": 3.5, "lines": 5, "mask": "numbers", "ignore": ["argument target_frame - frame does not exist"] },
+        { "id": "tf2-echo-moving", "cmd": "ros2 run tf2_ros tf2_echo map camera", "seconds": 3.5, "lines": 5, "mask": "numbers", "ignore": ["Waiting for transform"] },
         { "id": "where-is", "cmd": "source install/setup.bash && ros2 run frames_demo where_is", "cwd": "/labs/ws", "seconds": 5, "lines": 2, "mask": "numbers" },
         { "id": "where-is-ahead", "cmd": "source install/setup.bash && ros2 run frames_demo where_is --ros-args -p ask_ahead:=0.5", "cwd": "/labs/ws", "seconds": 3.5, "lines": 1, "mask": "numbers" },
         { "screenshot": "lesson08-rviz.png", "settle": 1 }
