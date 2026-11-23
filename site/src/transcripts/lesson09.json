@@ -12,7 +12,7 @@
   "runs": {
     "sim-build": {
       "command": "colcon build",
-      "output": "Starting >>> rover_description\nFinished <<< rover_description [0.62s]\nStarting >>> rover_sim\nFinished <<< rover_sim [0.66s]\n\nSummary: 2 packages finished [1.39s]",
+      "output": "Starting >>> rover_description\nFinished <<< rover_description [0.59s]\nStarting >>> rover_sim\nFinished <<< rover_sim [0.58s]\n\nSummary: 2 packages finished [1.27s]",
       "ended": "exit",
       "cwd": "/labs/ws"
     },
@@ -23,7 +23,7 @@
     },
     "sim-clock": {
       "command": "ros2 topic echo --once /clock",
-      "output": "clock:\n  sec: 13\n  nanosec: 545000000\n---",
+      "output": "clock:\n  sec: 13\n  nanosec: 453000000\n---",
       "ended": "exit"
     },
     "sim-param": {
@@ -32,8 +32,8 @@
       "ended": "exit"
     },
     "odom-before": {
-      "command": "ros2 topic echo --once /odom --field pose.pose.position",
-      "output": "x: 5.818429992319672e-19\ny: -3.532255830932366e-37\nz: 0.0\n---",
+      "command": "ros2 topic echo --once --no-lost-messages /odom --field pose.pose.position",
+      "output": "x: 5.583156455557562e-19\ny: -4.334295675234368e-37\nz: 0.0\n---",
       "ended": "exit"
     },
     "drive-pub": {
@@ -43,13 +43,13 @@
       "truncated": true
     },
     "odom-after": {
-      "command": "ros2 topic echo --once /odom --field pose.pose.position",
-      "output": "x: 1.6799999998644835\ny: -4.2944796340382906e-15\nz: 0.0\n---",
+      "command": "ros2 topic echo --once --no-lost-messages /odom --field pose.pose.position",
+      "output": "x: 1.642399999867595\ny: 1.2663013004254364e-13\nz: 0.0\n---",
       "ended": "exit"
     },
     "odom-later": {
-      "command": "sleep 2 && ros2 topic echo --once /odom --field pose.pose.position",
-      "output": "x: 2.9719999998644617\ny: 6.71258993703208e-15\nz: 0.0\n---",
+      "command": "sleep 2 && ros2 topic echo --once --no-lost-messages /odom --field pose.pose.position",
+      "output": "x: 2.8799999998675623\ny: 1.5338973733374785e-13\nz: 0.0\n---",
       "ended": "exit"
     },
     "gz-topics": {
@@ -59,19 +59,19 @@
     },
     "sim-launch": {
       "command": "source install/setup.bash && ros2 launch rover_sim sim.launch.py gui:=false",
-      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-12-53-56-854324-ros-companion-232\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [gazebo-1]: process started with pid [236]\n[INFO] [robot_state_publisher-2]: process started with pid [237]\n[INFO] [create-3]: process started with pid [239]\n[INFO] [parameter_bridge-4]: process started with pid [240]\n[robot_state_publisher-2] [WARN] [1795438437.231646626] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-14-34-17-957081-ros-companion-232\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [gazebo-1]: process started with pid [236]\n[INFO] [robot_state_publisher-2]: process started with pid [237]\n[INFO] [create-3]: process started with pid [239]\n[INFO] [parameter_bridge-4]: process started with pid [240]\n[robot_state_publisher-2] [WARN] [1795444458.301526537] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.",
       "ended": "running",
       "cwd": "/labs/ws",
       "truncated": true
     },
     "bridge-both": {
       "command": "ros2 run ros_gz_bridge parameter_bridge /chat@std_msgs/msg/String@gz.msgs.StringMsg /cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist",
-      "output": "[INFO] [1795438470.561200786] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/chat (gz.msgs.StringMsg) -> /chat (std_msgs/msg/String)] (Lazy 0)\n[INFO] [1795438470.563199593] [ros_gz_bridge]: Creating ROS->GZ Bridge: [/chat (std_msgs/msg/String) -> /chat (gz.msgs.StringMsg)] (Lazy 0)\n[INFO] [1795438470.563758040] [ros_gz_bridge]: Creating ROS->GZ Bridge: [/cmd_vel (geometry_msgs/msg/Twist) -> /cmd_vel (gz.msgs.Twist)] (Lazy 0)",
+      "output": "[INFO] [1795444489.949663653] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/chat (gz.msgs.StringMsg) -> /chat (std_msgs/msg/String)] (Lazy 0)\n[INFO] [1795444489.950871616] [ros_gz_bridge]: Creating ROS->GZ Bridge: [/chat (std_msgs/msg/String) -> /chat (gz.msgs.StringMsg)] (Lazy 0)\n[INFO] [1795444489.951684827] [ros_gz_bridge]: Creating ROS->GZ Bridge: [/cmd_vel (geometry_msgs/msg/Twist) -> /cmd_vel (gz.msgs.Twist)] (Lazy 0)",
       "ended": "stopped"
     },
     "bridge-bad": {
       "command": "ros2 run ros_gz_bridge parameter_bridge /cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Odometry",
-      "output": "[INFO] [1795438472.733628041] [ros_gz_bridge]: Creating ROS->GZ Bridge: [/cmd_vel (geometry_msgs/msg/Twist) -> /cmd_vel (gz.msgs.Odometry)] (Lazy 0)\n[WARN] [1795438472.733830342] [ros_gz_bridge]: Failed to create a bridge for topic [/cmd_vel] with ROS2 type [geometry_msgs/msg/Twist] to topic [/cmd_vel] with Gazebo Transport type [gz.msgs.Odometry]: No template specialization for the pair",
+      "output": "[INFO] [1795444494.151269154] [ros_gz_bridge]: Creating ROS->GZ Bridge: [/cmd_vel (geometry_msgs/msg/Twist) -> /cmd_vel (gz.msgs.Odometry)] (Lazy 0)\n[WARN] [1795444494.151957967] [ros_gz_bridge]: Failed to create a bridge for topic [/cmd_vel] with ROS2 type [geometry_msgs/msg/Twist] to topic [/cmd_vel] with Gazebo Transport type [gz.msgs.Odometry]: No template specialization for the pair",
       "ended": "stopped"
     },
     "lab-check-early": {
@@ -81,7 +81,7 @@
     },
     "lab-build": {
       "command": "colcon build",
-      "output": "Starting >>> quad_description\nFinished <<< quad_description [0.80s]\nStarting >>> quad_sim\nFinished <<< quad_sim [0.74s]\n\nSummary: 2 packages finished [1.68s]",
+      "output": "Starting >>> quad_description\nFinished <<< quad_description [0.61s]\nStarting >>> quad_sim\nFinished <<< quad_sim [0.58s]\n\nSummary: 2 packages finished [1.30s]",
       "ended": "exit",
       "cwd": "/labs/ws"
     },

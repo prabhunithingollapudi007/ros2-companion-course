@@ -12,7 +12,7 @@
   "runs": {
     "stack-build": {
       "command": "colcon build",
-      "output": "Starting >>> rover_description\nStarting >>> speed_limiter_interfaces\nFinished <<< rover_description [0.80s]\nStarting >>> rover_sim\nFinished <<< rover_sim [0.75s]\nFinished <<< speed_limiter_interfaces [5.36s]\nStarting >>> speed_limiter\nFinished <<< speed_limiter [8.52s]\nStarting >>> rover_stack\nFinished <<< rover_stack [0.70s]\n\nSummary: 5 packages finished [14.7s]",
+      "output": "Starting >>> rover_description\nStarting >>> speed_limiter_interfaces\nFinished <<< rover_description [0.67s]\nStarting >>> rover_sim\nFinished <<< rover_sim [0.65s]\nFinished <<< speed_limiter_interfaces [4.98s]\nStarting >>> speed_limiter\nFinished <<< speed_limiter [7.91s]\nStarting >>> rover_stack\nFinished <<< rover_stack [0.64s]\n\nSummary: 5 packages finished [13.6s]",
       "ended": "exit",
       "cwd": "/labs/ws"
     },
@@ -33,18 +33,18 @@
       "truncated": true
     },
     "stack-speed": {
-      "command": "ros2 topic echo --once /odom --field twist.twist.linear.x",
-      "output": "0.8000000000001783\n---",
+      "command": "ros2 topic echo --once --no-lost-messages /odom --field twist.twist.linear.x",
+      "output": "0.7999999999989793\n---",
       "ended": "exit"
     },
     "stack-speed-later": {
-      "command": "sleep 2 && ros2 topic echo --once /odom --field twist.twist.linear.x",
-      "output": "0.8000000000001339\n---",
+      "command": "sleep 2 && ros2 topic echo --once --no-lost-messages /odom --field twist.twist.linear.x",
+      "output": "0.8000000000001783\n---",
       "ended": "exit"
     },
     "stack-launch": {
       "command": "source install/setup.bash && ros2 launch rover_stack stack.launch.py gui:=false",
-      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-13-23-56-956933-ros-companion-907\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [gazebo-1]: process started with pid [911]\n[INFO] [robot_state_publisher-2]: process started with pid [912]\n[INFO] [create-3]: process started with pid [914]\n[INFO] [parameter_bridge-4]: process started with pid [915]\n[INFO] [speed_limiter-5]: process started with pid [916]\n[create-3] [INFO] [1795440237.448792449] [ros_gz_sim]: Requesting list of world names.",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-14-36-27-612405-ros-companion-907\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [gazebo-1]: process started with pid [911]\n[INFO] [robot_state_publisher-2]: process started with pid [912]\n[INFO] [create-3]: process started with pid [914]\n[INFO] [parameter_bridge-4]: process started with pid [915]\n[INFO] [speed_limiter-5]: process started with pid [916]\n[robot_state_publisher-2] [WARN] [1795444587.997599196] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.",
       "ended": "running",
       "cwd": "/labs/ws",
       "truncated": true
@@ -56,7 +56,7 @@
     },
     "lab-build": {
       "command": "colcon build --packages-select cmd_watchdog rover_stack",
-      "output": "Starting >>> cmd_watchdog\nFinished <<< cmd_watchdog [7.70s]\nStarting >>> rover_stack\nFinished <<< rover_stack [0.33s]\n\nSummary: 2 packages finished [8.14s]",
+      "output": "Starting >>> cmd_watchdog\nFinished <<< cmd_watchdog [7.39s]\nStarting >>> rover_stack\nFinished <<< rover_stack [0.30s]\n\nSummary: 2 packages finished [7.80s]",
       "ended": "exit",
       "cwd": "/labs/ws"
     },

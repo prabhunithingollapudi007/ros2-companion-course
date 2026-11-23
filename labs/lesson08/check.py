@@ -69,9 +69,11 @@ c.check(
 )
 c.check("they are in the map frame", lambda: results and all(r[1] == "map" for r in results), "Set header.frame_id to map.")
 stamps = {s[0] for s in seen}
+# The two listeners start a moment apart: compare only results from detections both of them heard.
+covered = [r for r in results if stamps and min(stamps) <= r[0] <= max(stamps)]
 c.check(
     "each keeps the stamp of the detection it came from",
-    lambda: results and all(r[0] in stamps for r in results),
+    lambda: len(covered) >= 3 and all(r[0] in stamps for r in covered),
     "The point in the map frame describes the same moment: keep the detection's header.stamp.",
 )
 errors = [math.dist(r[2:], OBJECT) for r in results]

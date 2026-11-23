@@ -39,7 +39,7 @@ def goal(x, y, cancel_after=None):
 
 def odom():
     """(x, y, speed) from one /odom message, or None."""
-    _, text = ros("ros2 topic echo --once /odom nav_msgs/msg/Odometry", isolated=True, timeout=20)
+    _, text = ros("ros2 topic echo --once --no-lost-messages /odom nav_msgs/msg/Odometry", isolated=True, timeout=20)
     m = re.search(r"position:\s+x: (-?[\d.e-]+)\s+y: (-?[\d.e-]+)", text)
     v = re.search(r"twist:\s+twist:\s+linear:\s+x: (-?[\d.e-]+)", text)
     return (float(m.group(1)), float(m.group(2)), float(v.group(1))) if m and v else None

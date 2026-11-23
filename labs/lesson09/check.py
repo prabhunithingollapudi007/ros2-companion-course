@@ -29,7 +29,7 @@ WHEELS = {"left": {"front_left_wheel_joint", "rear_left_wheel_joint"}, "right": 
 
 def odom():
     """(x, y, yaw) from one /odom message, or None."""
-    _, text = ros("ros2 topic echo --once /odom nav_msgs/msg/Odometry --field pose.pose", isolated=True, timeout=15)
+    _, text = ros("ros2 topic echo --once --no-lost-messages /odom nav_msgs/msg/Odometry --field pose.pose", isolated=True, timeout=15)
     values = dict(re.findall(r"^\s*([xyzw]): (-?[\d.e-]+)$", text.split("orientation:")[0], re.M))
     turn = dict(re.findall(r"^\s*([xyzw]): (-?[\d.e-]+)$", text.split("orientation:")[-1], re.M))
     if not values or not turn:

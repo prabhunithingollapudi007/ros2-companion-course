@@ -31,6 +31,10 @@ public:
 private:
   void tick()
   {
+    // Until the listener has heard both frames, there is nothing to ask about yet.
+    if (!buffer_->canTransform("map", "camera", tf2::TimePointZero)) {
+      return;
+    }
     try {
       if (ask_ahead_ > 0.0) {
         const tf2::TimePoint later = tf2_ros::fromMsg(now()) + tf2::durationFromSec(ask_ahead_);

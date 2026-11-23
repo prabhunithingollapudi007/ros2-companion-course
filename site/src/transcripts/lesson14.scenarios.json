@@ -46,8 +46,8 @@
     {
       "name": "lab",
       "steps": [
-        { "id": "lab-lidar", "cmd": "python3 /labs/lesson14/silent_graphs.py lidar --seconds 3" },
-        { "id": "lab-map", "cmd": "python3 /labs/lesson14/silent_graphs.py map --seconds 3" },
+        { "id": "lab-lidar", "cmd": "python3 /labs/lesson14/silent_graphs.py lidar --seconds 3", "ignore": ["\\[fake_lidar\\]: New subscription"] },
+        { "id": "lab-map", "cmd": "python3 /labs/lesson14/silent_graphs.py map --seconds 3", "ignore": ["\\[map_server_lite\\]: New subscription"] },
         { "id": "lab-odom", "cmd": "python3 /labs/lesson14/silent_graphs.py odom --seconds 3" },
         { "id": "lab-odom-topics", "cmd": "(python3 /labs/lesson14/silent_graphs.py odom --seconds 6 > /dev/null &) && sleep 3 && ros2 topic list | grep odom" },
         { "id": "lab-check-early", "cmd": "python3 /labs/lesson14/check.py", "mayFail": true },

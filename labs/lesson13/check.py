@@ -29,7 +29,7 @@ def first_number(text):
 
 
 def echo_x(topic, kind="geometry_msgs/msg/Twist", field="linear.x"):
-    _, text = ros(f"ros2 topic echo --once {topic} {kind} --field {field}", isolated=True, timeout=20)
+    _, text = ros(f"ros2 topic echo --once --no-lost-messages {topic} {kind} --field {field}", isolated=True, timeout=20)
     return first_number(text)
 
 

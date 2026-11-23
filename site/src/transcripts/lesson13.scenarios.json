@@ -10,8 +10,8 @@
         { "id": "stack-nodes", "cmd": "ros2 node list" },
         { "id": "limiter-info", "cmd": "ros2 node info /speed_limiter | sed -n 1,9p" },
         { "id": "stack-drive", "cmd": "ros2 topic pub -r 10 -t 30 /cmd_vel_in geometry_msgs/msg/Twist \"{linear: {x: 1.5}}\"", "lines": 2, "mask": "numbers" },
-        { "id": "stack-speed", "cmd": "ros2 topic echo --once /odom --field twist.twist.linear.x", "mask": "numbers" },
-        { "id": "stack-speed-later", "cmd": "sleep 2 && ros2 topic echo --once /odom --field twist.twist.linear.x", "mask": "numbers" }
+        { "id": "stack-speed", "cmd": "ros2 topic echo --once --no-lost-messages /odom --field twist.twist.linear.x", "mask": "numbers" },
+        { "id": "stack-speed-later", "cmd": "sleep 2 && ros2 topic echo --once --no-lost-messages /odom --field twist.twist.linear.x", "mask": "numbers" }
       ]
     },
     {
