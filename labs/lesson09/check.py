@@ -105,7 +105,7 @@ started = moved = turned = None
 if installed:
     sim = background(GZ + "ros2 launch quad_sim sim.launch.py gui:=false")
     try:
-        code, clock = ros(GZ + "ros2 topic echo --once /clock rosgraph_msgs/msg/Clock", isolated=True, timeout=90)
+        code, clock = ros(GZ + "ros2 topic echo --once --no-lost-messages /clock rosgraph_msgs/msg/Clock", isolated=True, timeout=90)
         started = code == 0 and "sec:" in clock
         if started:
             _, sim_time = ros("ros2 param get /robot_state_publisher use_sim_time", isolated=True)

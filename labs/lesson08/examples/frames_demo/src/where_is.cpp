@@ -32,7 +32,9 @@ private:
   void tick()
   {
     // Until the listener has heard both frames, there is nothing to ask about yet.
-    if (!buffer_->canTransform("map", "camera", tf2::TimePointZero)) {
+    // (Passing a string for the reason keeps canTransform from logging it.)
+    std::string why;
+    if (!buffer_->canTransform("map", "camera", tf2::TimePointZero, &why)) {
       return;
     }
     try {
@@ -44,6 +46,9 @@ private:
       // TimePointZero means "the latest transform you have".
       const auto latest = buffer_->lookupTransform("map", "camera", tf2::TimePointZero);
       const tf2::TimePoint then = tf2_ros::fromMsg(latest.header.stamp) - tf2::durationFromSec(0.5);
+      if (!buffer_->canTransform("map", "camera", then, &why)) {
+        return;  // the buffer does not reach back half a second yet
+      }
       const auto earlier = buffer_->lookupTransform("map", "camera", then);
       RCLCPP_INFO(get_logger(), "camera in map: %s; 0.5 s earlier: %s", describe(latest).c_str(), describe(earlier).c_str());
     } catch (const tf2::TransformException & e) {

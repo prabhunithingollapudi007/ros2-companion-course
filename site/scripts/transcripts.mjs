@@ -56,7 +56,7 @@ function normalise(text, mask) {
     // Every action goal gets a random id.
     .replace(/Goal accepted with ID: [0-9a-f]+/g, 'Goal accepted with ID: ID')
     // `ros2 topic pub` prints this only if discovery has not finished when it starts.
-    .replace(/^Waiting for at least \d+ matching subscription\(s\)\.\.\.\n/m, '')
+    .replace(/^Waiting for at least \d+ matching subscription\(s\)\.\.\.\n/gm, '')
     // `ros2 launch` names its log folder after the date, the host and its process id.
     .replace(/\/\.ros\/log\/\S+/g, '/.ros/log/RUN')
   // For output that is all measurements or counters (rates, "Hello World: 12"): compare its shape only.

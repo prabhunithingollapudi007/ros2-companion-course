@@ -8,7 +8,7 @@
         { "id": "sim-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
         { "id": "sim-launch", "cmd": "source install/setup.bash && ros2 launch rover_sim sim.launch.py gui:=false", "cwd": "/labs/ws", "background": true, "settle": 15, "lines": 7, "mask": "numbers", "ignore": ["getifaddrs"], "check": false, "why": "Lines from four processes arrive in varying order; sim-topics and sim-clock check what started." },
         { "id": "sim-topics", "cmd": "ros2 topic list" },
-        { "id": "sim-clock", "cmd": "ros2 topic echo --once /clock", "mask": "numbers" },
+        { "id": "sim-clock", "cmd": "ros2 topic echo --once --no-lost-messages /clock", "mask": "numbers" },
         { "id": "sim-param", "cmd": "ros2 param get /robot_state_publisher use_sim_time" },
         { "id": "odom-before", "cmd": "ros2 topic echo --once --no-lost-messages /odom --field pose.pose.position", "mask": "numbers" },
         { "id": "drive-pub", "cmd": "ros2 topic pub -r 10 -t 30 /cmd_vel geometry_msgs/msg/Twist \"{linear: {x: 0.4}}\"", "lines": 2, "mask": "numbers" },

@@ -76,7 +76,7 @@ s = {}
 if not missing:
     sim = background(GZ + "ros2 launch rover_stack stack.launch.py gui:=false")
     try:
-        ros(GZ + "ros2 topic echo --once /clock rosgraph_msgs/msg/Clock", isolated=True, timeout=90)
+        ros(GZ + "ros2 topic echo --once --no-lost-messages /clock rosgraph_msgs/msg/Clock", isolated=True, timeout=90)
         time.sleep(3)
         _, s["nodes"] = ros("ros2 node list", isolated=True)
         pub = background('ros2 topic pub -r 10 /cmd_vel_in geometry_msgs/msg/Twist "{linear: {x: 1.5}}"')

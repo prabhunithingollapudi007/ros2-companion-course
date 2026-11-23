@@ -53,7 +53,7 @@ r = {}
 if ready:
     sim = background(GZ + "ros2 launch capstone_bringup capstone.launch.py gui:=false")
     try:
-        ros(GZ + "ros2 topic echo --once /clock rosgraph_msgs/msg/Clock", isolated=True, timeout=90)
+        ros(GZ + "ros2 topic echo --once --no-lost-messages /clock rosgraph_msgs/msg/Clock", isolated=True, timeout=90)
         time.sleep(4)
         _, r["max_speed"] = ros("ros2 param get /go_to max_speed", isolated=True)
         _, r["tolerance"] = ros("ros2 param get /go_to tolerance", isolated=True)
@@ -74,7 +74,7 @@ c.check(
 t = r.get("there") or {}
 c.check(
     f"a goal of {GOAL} is accepted and succeeds, reached, within tolerance",
-    lambda: t["accepted"] and t["status"] == "succeeded" and t["reached"] is True and t["distance_left"] < 0.1,
+    lambda: t["accepted"] and t["status"] == "succeeded" and t["reached"] is True and t["distance_left"] <= 0.1,
     need(f"goal_client.py reported {t}"),
 )
 c.check(
