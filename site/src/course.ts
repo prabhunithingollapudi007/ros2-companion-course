@@ -228,8 +228,8 @@ export const PARTS: Part[] = [
           'Xacro: properties, maths and macros',
           'Loading a robot description from a launch file',
         ],
-        playgrounds: ['A joint tree you can move', 'One xacro macro, four wheels'],
-        lab: 'Model a small wheeled robot in xacro and view it.',
+        playgrounds: ['A joint tree you can move', 'One xacro macro, two wheels'],
+        lab: 'Model a four-wheeled robot with a lidar in xacro, check its tree and inertia, and view it in RViz.',
         sources: [eth(2, 'Robot models (URDF) and xacro'), docs('Tutorials/Intermediate/URDF/URDF-Main', 'URDF tutorials')],
       },
       {
@@ -245,8 +245,8 @@ export const PARTS: Part[] = [
           'Asking for a transform at a time in the past',
           'Seeing frames in RViz',
         ],
-        playgrounds: ['A frame tree you can drag', 'Looking up a transform at an earlier time', 'Quaternions and roll, pitch, yaw'],
-        lab: "Publish a robot's pose in the world frame from a sensor reading.",
+        playgrounds: ['A frame tree you can move', 'Looking up a transform at an earlier time', 'Quaternions and roll, pitch, yaw'],
+        lab: "Place a moving camera's late detections on the map, using the frames as they were when each was seen.",
         sources: [
           eth(2, 'TF transformation system and RViz'),
           docs('Concepts/Intermediate/About-Tf2', 'Concepts: tf2'),
@@ -267,7 +267,7 @@ export const PARTS: Part[] = [
           'Simulated time',
         ],
         playgrounds: ['Differential drive: from wheel speeds to motion', 'Building a bridge rule'],
-        lab: 'Build a small world, spawn your robot in it and drive it from the keyboard.',
+        lab: 'Build a small world, put the four-wheeled robot of Lesson 7 in it, and drive it from the keyboard.',
         sources: [
           eth(2, 'Gazebo Sim and simulation descriptions (SDF)'),
           gazebo('ros2_integration', 'Use ROS 2 to interact with Gazebo'),

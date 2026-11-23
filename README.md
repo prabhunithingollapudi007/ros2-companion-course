@@ -56,18 +56,22 @@ From this folder:
 
     docker compose -f docker/compose.yaml up -d --build
 
-The first start downloads about 1 GB. While it runs, the lab section of a lesson
+The first start builds the image, which takes a while and about 5 GB of disk
+(RViz and Gazebo are most of it). While it runs, the lab section of a lesson
 shows live terminals inside the container, and http://localhost:7681 is one in
-its own tab. This is tested with the site running locally. A hosted copy can try
+its own tab. From Lesson 7 on, labs also show the container's desktop, where
+RViz and Gazebo open their windows; it is http://localhost:6080/vnc.html in a
+tab of its own. This is tested with the site running locally. A hosted copy can try
 the same, but browsers may ask permission before, or refuse, letting a public
 page reach a server on your own computer; the new-tab link works either way. The `labs/` folder is shared with the container as `/labs`. Stop it with:
 
     docker compose -f docker/compose.yaml down
 
-What it opens on your machine: one web terminal (`ttyd`) on port 7681, bound to
-`127.0.0.1` so that only this computer can reach it, and refusing connections
-that other web sites try to open to it. Anyone who can reach that port has a
-shell in the container, which is why it is not exposed to the network.
+What it opens on your machine: a web terminal (`ttyd`) on port 7681, refusing
+connections that other web sites try to open to it, and a desktop (a VNC server
+seen through noVNC) on port 6080. Both are bound to `127.0.0.1` so that only this
+computer can reach them. Anyone who can reach those ports has a shell or a desktop
+in the container, which is why they are not exposed to the network.
 
 ## Recorded terminal sessions
 
@@ -84,11 +88,18 @@ lab answers to those recordings.
 
 Both need Docker and the image built once (`docker compose -f docker/compose.yaml build`).
 The check ignores what is expected to change between runs: clock times, generated
-ids and, for commands marked so, measured numbers such as rates. Where output
+ids and, for commands marked so, measured numbers such as rates or the time
+stamps of messages. Where output
 depends on timing (several processes' lines interleaving, how long discovery took),
 a scenario shows it but leaves it out of the check, says why, and checks the same
 fact another way. The recorder runs commands without a terminal, so it removes the
 one line `ros2 bag` prints only in that case ("stdin is not a terminal device").
+
+Scenarios marked `"display": true` run with a virtual screen (Xvfb), so programs
+that open windows, such as RViz, can run; a step `{"screenshot": "name.png"}`
+saves the screen to `site/public/shots/`, and a lesson shows it with
+`<Screenshot name="name.png" ...>`. When checking, screenshots are taken but not
+compared: what a window looks like varies, so only that the programs ran is checked.
 
 ## Tests
 

@@ -41,8 +41,8 @@
       "ended": "exit"
     },
     "fresh-path": {
-      "command": "source /opt/ros/jazzy/setup.bash; echo $PATH | tr ':' '\\n' | head -3",
-      "output": "/opt/ros/jazzy/bin\n/usr/local/sbin\n/usr/local/bin",
+      "command": "source /opt/ros/jazzy/setup.bash; echo $PATH | tr ':' '\\n' | grep ^/opt/ros",
+      "output": "/opt/ros/jazzy/opt/gz_msgs_vendor/bin\n/opt/ros/jazzy/opt/gz_tools_vendor/bin\n/opt/ros/jazzy/opt/gz_ogre_next_vendor/bin\n/opt/ros/jazzy/bin",
       "ended": "exit"
     },
     "os-release": {
@@ -62,7 +62,7 @@
     },
     "pkg-count": {
       "command": "ros2 pkg list | wc -l",
-      "output": "197",
+      "output": "261",
       "ended": "exit"
     },
     "pkg-executables": {
@@ -112,19 +112,19 @@
     },
     "listener": {
       "command": "ros2 run demo_nodes_cpp listener",
-      "output": "[INFO] [1795429759.273449514] [listener]: I heard: [Hello World: 1]\n[INFO] [1795429760.274112824] [listener]: I heard: [Hello World: 2]\n[INFO] [1795429761.273520372] [listener]: I heard: [Hello World: 3]\n[INFO] [1795429762.273227547] [listener]: I heard: [Hello World: 4]\n[INFO] [1795429769.668765299] [listener]: I heard: [Hello World: 1]\n[INFO] [1795429770.668610227] [listener]: I heard: [Hello World: 2]",
+      "output": "[INFO] [1795437382.539355237] [listener]: I heard: [Hello World: 1]\n[INFO] [1795437383.539210892] [listener]: I heard: [Hello World: 2]\n[INFO] [1795437384.539254323] [listener]: I heard: [Hello World: 3]\n[INFO] [1795437385.539289958] [listener]: I heard: [Hello World: 4]\n[INFO] [1795437393.612617205] [listener]: I heard: [Hello World: 1]\n[INFO] [1795437394.612520662] [listener]: I heard: [Hello World: 2]",
       "ended": "running",
       "truncated": true
     },
     "talker": {
       "command": "ros2 run demo_nodes_cpp talker",
-      "output": "[INFO] [1795429759.273010547] [talker]: Publishing: 'Hello World: 1'\n[INFO] [1795429760.273241934] [talker]: Publishing: 'Hello World: 2'\n[INFO] [1795429761.273044394] [talker]: Publishing: 'Hello World: 3'",
+      "output": "[INFO] [1795437382.538971071] [talker]: Publishing: 'Hello World: 1'\n[INFO] [1795437383.538947992] [talker]: Publishing: 'Hello World: 2'\n[INFO] [1795437384.538966432] [talker]: Publishing: 'Hello World: 3'",
       "ended": "running",
       "truncated": true
     },
     "talker-again": {
       "command": "ros2 run demo_nodes_cpp talker",
-      "output": "[INFO] [1795429769.667935511] [talker]: Publishing: 'Hello World: 1'\n[INFO] [1795429770.667868135] [talker]: Publishing: 'Hello World: 2'",
+      "output": "[INFO] [1795437393.612205850] [talker]: Publishing: 'Hello World: 1'\n[INFO] [1795437394.612186228] [talker]: Publishing: 'Hello World: 2'",
       "ended": "running",
       "truncated": true
     }

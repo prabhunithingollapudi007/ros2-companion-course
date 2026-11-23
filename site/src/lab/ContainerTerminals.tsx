@@ -4,6 +4,9 @@ import './lab.css'
 
 /** Where the course container serves its web terminal (see docker/compose.yaml). */
 export const TERMINAL_URL = 'http://localhost:7681/'
+/** Its desktop, where RViz and Gazebo open their windows, through noVNC. */
+export const DESKTOP_URL = 'http://localhost:6080/vnc.html'
+const DESKTOP_VIEW = `${DESKTOP_URL}?autoconnect=true&resize=scale&reconnect=true`
 
 const START = 'docker compose -f docker/compose.yaml up -d --build'
 const STOP = 'docker compose -f docker/compose.yaml down'
@@ -23,6 +26,8 @@ async function reach(): Promise<Status> {
 interface Props {
   /** One entry per terminal window, with what to type in it first and how tall it is. */
   terminals: { title: string; first: string; height?: number }[]
+  /** Also show the container's desktop, for labs that open windows (RViz, Gazebo). */
+  desktop?: boolean
 }
 
 /**
@@ -30,7 +35,7 @@ interface Props {
  * its own shell in the same container, so they share one ROS graph. When the
  * container is not running, this says how to start it.
  */
-export function ContainerTerminals({ terminals }: Props) {
+export function ContainerTerminals({ terminals, desktop = false }: Props) {
   const [status, setStatus] = useState<Status>('checking')
 
   const check = () => {
@@ -63,20 +68,33 @@ export function ContainerTerminals({ terminals }: Props) {
               Open a terminal in a new tab
             </a>
           )}
+          {status === 'up' && desktop && (
+            <a className="btn btn-quiet btn-small" href={DESKTOP_VIEW} target="_blank" rel="noreferrer">
+              Open the desktop in a new tab
+            </a>
+          )}
         </span>
       </header>
 
       {status === 'up' ? (
-        <div className="container-terminals">
-          {terminals.map((t) => (
-            <div className="container-terminal" key={t.title}>
-              <div className="container-terminal-title">
-                {t.title}: <code>{t.first}</code>
+        <>
+          <div className="container-terminals">
+            {terminals.map((t) => (
+              <div className="container-terminal" key={t.title}>
+                <div className="container-terminal-title">
+                  {t.title}: <code>{t.first}</code>
+                </div>
+                <iframe src={TERMINAL_URL} title={`${t.title}, a shell in the course container`} style={{ height: t.height ?? 340 }} />
               </div>
-              <iframe src={TERMINAL_URL} title={`${t.title}, a shell in the course container`} style={{ height: t.height ?? 340 }} />
+            ))}
+          </div>
+          {desktop && (
+            <div className="container-terminal container-desktop">
+              <div className="container-terminal-title">The container&apos;s desktop: windows that programs open appear here</div>
+              <iframe src={DESKTOP_VIEW} title="The course container's desktop" />
             </div>
-          ))}
-        </div>
+          )}
+        </>
       ) : (
         <div className="container-lab-help">
           <p>
@@ -89,9 +107,16 @@ export function ContainerTerminals({ terminals }: Props) {
           </p>
           <pre className="container-lab-cmd">{START}</pre>
           <p className="small dim">
-            The first start downloads about 1 GB and takes a few minutes; later starts take seconds. Then press{' '}
-            <em>Check again</em>. To stop it afterwards: <code>{STOP}</code>. The terminals are served on{' '}
-            <code>{TERMINAL_URL}</code> and accept connections from this computer only.
+            The first start builds the image, which takes a while and about 5 GB of disk; later starts take seconds. Then
+            press <em>Check again</em>. To stop it afterwards: <code>{STOP}</code>. The terminals are served on{' '}
+            <code>{TERMINAL_URL}</code>
+            {desktop && (
+              <>
+                {' '}
+                and the desktop on <code>{DESKTOP_URL}</code>, both
+              </>
+            )}{' '}
+            and accept connections from this computer only.
           </p>
         </div>
       )}

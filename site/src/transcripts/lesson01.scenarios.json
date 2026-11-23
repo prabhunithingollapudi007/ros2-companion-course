@@ -37,7 +37,7 @@
         },
         {
           "id": "fresh-path",
-          "cmd": "source /opt/ros/jazzy/setup.bash; echo $PATH | tr ':' '\\n' | head -3",
+          "cmd": "source /opt/ros/jazzy/setup.bash; echo $PATH | tr ':' '\\n' | grep ^/opt/ros",
           "fresh": true
         }
       ]

@@ -28,6 +28,13 @@ A scenario is a JSON list of steps. A step is one of:
   {"id": "build", "cmd": "colcon build", "cwd": "/root/ws"}
       Run it in that folder. The lesson page shows the folder in the prompt.
 
+  {"screenshot": "lesson07-rviz.png", "settle": 4}
+      Wait, then save what is on the virtual screen to /shots/<name>. Needs the
+      scenario to set "display": true, which starts a virtual screen (Xvfb, 1280x800,
+      or another size given as "display": "WIDTHxHEIGHT")
+      before the first step, so programs such as RViz can open their windows.
+      With "trim": true, the empty screen around a smaller window is cut away.
+
   {"id": "no-ros", "cmd": "ros2 --help", "fresh": true}
       Run it in a clean shell where ROS has not been set up (no setup file
       sourced, no ROS variables), as on a computer with ROS installed but not
@@ -112,8 +119,20 @@ def keep(text, lines, from_end=False, ignore=()):
     return "\n".join(rows[-lines:] if from_end else rows[:lines]), True
 
 
+def start_display(size="1280x800"):
+    """A virtual screen for programs with windows, and a window manager to place them."""
+    os.environ["DISPLAY"] = ":99"
+    subprocess.Popen(["Xvfb", ":99", "-screen", "0", f"{size}x24"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(1)
+    subprocess.Popen(["openbox"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(1)
+
+
 def main():
-    steps = json.load(sys.stdin)
+    scenario = json.load(sys.stdin)
+    steps = scenario["steps"]
+    if scenario.get("display"):
+        start_display(scenario["display"] if isinstance(scenario["display"], str) else "1280x800")
     os.makedirs(LOGS, exist_ok=True)
     # The ros2 command keeps a background helper (the daemon) that tracks the graph.
     # The first command starts it, and if nodes are already running it can answer
@@ -127,6 +146,17 @@ def main():
     for index, step in enumerate(steps):
         step_id = step.get("id")
         name = step_id or f"step{index}"
+
+        if "screenshot" in step:
+            time.sleep(float(step.get("settle", 2)))
+            target = f"/shots/{step['screenshot']}"
+            # "trim": cut away the empty screen around a window smaller than the screen.
+            command = ["import", "-window", "root"] + (["-trim", "+repage"] if step.get("trim") else []) + [target]
+            shot = subprocess.run(command, capture_output=True, text=True)
+            if shot.returncode != 0:
+                failed = f"screenshot {target} failed: {shot.stderr}"
+                break
+            continue
 
         if "tail" in step:
             _, source, log_path = background[step["tail"]]

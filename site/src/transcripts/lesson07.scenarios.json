@@ -1,0 +1,55 @@
+{
+  "scenarios": [
+    {
+      "name": "from xacro to URDF",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson07/examples/rover_description /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null" },
+        { "id": "xacro-left", "cmd": "xacro src/rover_description/urdf/rover.urdf.xacro | grep -A 6 'joint name=\"left_wheel_joint\"'", "cwd": "/labs/ws" },
+        { "id": "xacro-right", "cmd": "xacro src/rover_description/urdf/rover.urdf.xacro | grep -A 6 'joint name=\"right_wheel_joint\"'", "cwd": "/labs/ws" },
+        { "id": "xacro-inertia", "cmd": "xacro src/rover_description/urdf/rover.urdf.xacro | grep -m 1 -B 1 '<inertia '", "cwd": "/labs/ws" },
+        { "id": "xacro-lines", "cmd": "wc -l src/rover_description/urdf/rover.urdf.xacro && xacro src/rover_description/urdf/rover.urdf.xacro | wc -l", "cwd": "/labs/ws" },
+        { "cmd": "xacro src/rover_description/urdf/rover.urdf.xacro > /tmp/rover.urdf", "cwd": "/labs/ws" },
+        { "id": "check-urdf", "cmd": "check_urdf /tmp/rover.urdf" }
+      ]
+    },
+    {
+      "name": "the rover in RViz",
+      "labs": true,
+      "display": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson07/examples/rover_description /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null" },
+        { "id": "view-launch", "cmd": "source install/setup.bash && ros2 launch rover_description view.launch.py gui:=false", "cwd": "/labs/ws", "background": true, "settle": 8, "lines": 6, "mask": "numbers", "check": false, "why": "Lines from four processes arrive in varying order; view-nodes checks what was started." },
+        { "id": "view-nodes", "cmd": "ros2 node list" },
+        { "id": "view-topics", "cmd": "ros2 topic list" },
+        { "id": "joint-states", "cmd": "ros2 topic echo --once /joint_states", "mask": "numbers" },
+        { "screenshot": "lesson07-rviz.png", "settle": 3 }
+      ]
+    },
+    {
+      "name": "turning the camera",
+      "labs": true,
+      "display": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson07/examples/rover_description /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null" },
+        { "cmd": "xacro src/rover_description/urdf/rover.urdf.xacro > /tmp/rover.urdf && python3 -c \"import yaml; print(yaml.safe_dump({'robot_state_publisher': {'ros__parameters': {'robot_description': open('/tmp/rover.urdf').read()}}}))\" > /tmp/rsp.yaml", "cwd": "/labs/ws" },
+        { "cmd": "ros2 run robot_state_publisher robot_state_publisher --ros-args --params-file /tmp/rsp.yaml", "background": true, "settle": 2 },
+        { "id": "pub-joints", "cmd": "ros2 topic pub -r 10 /joint_states sensor_msgs/msg/JointState \"{header: {stamp: now}, name: [left_wheel_joint, right_wheel_joint, camera_pan], position: [0.0, 0.0, 1.2]}\"", "background": true, "settle": 2, "lines": 1 },
+        { "cmd": "source install/setup.bash && rviz2 -d install/rover_description/share/rover_description/rviz/view.rviz", "cwd": "/labs/ws", "background": true, "settle": 8 },
+        { "screenshot": "lesson07-rviz-pan.png", "settle": 2 }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson07/check.py", "mayFail": true },
+        { "cmd": "cp -r /labs/lesson07/solution/quad_description /labs/ws/src/" },
+        { "id": "lab-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-inertia", "cmd": "xacro src/quad_description/urdf/quad.urdf.xacro | grep -m 1 -B 1 '<inertia '", "cwd": "/labs/ws" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson07/check.py" }
+      ]
+    }
+  ]
+}

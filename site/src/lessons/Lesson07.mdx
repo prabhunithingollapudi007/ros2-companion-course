@@ -1,0 +1,202 @@
+import { BigPicture, Bridge, Derivation, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Screenshot } from '../components/Screenshot'
+import { Terminal } from '../components/Terminal'
+import { LinkAndJoint, RoverTree } from '../figures/lesson07'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { JointTreePlayground } from '../playgrounds/lesson07/JointTreePlayground'
+import { MacroPlayground } from '../playgrounds/lesson07/MacroPlayground'
+import { lesson07 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code, roverPart } from './lesson07.code'
+import { lesson07Lab } from './lesson07.lab'
+import { lesson07Quiz } from './lesson07.quiz'
+
+export const r = lesson07.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+So far ROS has been bodiless: nodes passing messages. To draw a robot, simulate it, or say where its camera is pointing, ROS needs a description of its body: the rigid parts, and the joints that connect them and let them move. That description is **URDF**, an XML file, and **xacro** is the macro language that keeps it short. A node called **robot_state_publisher** combines the description with the current joint angles and works out where every part is, which is what RViz draws and what the frames of Lesson 8 are made of.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson07} />
+
+## Links and joints
+
+<LinkAndJoint />
+
+The lesson's example is a small rover: a box for a body, two driven wheels, a ball caster at the back to rest on, and a camera on top that can pan. Its links and joints form this tree:
+
+<RoverTree />
+
+Each link has its own coordinate frame. A link says nothing about where it is; its frame is placed by the joint above it. Here is the body, with the numbers it uses declared at the top of the file:
+
+<Listing {...code.rover} lines={roverPart('<!-- Dimensions', '</link>')} highlight={at(code.rover, '<link name="base_link">', '<visual>', '<collision>', '<inertial>')} />
+
+The `${...}` parts are xacro, which comes below; for now read them as the numbers they name. A box's geometry is centred on the link's frame, so this body reaches 0.20 m forward and back, 0.15 m to each side, and 0.05 m up and down.
+
+<Derivation title="The inertia of a box and a cylinder" why="Every link that a simulator moves needs a mass and an inertia, and getting them badly wrong makes simulated robots jitter, tip or fly off. These two formulas cover most simple parts.">
+
+For a solid box of mass $m$ and sides $x$, $y$, $z$, centred on its frame, the moments of inertia about its three axes are
+
+$$
+I_{xx} = \frac{m}{12}\,(y^2 + z^2), \qquad I_{yy} = \frac{m}{12}\,(x^2 + z^2), \qquad I_{zz} = \frac{m}{12}\,(x^2 + y^2).
+$$
+
+Each one adds up $\int r^2\,dm$ over the box, where $r$ is the distance from the axis; turning about $x$, only the $y$ and $z$ extents are in the way. The off-diagonal terms are zero because the box is symmetric about its frame.
+
+For a solid cylinder of radius $r$ and length $h$ along its $z$ axis,
+
+$$
+I_{zz} = \frac{m r^2}{2}, \qquad I_{xx} = I_{yy} = \frac{m}{12}\,(3r^2 + h^2).
+$$
+
+For the rover's body, $m = 4$ kg and the box is 0.40 × 0.30 × 0.10 m, so $I_{xx} = \tfrac{4}{12}(0.09 + 0.01) \approx 0.0333$ kg·m². That is the number xacro wrote, further down.
+
+</Derivation>
+
+## Joints: where the child is, and how it moves
+
+The camera's joint shows every part of a joint at once:
+
+<Listing {...code.rover} lines={roverPart('<!-- A ball at the back', '</robot>')} highlight={at(code.rover, '<joint name="camera_pan" type="revolute">', '<origin xyz="${base_length/2 - 0.05}', '<axis xyz="0 0 1"/>', '<limit lower')} />
+
+- **origin** puts the child's frame in the parent's: the camera sits 0.15 m forward of the body's centre and 0.07 m up. It can also turn the child's frame, with `rpy`: roll, pitch and yaw in radians, about the parent's x, y and z axes in that order.
+- **axis** is what the joint turns about, in the child's frame. `0 0 1` is the camera's z axis, pointing up, so it pans left and right.
+- **limit** bounds a revolute or prismatic joint: here ±π/2, a quarter of a turn either way. The caster's joint is fixed, so it has neither axis nor limit.
+
+The wheels need one more idea. A URDF cylinder is drawn along its own z axis, and the wheels' should point sideways. So each wheel joint turns the wheel's frame with `rpy="-π/2 0 0"`, a roll of −90° that tips the z axis from pointing up to pointing left, along the robot's y axis. The wheel then spins about its own z axis, `axis xyz="0 0 1"`, which is the robot's y. Both wheels get the same turn, so a positive angle rolls either of them forward.
+
+## Xacro: properties, maths and macros
+
+Plain URDF has no variables, so a robot with two identical wheels repeats the same 20 lines twice with different numbers, and changing the wheel size means changing it everywhere. **Xacro** adds what was missing, then writes plain URDF:
+
+- `<xacro:property name="wheel_radius" value="0.08"/>` names a value; `${wheel_radius}` uses it.
+- `${...}` is a Python expression, so `${base_width/2 + wheel_width/2}` and `${-pi/2}` work.
+- `<xacro:macro name="wheel" params="side reflect">` defines a reusable block; `<xacro:wheel side="left" reflect="1"/>` stamps out a copy with those parameters filled in.
+
+<Listing {...code.rover} lines={roverPart('<!-- One macro', '<xacro:wheel side="right"')} highlight={at(code.rover, '<xacro:macro name="wheel"', '<link name="${side}_wheel">', '<joint name="${side}_wheel_joint"', '<origin xyz="${wheel_x}', '<xacro:wheel side="left"', '<xacro:wheel side="right"')} />
+
+Running `xacro` on the file shows what each call became. `reflect` puts one wheel on each side:
+
+<Terminal run={[r['xacro-left'], r['xacro-right']]} />
+
+<PlainWords>
+
+xacro evaluates `${...}` as Python and writes the result with Python's number formatting. In binary floating point, 0.15 + 0.02 is not quite 0.17, so the wheel lands at y = 0.16999999999999998 m. That is about 2 × 10⁻¹⁷ m off, far below anything physical, and every program reading the URDF parses it back to the same number. It looks odd, and is fine.
+
+</PlainWords>
+
+The inertia macros at the top of the file turn the formulas above into numbers, and the whole file grows by a fifth when expanded:
+
+<Terminal run={[r['xacro-inertia'], r['xacro-lines']]} />
+
+<MacroPlayground />
+
+`check_urdf` parses a URDF and prints its tree, which is a quick way to find a misspelt parent or a link left unattached:
+
+<Terminal run={r['check-urdf']} />
+
+## Showing the robot
+
+<Listing {...code.viewLaunch} highlight={at(code.viewLaunch, "robot_description = ParameterValue(Command(['xacro ', model]), value_type=str)", "parameters=[{'robot_description': robot_description}]", "executable='joint_state_publisher_gui'", "executable='joint_state_publisher',", "package='rviz2'")} />
+
+Three nodes, each with one job:
+
+- **robot_state_publisher** gets the robot's URDF in its parameter `robot_description`. `Command(['xacro ', model])` runs xacro when the launch starts, so the parameter holds the expanded URDF; robot_state_publisher never sees xacro. `ParameterValue(..., value_type=str)` tells launch to pass the text as it is rather than try to read it as YAML. The node also republishes the description on the topic `/robot_description`, which is where RViz and joint_state_publisher read it.
+- **joint_state_publisher** publishes `/joint_states`, a position for each movable joint, all zero; **joint_state_publisher_gui** does the same with a slider for each. On a real robot, the motor drivers publish `/joint_states` instead.
+- **rviz2** draws it, with a layout from `view.rviz` that shows the model and its frames.
+
+The package installs the model, the launch file and the layout, so `ros2 launch` can find them:
+
+<Listing {...code.cmake} highlight={at(code.cmake, 'install(DIRECTORY')} />
+
+Launched with `gui:=false`, so the plain joint_state_publisher runs:
+
+<Terminal run={r['view-launch']} />
+
+robot_state_publisher's warning is harmless here. It computes positions with a library called KDL, which has no use for the mass of the root link and says so. Many robots add a massless root link called `base_footprint`, on the ground under the robot, which also silences it.
+
+<Terminal run={[r['view-nodes'], r['view-topics'], r['joint-states']]} />
+
+The fourth node is RViz's own: it listens to the transforms on `/tf` and `/tf_static`. Only the three movable joints are in `/joint_states`; the caster's fixed joint has nothing to report, so robot_state_publisher publishes it once, on `/tf_static`.
+
+<Screenshot
+  name="lesson07-rviz.png"
+  alt="RViz showing the rover: a translucent blue box with two dark wheels, an orange camera at the front and a caster sphere at the back, with red, green and blue axes and the name of each link's frame."
+  caption="The rover in RViz. The body is drawn see-through so the frames show: one per link, red for x, green for y, blue for z. Each wheel's z axis points sideways, as its joint's rpy made it."
+/>
+
+<JointTreePlayground />
+
+<TryThis>
+
+- **Turn camera_pan past 90°.** The slider stops, as joint_state_publisher_gui's does: the limits in the file set its range.
+- **Turn both wheels.** They spin, but the rover stays where it is. Joint states say how the parts sit relative to each other; where the whole robot is in the world is a different question, for Lessons 8 and 9.
+- **Find the caster.** It has no slider, and is not in the message, because its joint is fixed.
+
+</TryThis>
+
+The sliders are only one publisher of `/joint_states`. With robot_state_publisher and RViz running as before, but no joint_state_publisher, a message from the terminal turns the camera by 1.2 rad, about 69°:
+
+<Terminal run={r['pub-joints']} />
+
+<Screenshot
+  name="lesson07-rviz-pan.png"
+  alt="The same RViz view with the orange camera turned to the robot's left, its red x axis pointing sideways instead of forwards."
+  caption="The camera after the message: turned 1.2 rad about its z axis. The rest of the robot is unchanged."
+/>
+
+`stamp: now` matters: robot_state_publisher stamps the transforms it computes with the message's stamp. Left at zero, the transforms are dated 1970, and RViz, which wants transforms for the present, showed the model in error when we tried it. Lesson 8 is about exactly this: frames, and when.
+
+<Bridge title="ETH's course">
+
+ETH's second lecture covers robot models in URDF and xacro alongside the simulation description format SDF and Gazebo, which here are Lesson 9. Its exercises load a robot's description from a launch file the same way: xacro run by `Command`, handed to robot_state_publisher as `robot_description`.
+
+</Bridge>
+
+## Lab: a four-wheeled robot
+
+Model this robot in a package of your own, then show it in RViz:
+
+| | |
+| --- | --- |
+| Package | `quad_description` (`ament_cmake`), in `/labs/ws/src` |
+| Robot | `quad`, in `urdf/quad.urdf.xacro` |
+| Body | `base_link`: a box 0.50 m long, 0.30 m wide and 0.12 m high, 6 kg |
+| Wheels | four cylinders of radius 0.07 m and width 0.05 m, 0.4 kg each: `front_left_wheel`, `front_right_wheel`, `rear_left_wheel`, `rear_right_wheel`, each on a continuous joint named after it (`front_left_wheel_joint`, ...) from `base_link`, centred 0.18 m forward or back and 0.175 m to the side, turning about the robot's y axis |
+| Lidar | `lidar`: a cylinder of radius 0.04 m and height 0.06 m, on a fixed joint `lidar_joint` at (0.15, 0, 0.09) |
+| Inertia | every link has a mass and an inertia, from the box and cylinder formulas |
+| Launch | `launch/display.launch.py` with an argument `rviz`, default `true`. It always starts robot_state_publisher with the expanded xacro; when `rviz` is true, also joint_state_publisher_gui and RViz |
+
+Use one macro for the four wheels. Install `urdf` and `launch` in `CMakeLists.txt`, build, and launch. RViz opens empty without a layout: set *Fixed Frame* to `base_link`, then *Add* a RobotModel (with *Description Topic* `/robot_description`) and a TF display. *File → Save Config As* saves the layout, for `-d` as in the rover's launch file. Check with `python3 /labs/lesson07/check.py`, which expands your file and measures it. A reference solution is in `labs/lesson07/solution`.
+
+<ContainerTerminals
+  desktop
+  terminals={[
+    { title: 'Terminal 1', first: 'cd /labs/ws/src && ros2 pkg create --build-type ament_cmake quad_description', height: 240 },
+    { title: 'Terminal 2', first: 'cd /labs/ws && colcon build && source install/setup.bash', height: 240 },
+  ]}
+/>
+
+<LabQuestions questions={lesson07Lab} />
+
+## Quiz
+
+<Quiz questions={lesson07Quiz} />
+
+<Recap>
+
+- A **URDF** describes a robot as **links** (rigid parts: visual, collision, inertial) connected by **joints** (fixed, revolute, continuous, prismatic) into a tree with one root.
+- A joint's **origin** places the child's frame in the parent's, with `xyz` and `rpy`; its **axis** is in the child's frame; **limits** bound revolute and prismatic joints.
+- **Xacro** adds properties, `${...}` Python expressions and macros, then writes plain URDF. `xacro file.urdf.xacro` shows the result; `check_urdf` prints the tree.
+- **robot_state_publisher** takes the URDF as its `robot_description` parameter, listens to `/joint_states`, and publishes where every link is: `/tf` for moving joints, `/tf_static` for fixed ones.
+- **joint_state_publisher(_gui)** stands in for the motors' joint states; RViz draws the model from `/robot_description` and the frames.
+- Next: those frames, and how to ask where anything is relative to anything else, at any moment.
+
+</Recap>

@@ -13,7 +13,8 @@
 //   docker compose -f docker/compose.yaml build
 
 import { spawnSync } from 'node:child_process'
-import { readdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -27,6 +28,8 @@ if (mode !== 'record' && mode !== 'check') {
   console.error('Usage: node scripts/transcripts.mjs record|check [lessonNN ...]')
   process.exit(2)
 }
+await mkdir(path.join(site, 'public', 'shots'), { recursive: true })
+const scratchShots = await mkdtemp(path.join(tmpdir(), 'ros-companion-shots-'))
 
 function docker(args, input) {
   const result = spawnSync('docker', args, { input, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
@@ -43,12 +46,18 @@ function normalise(text, mask) {
     .replace(/GID: [0-9a-f.]+/g, 'GID: X')
     .replace(/_ros2cli_daemon_\d+_[0-9a-f]+/g, '_ros2cli_daemon_N')
     .replace(/_ros2cli_\d+/g, '_ros2cli_N')
+    // RViz and other tf2 users start a listener node named after a memory address.
+    .replace(/transform_listener_impl_[0-9a-f]+/g, 'transform_listener_impl_ID')
+    // static_transform_publisher gives itself a random name unless told one.
+    .replace(/static_transform_publisher_[A-Za-z0-9]{16}/g, 'static_transform_publisher_ID')
     // `ros2 topic pub` prints this only if discovery has not finished when it starts.
     .replace(/^Waiting for at least \d+ matching subscription\(s\)\.\.\.\n/m, '')
     // `ros2 launch` names its log folder after the date, the host and its process id.
     .replace(/\/\.ros\/log\/\S+/g, '/.ros/log/RUN')
   // For output that is all measurements or counters (rates, "Hello World: 12"): compare its shape only.
   if (mask === 'numbers') out = out.replace(/-?\d+(\.\d+)?(e-?\d+)?/g, '#')
+  // For messages stamped with the time they were sent: compare everything but the stamp.
+  if (mask === 'stamps') out = out.replace(/\b(sec|nanosec): \d+/g, '$1: #')
   return out
 }
 
@@ -61,9 +70,13 @@ function runScenario(scenario) {
   // in any other container can join the graph being recorded.
   // A fixed host name, the same as docker/compose.yaml gives readers, because
   // some output (launch's log folders) includes it.
+  // Screenshots go to site/public/shots when recording. When checking, they go to a
+  // scratch folder: what the windows look like is not compared, only that they open.
+  const shots = mode === 'record' ? path.join(site, 'public', 'shots') : scratchShots
+  if (scenario.display) mounts.push('-v', `${shots}:/shots`, '--shm-size', '1g')
   const result = docker(
     ['run', '--rm', '-i', '--network', 'none', '--hostname', 'ros-companion', ...mounts, IMAGE, 'python3', '/tools/record.py'],
-    JSON.stringify(scenario.steps),
+    JSON.stringify({ steps: scenario.steps, display: scenario.display ?? false }),
   )
   let report
   try {

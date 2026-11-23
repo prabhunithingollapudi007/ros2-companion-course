@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "xacro-left": {
+      "command": "xacro src/rover_description/urdf/rover.urdf.xacro | grep -A 6 'joint name=\"left_wheel_joint\"'",
+      "output": "  <joint name=\"left_wheel_joint\" type=\"continuous\">\n    <parent link=\"base_link\"/>\n    <child link=\"left_wheel\"/>\n    <!-- Turned so the wheel's own z axis, the axis a cylinder is drawn along, points sideways. -->\n    <origin rpy=\"-1.5707963267948966 0 0\" xyz=\"0.1 0.16999999999999998 0\"/>\n    <axis xyz=\"0 0 1\"/>\n  </joint>",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "xacro-right": {
+      "command": "xacro src/rover_description/urdf/rover.urdf.xacro | grep -A 6 'joint name=\"right_wheel_joint\"'",
+      "output": "  <joint name=\"right_wheel_joint\" type=\"continuous\">\n    <parent link=\"base_link\"/>\n    <child link=\"right_wheel\"/>\n    <!-- Turned so the wheel's own z axis, the axis a cylinder is drawn along, points sideways. -->\n    <origin rpy=\"-1.5707963267948966 0 0\" xyz=\"0.1 -0.16999999999999998 0\"/>\n    <axis xyz=\"0 0 1\"/>\n  </joint>",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "xacro-inertia": {
+      "command": "xacro src/rover_description/urdf/rover.urdf.xacro | grep -m 1 -B 1 '<inertia '",
+      "output": "      <mass value=\"4.0\"/>\n      <inertia ixx=\"0.03333333333333333\" ixy=\"0\" ixz=\"0\" iyy=\"0.05666666666666668\" iyz=\"0\" izz=\"0.08333333333333333\"/>",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "xacro-lines": {
+      "command": "wc -l src/rover_description/urdf/rover.urdf.xacro && xacro src/rover_description/urdf/rover.urdf.xacro | wc -l",
+      "output": "99 src/rover_description/urdf/rover.urdf.xacro\n120",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "check-urdf": {
+      "command": "check_urdf /tmp/rover.urdf",
+      "output": "robot name is: rover\n---------- Successfully Parsed XML ---------------\nroot Link: base_link has 4 child(ren)\n    child(1):  camera\n    child(2):  caster\n    child(3):  left_wheel\n    child(4):  right_wheel",
+      "ended": "exit"
+    },
+    "view-nodes": {
+      "command": "ros2 node list",
+      "output": "/joint_state_publisher\n/robot_state_publisher\n/rviz\n/transform_listener_impl_55f0e93c4c50",
+      "ended": "exit"
+    },
+    "view-topics": {
+      "command": "ros2 topic list",
+      "output": "/joint_states\n/parameter_events\n/robot_description\n/rosout\n/tf\n/tf_static",
+      "ended": "exit"
+    },
+    "joint-states": {
+      "command": "ros2 topic echo --once /joint_states",
+      "output": "header:\n  stamp:\n    sec: 1795436287\n    nanosec: 463231653\n  frame_id: ''\nname:\n- left_wheel_joint\n- right_wheel_joint\n- camera_pan\nposition:\n- 0.0\n- 0.0\n- 0.0\nvelocity: []\neffort: []\n---",
+      "ended": "exit"
+    },
+    "view-launch": {
+      "command": "source install/setup.bash && ros2 launch rover_description view.launch.py gui:=false",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-12-17-58-053449-ros-companion-153\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [robot_state_publisher-1]: process started with pid [157]\n[INFO] [joint_state_publisher-2]: process started with pid [158]\n[INFO] [rviz2-3]: process started with pid [159]\n[robot_state_publisher-1] [WARN] [1795436278.200986922] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "pub-joints": {
+      "command": "ros2 topic pub -r 10 /joint_states sensor_msgs/msg/JointState \"{header: {stamp: now}, name: [left_wheel_joint, right_wheel_joint, camera_pan], position: [0.0, 0.0, 1.2]}\"",
+      "output": "publisher: beginning loop",
+      "ended": "running",
+      "truncated": true
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson07/check.py",
+      "output": "Lesson 7 lab: checking /labs/ws\n  FAIL  there is a package in src/quad_description\n        Create it in /labs/ws/src with ros2 pkg create.\n  FAIL  it has urdf/quad.urdf.xacro\n        Write the robot in src/quad_description/urdf/quad.urdf.xacro.\n  FAIL  xacro turns it into a URDF\n        Write the file first.\n  FAIL  the robot is called quad\n        Needs the URDF that xacro makes: fix the checks above first.\n  FAIL  its links are base_link, front_left_wheel, front_right_wheel, lidar, rear_left_wheel, rear_right_wheel\n        Needs the URDF that xacro makes: fix the checks above first.\n  FAIL  four continuous wheel joints, <prefix>_wheel_joint, on base_link\n        Needs the URDF that xacro makes: fix the checks above first.\n  FAIL  each wheel sits 0.18 m forward or back and 0.175 m to the side\n        Needs the URDF that xacro makes: fix the checks above first.\n  FAIL  every wheel turns about the robot's sideways (y) axis\n        Needs the URDF that xacro makes: fix the checks above first.\n  FAIL  the lidar is fixed 0.15 m forward, on top of the base\n        Needs the URDF that xacro makes: fix the checks above first.\n  FAIL  every link has a mass, and base_link's inertia is that of a 6 kg box\n        Needs the URDF that xacro makes: fix the checks above first.\n  FAIL  check_urdf accepts it\n        Needs the URDF that xacro makes: fix the checks above first.\n  FAIL  launch/display.launch.py is built and installed\n        Install urdf and launch in CMakeLists.txt, then colcon build.\n  FAIL  it starts robot_state_publisher with the robot's description\n        Install the launch file first.\n0 of 13 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build",
+      "output": "Starting >>> quad_description\nFinished <<< quad_description [0.54s]\n\nSummary: 1 package finished [0.64s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-inertia": {
+      "command": "xacro src/quad_description/urdf/quad.urdf.xacro | grep -m 1 -B 1 '<inertia '",
+      "output": "      <mass value=\"6.0\"/>\n      <inertia ixx=\"0.052199999999999996\" ixy=\"0\" ixz=\"0\" iyy=\"0.1322\" iyz=\"0\" izz=\"0.17\"/>",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson07/check.py",
+      "output": "Lesson 7 lab: checking /labs/ws\n  PASS  there is a package in src/quad_description\n  PASS  it has urdf/quad.urdf.xacro\n  PASS  xacro turns it into a URDF\n  PASS  the robot is called quad\n  PASS  its links are base_link, front_left_wheel, front_right_wheel, lidar, rear_left_wheel, rear_right_wheel\n  PASS  four continuous wheel joints, <prefix>_wheel_joint, on base_link\n  PASS  each wheel sits 0.18 m forward or back and 0.175 m to the side\n  PASS  every wheel turns about the robot's sideways (y) axis\n  PASS  the lidar is fixed 0.15 m forward, on top of the base\n  PASS  every link has a mass, and base_link's inertia is that of a 6 kg box\n  PASS  check_urdf accepts it\n  PASS  launch/display.launch.py is built and installed\n  PASS  it starts robot_state_publisher with the robot's description\nAll 13 checks passed.",
+      "ended": "exit"
+    }
+  }
+}

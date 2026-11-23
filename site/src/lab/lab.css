@@ -75,6 +75,14 @@
   border: 0;
   background: #000;
 }
+/* The desktop is 16:9 (1600x900 in docker/start-course.sh); noVNC scales it to fit. */
+.container-desktop {
+  border-top: 1px solid var(--border);
+}
+.container-desktop iframe {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
 
 /* ---------- Lab questions ---------- */
 .lab-q-list {

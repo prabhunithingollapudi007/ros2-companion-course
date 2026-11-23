@@ -1,0 +1,163 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Screenshot } from '../components/Screenshot'
+import { Terminal } from '../components/Terminal'
+import { SimStack } from '../figures/lesson09'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { BridgePlayground } from '../playgrounds/lesson09/BridgePlayground'
+import { DiffDrivePlayground } from '../playgrounds/lesson09/DiffDrivePlayground'
+import { lesson09 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson09.code'
+import { lesson09Lab } from './lesson09.lab'
+import { lesson09Quiz } from './lesson09.quiz'
+
+export const r = lesson09.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+RViz draws a robot; it does not move it. A **simulator** does: it steps the physics a millisecond at a time, so wheels push on the ground, robots bump into boxes, and sensors see what is there. **Gazebo** is the simulator that goes with ROS 2 Jazzy. Your nodes cannot tell it from a real robot, as long as one thing joins the two: a **bridge** that carries topics between Gazebo and ROS. This lesson puts the rover of Lesson 7 into a small world and drives it.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson09} />
+
+## What a simulator gives you
+
+A simulated robot can be crashed, reset and run overnight, by everyone on a team at once, before there is any hardware. Gazebo provides:
+
+- **physics**: gravity, contacts, friction and motors, so motion comes from forces;
+- **sensors**: cameras, lidars, IMUs, producing the same kind of data as real ones;
+- **a clock** of its own, simulated time, which can run slower or faster than real time;
+- **a world** to put robots in, described in **SDF**, the simulation description format.
+
+<SimStack />
+
+Gazebo itself is built from **systems**, plugins that each do one job. The world file names the ones it needs, and the robot's description names the ones that drive it.
+
+## A world in SDF
+
+SDF is XML, like URDF, but describes a whole world: lights, ground, objects, and the robots in it. Unlike URDF, it can describe closed loops and several models at once, which is why Gazebo uses it internally.
+
+<Listing {...code.arena} lines={[1, lineOf(code.arena.code, '<!-- What Gazebo')]} highlight={at(code.arena, '<max_step_size>', 'gz-sim-physics-system', 'gz-sim-user-commands-system', 'gz-sim-scene-broadcaster-system')} />
+
+The three systems are the physics engine, the service that lets `create` add a robot while the world runs, and the one that sends the scene to Gazebo's window. Further down are the ground and two crates, each a `<model>` with a `<link>` that has, as in URDF, a visual and a collision shape:
+
+<Listing {...code.arena} lines={[lineOf(code.arena.code, '<!-- Two crates'), lineOf(code.arena.code, '</world>')]} highlight={at(code.arena, '<static>true</static>', '<pose>3 0.5 0.25 0 0 0</pose>')} />
+
+## Making the robot simulation-ready
+
+The rover's URDF already has what physics needs: masses and inertias, and collision shapes for the parts that touch the ground (Lesson 7). What it lacks is anything to turn its wheels. A `<gazebo>` element adds Gazebo systems to a URDF; Gazebo reads it and other tools ignore it:
+
+<Listing {...code.roverSim} highlight={at(code.roverSim, '<xacro:include filename=', '<gazebo reference="caster">', 'gz-sim-diff-drive-system', '<topic>/cmd_vel</topic>', '<odom_topic>/odom</odom_topic>', 'gz-sim-joint-state-publisher-system')} />
+
+- `xacro:include` brings in the Lesson 7 rover unchanged.
+- **DiffDrive** turns the two wheel joints to follow velocity commands on `/cmd_vel`, and publishes where the robot has got to on `/odom`, and as the transform odom → base_link on `/tf`.
+- **JointStatePublisher** publishes the joints' positions, which robot_state_publisher turns into the wheel frames, as in Lesson 7.
+- The caster gets no friction, so it slides along behind.
+
+<DiffDrivePlayground />
+
+<TryThis>
+
+- **Set the wheels equal.** The robot drives straight, and `angular.z` is 0.
+- **Set them opposite**, say −5 and 5. It turns on the spot: `linear.x` is 0.
+- **Read off the formula.** The speed is the wheels' average times the radius, and the turn rate is their difference times the radius divided by the 0.34 m between them.
+
+</TryThis>
+
+## The bridge
+
+Gazebo has its own transport, **gz-transport**, with its own topics and message types. A ROS node publishing on `/cmd_vel` reaches nothing in Gazebo until **parameter_bridge**, from `ros_gz_bridge`, carries it across. Each rule is one argument:
+
+<BridgePlayground />
+
+<Terminal run={[r['bridge-both'], r['bridge-bad']]} />
+
+A rule whose types have no conversion is refused with a warning, and the bridge carries on without it, which is easy to miss in a busy launch log.
+
+## Launching it all
+
+<Listing {...code.simLaunch} highlight={at(code.simLaunch, "launch_arguments={'gz_args': ['-r ', world]}.items(),", "launch_arguments={'gz_args': ['-r -s ', world]}.items(),", "'use_sim_time': True}],", "Node(package='ros_gz_sim', executable='create'", "'/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',", "'/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist',")} />
+
+`ros_gz_sim`'s own launch file starts Gazebo with the arguments in `gz_args`: `-r` to start the clock running at once, and `-s` for the server alone, with no window. robot_state_publisher runs as in Lesson 7, and `create` waits for the description it publishes and asks Gazebo to add the robot to the world. Without a window, which is how the checker and a CI job would run it:
+
+<Terminal run={[r['sim-build'], r['sim-launch']]} />
+
+<Terminal run={[r['sim-topics'], r['sim-clock'], r['sim-param']]} />
+
+`/clock` counts seconds since the simulation started: this is **simulated time**, from Lesson 6. Every node that works with the simulation's data should run with `use_sim_time: true`, so its clock and its stamps match Gazebo's.
+
+## Driving
+
+`ros2 topic pub -t 30 -r 10` sends 30 commands at 10 per second: three seconds at 0.4 m/s.
+
+<Terminal run={[r['odom-before'], r['drive-pub'], r['odom-after'], r['odom-later']]} />
+
+The rover went forward, and then kept going: DiffDrive holds on to the last command until a new one arrives. That is what teleop programs are for. `teleop_twist_keyboard` turns key presses into Twist messages on `/cmd_vel`, and `k` sends a stop:
+
+```
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+
+<Screenshot
+  name="lesson09-gazebo.png"
+  alt="Gazebo's window: a grey floor with a grid, two brown crates, and the small blue rover in front of the nearer crate, part way along a curve."
+  caption="The same simulation with Gazebo's window, seen from the camera pose the world file sets, after five seconds of a command to drive forward and turn left. Shadows and lighting come from the world's sun."
+/>
+
+<PlainWords>
+
+Gazebo also lists its own topics, with `gz topic -l`. The bridged ones appear on both sides, and Gazebo has many more that nothing bridges, such as the world's statistics:
+
+</PlainWords>
+
+<Terminal run={r['gz-topics']} />
+
+<Bridge title="ETH's course">
+
+ETH's second lecture introduces Gazebo Sim and SDF alongside URDF, and its exercises use a simulated robot launched from a launch file, as here. Gazebo Harmonic is the release paired with ROS 2 Jazzy; older material refers to it as Ignition Gazebo, which explains `ign` in some commands and older package names.
+
+</Bridge>
+
+## Lab: the quad in a yard
+
+Make the four-wheeled robot of the Lesson 7 lab drive. You need `quad_description` from that lab in your workspace (or the reference solution, `labs/lesson07/solution/quad_description`). Then make a package of your own:
+
+| | |
+| --- | --- |
+| Package | `quad_sim` (`ament_cmake`), in `/labs/ws/src`, installing `worlds`, `urdf` and `launch` |
+| World | `worlds/yard.sdf`: a world called `yard` with the three systems above, a ground plane, and a **post**: a static model named `post`, a cylinder of radius 0.15 m and height 1 m, standing at (4, 1) |
+| Robot | `urdf/quad_sim.urdf.xacro`: includes `quad_description`'s file and adds DiffDrive for all four wheels (two `<left_joint>` and two `<right_joint>` lines; the wheels are 0.35 m apart side to side) and JointStatePublisher |
+| Launch | `launch/sim.launch.py` with an argument `gui` (default `true`): Gazebo with your world (server only when `gui` is false), robot_state_publisher on simulated time, `create` with the name `quad`, and a bridge for `/clock`, `/cmd_vel`, `/odom`, `/tf` and `/joint_states` |
+
+Launch it, drive it into the post with teleop, and check with `python3 /labs/lesson09/check.py`, which launches your simulation without a window, drives it forward and round, and measures what `/odom` says. A reference solution is in `labs/lesson09/solution`.
+
+<ContainerTerminals
+  desktop
+  terminals={[
+    { title: 'Terminal 1', first: 'cd /labs/ws && colcon build && source install/setup.bash && ros2 launch quad_sim sim.launch.py', height: 220 },
+    { title: 'Terminal 2', first: 'ros2 run teleop_twist_keyboard teleop_twist_keyboard', height: 220 },
+  ]}
+/>
+
+<LabQuestions questions={lesson09Lab} />
+
+## Quiz
+
+<Quiz questions={lesson09Quiz} />
+
+<Recap>
+
+- **Gazebo** simulates physics, sensors and a clock; worlds are written in **SDF**, and everything Gazebo does is a **system** named in the world or the robot.
+- A URDF becomes simulation-ready with masses, collisions and `<gazebo>` plugins: **DiffDrive** for wheels and odometry, **JointStatePublisher** for joints.
+- `ros_gz_sim`'s launch file starts Gazebo (`-r` runs it, `-s` without a window); `create` adds the robot from `/robot_description`.
+- **parameter_bridge** carries each topic you list: `TOPIC@ROS_TYPE` then `[` (to ROS), `]` (to Gazebo) or `@` (both), then the Gazebo type.
+- Simulated time arrives on `/clock`; nodes working with the simulation run with `use_sim_time: true`.
+- Next: asking a node a question and getting an answer, with services.
+
+</Recap>

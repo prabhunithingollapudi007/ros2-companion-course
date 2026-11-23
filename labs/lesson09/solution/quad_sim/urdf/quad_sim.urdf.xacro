@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!-- Reference solution for the Lesson 9 lab. Try the lab before reading it. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="quad">
+
+  <xacro:include filename="$(find quad_description)/urdf/quad.urdf.xacro"/>
+
+  <gazebo>
+    <!-- Four wheels, steered like a tank: both left wheels together, both right wheels together. -->
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+      <left_joint>front_left_wheel_joint</left_joint>
+      <left_joint>rear_left_wheel_joint</left_joint>
+      <right_joint>front_right_wheel_joint</right_joint>
+      <right_joint>rear_right_wheel_joint</right_joint>
+      <wheel_separation>0.35</wheel_separation>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+      <topic>/cmd_vel</topic>
+      <odom_topic>/odom</odom_topic>
+      <tf_topic>/tf</tf_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_link</child_frame_id>
+    </plugin>
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>/joint_states</topic>
+    </plugin>
+  </gazebo>
+</robot>

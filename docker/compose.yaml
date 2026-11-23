@@ -1,9 +1,10 @@
-# The course container: ROS 2 Jazzy with a web terminal that the lesson pages embed.
+# The course container: ROS 2 Jazzy with a web terminal and a desktop that the lesson pages embed.
 #
-#   docker compose -f docker/compose.yaml up -d --build    start it (the first build downloads about 1 GB)
+#   docker compose -f docker/compose.yaml up -d --build    start it (the first build needs about 5 GB of disk)
 #   docker compose -f docker/compose.yaml down             stop it
 #
-# While it runs, http://localhost:7681 is a terminal inside the container.
+# While it runs, http://localhost:7681 is a terminal inside the container and
+# http://localhost:6080/vnc.html its desktop, where RViz and Gazebo open their windows.
 
 name: ros-companion
 
@@ -13,9 +14,12 @@ services:
     image: ros-companion:jazzy
     hostname: ros-companion
     init: true
+    # Gazebo and RViz pass large messages through shared memory.
+    shm_size: 1gb
     ports:
       # Reachable from this computer only, never from the network.
       - "127.0.0.1:7681:7681"
+      - "127.0.0.1:6080:6080"
     volumes:
       # The labs folder of this repository, so lab files are ordinary files on your disk.
       - ../labs:/labs

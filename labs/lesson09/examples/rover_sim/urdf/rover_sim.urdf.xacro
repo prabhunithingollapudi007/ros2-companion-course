@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!-- Lesson 9 example: the Lesson 7 rover, unchanged, plus what Gazebo needs to drive it. -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="rover">
+
+  <xacro:include filename="$(find rover_description)/urdf/rover.urdf.xacro"/>
+
+  <!-- The caster ball should slide, not grip: no friction. -->
+  <gazebo reference="caster">
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+  </gazebo>
+
+  <gazebo>
+    <!-- Turns the two wheels to follow velocity commands, and reports where the robot has got to. -->
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+      <left_joint>left_wheel_joint</left_joint>
+      <right_joint>right_wheel_joint</right_joint>
+      <!-- The wheels' centres are at y = +-0.17, so 0.34 apart. -->
+      <wheel_separation>0.34</wheel_separation>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+      <topic>/cmd_vel</topic>
+      <odom_topic>/odom</odom_topic>
+      <tf_topic>/tf</tf_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_link</child_frame_id>
+      <odom_publish_frequency>30</odom_publish_frequency>
+    </plugin>
+    <!-- Publishes every joint's position, which robot_state_publisher needs for the wheel and camera frames. -->
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>/joint_states</topic>
+    </plugin>
+  </gazebo>
+</robot>

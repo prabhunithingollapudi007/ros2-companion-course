@@ -1,0 +1,188 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Screenshot } from '../components/Screenshot'
+import { Terminal } from '../components/Terminal'
+import { BufferTimeline, FrameTree } from '../figures/lesson08'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { FrameTreePlayground } from '../playgrounds/lesson08/FrameTreePlayground'
+import { QuaternionPlayground } from '../playgrounds/lesson08/QuaternionPlayground'
+import { TimeTravelPlayground } from '../playgrounds/lesson08/TimeTravelPlayground'
+import { lesson08 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson08.code'
+import { lesson08Lab } from './lesson08.lab'
+import { lesson08Quiz } from './lesson08.quiz'
+
+export const r = lesson08.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+A robot is a crowd of coordinate frames: the map, the point where odometry started counting, the robot's body, each wheel, the camera. A camera reports what it sees in its own frame; a planner wants it on the map; and the camera moves while the robot drives. **tf2** keeps every frame's position relative to its parent, over the last few seconds, and answers one question for any node that asks: *where is frame A in frame B, at time t?* It does that by chaining the transforms between them.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson08} />
+
+## Frames and transforms
+
+A **frame** is an origin and three axes: x forward, y to the left, z up, by ROS's convention. A **transform** from a parent frame to a child frame is the child's pose in the parent: a translation, where the child's origin is, and a rotation, which way its axes point. The same numbers convert coordinates: a point $p_c$ given in the child frame is, in the parent frame,
+
+$$
+p_{\text{parent}} = R\,p_{c} + t ,
+$$
+
+where $R$ is the rotation and $t$ the translation. Transforms chain: to get from the camera to the map, apply camera → base_link, then base_link → odom, then odom → map.
+
+`static_transform_publisher` publishes one transform that never changes. Here it says that `odom` sits 0.5 m along x and 0.2 m back along y on the map, turned 0.3 rad (17°) to the left:
+
+<Terminal run={[r['static-pub'], r['tf-static-echo']]} />
+
+A transform travels as a `geometry_msgs/msg/TransformStamped`: a header with the parent frame and a stamp, the child frame's name, a translation, and a rotation as a **quaternion**, four numbers instead of three angles. `tf2_echo` asks tf2 for a transform and prints it in every form:
+
+<Terminal run={r['tf2-echo-static']} />
+
+`At time 0.0` is how tf2 marks static transforms: valid at every time. Asked the other way round, tf2 inverts the transform. Note that the translation is not simply negated: going back means turning back first.
+
+<Terminal run={r['tf2-echo-inverse']} />
+
+<QuaternionPlayground />
+
+<PlainWords>
+
+A quaternion for a turn by angle θ about an axis is the axis times sin(θ/2), followed by cos(θ/2). For a robot on the floor the axis is z, so only z = sin(θ/2) and w = cos(θ/2) are non-zero: 0.149 and 0.989 for 0.3 rad. Quaternions have no trouble at pitch ±90°, where roll and yaw become the same turn and three angles stop being unique; try it above. You rarely write them by hand: `tf2::Quaternion::setRPY` makes one from angles.
+
+</PlainWords>
+
+## The tree, and who publishes it
+
+<FrameTree />
+
+Every frame has one parent, so the frames form a tree, and between any two of them there is exactly one chain. The top three names are a convention from REP 105 that most ROS software expects:
+
+- **map**: fixed to the world. Positions in it do not drift, but they can jump when a localisation system corrects its estimate.
+- **odom**: where odometry started counting. The robot's pose in it changes smoothly, without jumps, but drifts over time as wheel slip adds up.
+- **base_link**: fixed to the robot, at its body.
+
+Here a launch file puts the whole tree together: the static map → odom transform, a node standing in for odometry, and the rover of Lesson 7 with its robot_state_publisher:
+
+<Listing {...code.roverWorld} highlight={at(code.roverWorld, "executable='static_transform_publisher'", "Node(package='frames_demo', executable='circle_broadcaster')", "executable='robot_state_publisher'")} />
+
+The stand-in for odometry, `circle_broadcaster`, drives `base_link` round a circle of radius 1 m in `odom` and broadcasts where it is 50 times a second:
+
+<Listing {...code.circleBroadcaster} highlight={at(code.circleBroadcaster, 'broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);', 't.header.stamp = stamp;', 't.header.frame_id = "odom";', 't.child_frame_id = "base_link";', 'q.setRPY(0.0, 0.0, heading);', 'broadcaster_->sendTransform(t);')} />
+
+It needs `tf2` and `tf2_ros`, in `package.xml` and in `CMakeLists.txt`:
+
+<Listing {...code.cmake} highlight={at(code.cmake, 'find_package(tf2 REQUIRED)', 'find_package(tf2_ros REQUIRED)', 'ament_target_dependencies(circle_broadcaster')} />
+
+<Terminal run={[r['demo-build'], r['world-launch']]} />
+
+`view_frames` listens to the transforms for five seconds and draws the tree it heard into `frames_<date>.pdf`, with a `.gv` source beside it. Its edges are exactly the tree above:
+
+<Terminal run={r['world-frames']} />
+
+<Screenshot
+  name="lesson08-rviz.png"
+  alt="RViz from above with the fixed frame set to map: the map and odom frames' axes on the right, and the rover at the bottom left with its base_link, camera, caster and wheel frames, yellow lines joining each frame to its parent."
+  caption={
+    <>
+      The rover driving its circle, seen in RViz with <em>Fixed Frame</em> set to <code>map</code>. Each yellow line joins a
+      frame to its parent. RViz draws everything in the fixed frame, so it needs a transform from every frame it shows to
+      that one.
+    </>
+  }
+/>
+
+<FrameTreePlayground />
+
+<TryThis>
+
+- **Move time on.** Only `base_link` and `camera` move on the map, and the object's coordinates in them change all the time, while its map coordinates stay put.
+- **Turn odom.** The whole circle swings round `map`: everything below `odom` in the tree comes with it. This is what a localisation correction does.
+- **Compare camera and base_link.** The camera is 0.15 m in front of `base_link`, so their coordinates of the object always differ by about 0.15 m in x.
+
+</TryThis>
+
+## Asking tf2
+
+A node that wants transforms keeps a **buffer** and a **listener**. The listener subscribes to `/tf` and `/tf_static` and stores everything in the buffer; the node then asks the buffer:
+
+<Listing {...code.whereIs} highlight={at(code.whereIs, 'buffer_ = std::make_unique<tf2_ros::Buffer>(get_clock());', 'listener_ = std::make_shared<tf2_ros::TransformListener>(*buffer_);', 'buffer_->lookupTransform("map", "camera", tf2::TimePointZero);', 'const tf2::TimePoint then', 'buffer_->lookupTransform("map", "camera", then);', 'catch (const tf2::TransformException & e)')} />
+
+`lookupTransform(target, source, time)` returns the source frame's pose in the target frame, here the camera in the map. `TimePointZero` asks for the latest transform there is; a time point asks about that moment. Half a second apart, the camera has turned 0.25 rad and moved about 25 cm along its circle:
+
+<Terminal run={[r['where-is'], r['tf2-echo-moving']]} />
+
+<BufferTimeline />
+
+The buffer interpolates between samples, but it does not guess. Ask about a moment after the newest sample and the lookup fails; ask about a frame nobody publishes and it fails too:
+
+<Terminal run={[r['where-is-ahead'], r['tf2-echo-missing']]} />
+
+Lookups throw `tf2::TransformException` when they cannot be answered, so wrap them in `try`, as `where_is` does. Passing a timeout, `lookupTransform(target, source, time, tf2::durationFromSec(0.1))`, makes the buffer wait that long for the data to arrive before giving up.
+
+## Data has a time, and so does its frame
+
+Sensor data comes stamped with the moment it was measured, in the frame of the sensor (Lesson 6). To use it elsewhere, transform it with the frames **as they were at that stamp**, not as they are when the data arrives. For a stamped message, `buffer->transform(msg, "map", timeout)` from `tf2_geometry_msgs` does this: it looks the transform up at the message's own stamp and returns the message in the target frame, with the same stamp.
+
+<TimeTravelPlayground />
+
+<PlainWords>
+
+The camera says "the object is 1 m in front of me". In front of where the camera *was* when it saw it, not where the camera is now. A robot turning at half a radian per second has turned 9° in 0.3 s, and 9° at 2 m is 30 cm.
+
+</PlainWords>
+
+<Bridge title="ETH's course">
+
+ETH's second lecture covers the TF transformation system and RViz: the tree, `/tf` and `/tf_static`, the tools (`tf2_echo`, `view_frames`, `tf2_monitor`) and lookups in C++ with a buffer and a listener. For message streams, `tf2_ros::MessageFilter` goes one step further than a timeout: it holds each message until the transform for its stamp is available.
+
+</Bridge>
+
+## Lab: placing detections on the map
+
+`lab_world.py` plays a robot driving round a circle while its camera reports where it sees an object, which in fact stands still at (2.0, 1.0, 0.0) on the map. Each report on `/detections` is a point in the `camera` frame, stamped when it was seen, and arrives 0.3 s later:
+
+<Listing {...code.labWorld} lines={[lineOf(code.labWorld.code, '"""The world'), lineOf(code.labWorld.code, 'in the camera frame, twice a second.')]} />
+
+<Terminal run={r['lab-detections']} />
+
+Write a C++ node that puts every detection on the map:
+
+| | |
+| --- | --- |
+| Package, node | `object_locator`, the program and node `object_locator` |
+| Subscribes | `/detections`, `geometry_msgs/msg/PointStamped`, in the `camera` frame |
+| Publishes | `/object_in_map`, `geometry_msgs/msg/PointStamped`: the same point in the `map` frame, with the detection's stamp |
+| Dependencies | `rclcpp`, `geometry_msgs`, `tf2_ros`, `tf2_geometry_msgs` |
+
+Done right, every point lands within a centimetre of (2.0, 1.0, 0.0). Run `python3 /labs/lesson08/lab_world.py` in one terminal and your node in another, then check with `python3 /labs/lesson08/check.py`, which runs both itself on a ROS domain of its own and compares every point. A reference solution is in `labs/lesson08/solution`.
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1', first: 'python3 /labs/lesson08/lab_world.py', height: 220 },
+    { title: 'Terminal 2', first: 'cd /labs/ws/src', height: 300 },
+  ]}
+/>
+
+<LabQuestions questions={lesson08Lab} />
+
+## Quiz
+
+<Quiz questions={lesson08Quiz} />
+
+<Recap>
+
+- A **transform** from parent to child is the child's pose in the parent, a translation and a rotation (a quaternion); it also converts the child's coordinates into the parent's.
+- Frames form a **tree**: one parent each. **map → odom → base_link** is the usual top, and robot_state_publisher adds the robot's links below base_link.
+- Static transforms go once on **/tf_static**; moving ones are broadcast repeatedly on **/tf**, each stamped.
+- A **buffer** with a **listener** stores the last 10 s of transforms; `lookupTransform(target, source, time)` chains and interpolates, and throws when it cannot answer.
+- Transform data **at its own stamp**: `buffer->transform(msg, frame, timeout)` does that for stamped messages.
+- Tools: `tf2_echo`, `view_frames`, and RViz with a fixed frame.
+- Next: a simulated world for the robot to drive in.
+
+</Recap>

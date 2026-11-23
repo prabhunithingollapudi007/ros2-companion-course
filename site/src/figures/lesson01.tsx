@@ -164,17 +164,18 @@ export function ContainerSetup() {
 export function SourcingFigure() {
   const { runs } = lesson01
   const vars = runs['fresh-after'].output.split('\n')
-  const firstPath = runs['fresh-path'].output.split('\n')[0]
+  // Sourcing puts several folders on the front of PATH (Gazebo's among them); this is the one with ros2 in it.
+  const firstPath = runs['fresh-path'].output.split('\n').find((p) => p.endsWith('/jazzy/bin')) ?? '/opt/ros/jazzy/bin'
   const ament = runs['fresh-ament'].output
   const after = [...vars, `AMENT_PREFIX_PATH=${ament}`, `PATH=${firstPath}:…`]
   return (
     <Figure
       height={260}
-      label={`Before sourcing, the shell has no ROS variables and the ros2 command is not found. Sourcing the setup file adds ${after.length} settings, including ROS_DISTRO=jazzy and the folder ${firstPath} at the front of PATH, after which ros2 is found.`}
+      label={`Before sourcing, the shell has no ROS variables and the ros2 command is not found. Sourcing the setup file adds ${after.length} settings, including ROS_DISTRO=jazzy and the folder ${firstPath} among the folders it puts at the front of PATH, after which ros2 is found.`}
       caption={
         <>
           A shell finds programs by looking through the folders listed in <code>PATH</code>. Sourcing runs the setup file{' '}
-          <em>inside</em> the current shell, so the settings it makes stay there: ROS's folder goes on the front of the
+          <em>inside</em> the current shell, so the settings it makes stay there: ROS's folders go on the front of the
           list, and variables tell ROS tools which release and which packages to use. They last until that terminal
           closes, which is why every new terminal needs it.
         </>

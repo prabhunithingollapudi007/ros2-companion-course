@@ -20,7 +20,7 @@ describe('what Lesson 1 says, against the recordings', () => {
     expect(vars).toContain('ROS_DISTRO=jazzy')
     expect(vars).toContain('ROS_VERSION=2')
     expect(out('fresh-ament')).toBe('/opt/ros/jazzy')
-    expect(out('fresh-path').split('\n')[0]).toBe('/opt/ros/jazzy/bin')
+    expect(out('fresh-path').split('\n')).toContain('/opt/ros/jazzy/bin')
     expect(out('fresh-which')).toBe('/opt/ros/jazzy/bin/ros2')
   })
 

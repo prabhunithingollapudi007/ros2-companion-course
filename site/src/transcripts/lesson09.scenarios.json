@@ -1,0 +1,51 @@
+{
+  "scenarios": [
+    {
+      "name": "the simulation without a window",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson07/examples/rover_description /labs/lesson09/examples/rover_sim /labs/ws/src/" },
+        { "id": "sim-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "sim-launch", "cmd": "source install/setup.bash && ros2 launch rover_sim sim.launch.py gui:=false", "cwd": "/labs/ws", "background": true, "settle": 15, "lines": 7, "mask": "numbers", "ignore": ["getifaddrs"], "check": false, "why": "Lines from four processes arrive in varying order; sim-topics and sim-clock check what started." },
+        { "id": "sim-topics", "cmd": "ros2 topic list" },
+        { "id": "sim-clock", "cmd": "ros2 topic echo --once /clock", "mask": "numbers" },
+        { "id": "sim-param", "cmd": "ros2 param get /robot_state_publisher use_sim_time" },
+        { "id": "odom-before", "cmd": "ros2 topic echo --once /odom --field pose.pose.position", "mask": "numbers" },
+        { "id": "drive-pub", "cmd": "ros2 topic pub -r 10 -t 30 /cmd_vel geometry_msgs/msg/Twist \"{linear: {x: 0.4}}\"", "lines": 2, "mask": "numbers" },
+        { "id": "odom-after", "cmd": "ros2 topic echo --once /odom --field pose.pose.position", "mask": "numbers" },
+        { "id": "odom-later", "cmd": "sleep 2 && ros2 topic echo --once /odom --field pose.pose.position", "mask": "numbers" },
+        { "cmd": "ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \"{}\"" },
+        { "id": "gz-topics", "cmd": "gz topic -l | sort", "ignore": ["getifaddrs"] }
+      ]
+    },
+    {
+      "name": "bridge rules",
+      "steps": [
+        { "id": "bridge-both", "cmd": "ros2 run ros_gz_bridge parameter_bridge /chat@std_msgs/msg/String@gz.msgs.StringMsg /cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist", "seconds": 2, "ignore": ["getifaddrs", "signal_handler"] },
+        { "id": "bridge-bad", "cmd": "ros2 run ros_gz_bridge parameter_bridge /cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Odometry", "seconds": 2, "ignore": ["getifaddrs", "signal_handler"] }
+      ]
+    },
+    {
+      "name": "Gazebo's window",
+      "labs": true,
+      "display": "1280x900",
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson07/examples/rover_description /labs/lesson09/examples/rover_sim /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null" },
+        { "cmd": "source install/setup.bash && ros2 launch rover_sim sim.launch.py", "cwd": "/labs/ws", "background": true, "settle": 30 },
+        { "cmd": "ros2 topic pub -r 10 -t 50 /cmd_vel geometry_msgs/msg/Twist \"{linear: {x: 0.4}, angular: {z: 0.3}}\" > /dev/null" },
+        { "screenshot": "lesson09-gazebo.png", "settle": 2, "trim": true }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson09/check.py", "mayFail": true },
+        { "cmd": "cp -r /labs/lesson07/solution/quad_description /labs/lesson09/solution/quad_sim /labs/ws/src/" },
+        { "id": "lab-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson09/check.py" }
+      ]
+    }
+  ]
+}
