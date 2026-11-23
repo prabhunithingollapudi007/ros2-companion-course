@@ -22,6 +22,11 @@ A scenario is a JSON list of steps. A step is one of:
   {"id": "listener-after", "tail": "listener", "lines": 2}
       Record the last lines a background command has printed so far.
 
+  {"stop": "recorder"}
+      Interrupt a background command (Ctrl+C) and wait for it to finish, for
+      programs such as ros2 bag record that must close cleanly. A background
+      step given a "name" instead of an id can be stopped without being recorded.
+
   {"cmd": "sleep 1"}
       No id: run it, record nothing.
 
@@ -145,7 +150,8 @@ def main():
 
     for index, step in enumerate(steps):
         step_id = step.get("id")
-        name = step_id or f"step{index}"
+        # A background step without an id can still be named, for "tail" or "stop", without being recorded.
+        name = step_id or step.get("name") or f"step{index}"
 
         if "screenshot" in step:
             time.sleep(float(step.get("settle", 2)))
@@ -156,6 +162,11 @@ def main():
             if shot.returncode != 0:
                 failed = f"screenshot {target} failed: {shot.stderr}"
                 break
+            continue
+
+        if "stop" in step:
+            # Interrupt a background command, as Ctrl+C would, and let it finish cleanly.
+            stop(background[step["stop"]][0])
             continue
 
         if "tail" in step:

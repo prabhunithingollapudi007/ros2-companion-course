@@ -1,0 +1,6 @@
+<launch>
+  <!-- Reference solution for the Lesson 16 lab. Try the lab before reading it. -->
+  <node pkg="heartbeat" exec="heartbeat" name="heartbeat" output="screen">
+    <param name="rate" value="5.0"/>
+  </node>
+</launch>

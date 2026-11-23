@@ -17,13 +17,15 @@ Linux terminal, and has not used ROS.
 
 ## Status
 
-**One lesson written: Lesson 2, Nodes, topics and messages** (the pilot). It has
-figures, two playgrounds, terminal sessions recorded in the course container, a
-lab with live terminals in the page, a quiz and a recap. The other 16 lessons
-show their planned topics, playgrounds and lab, and link to the lecture and
-documentation they will be built from.
+**All 17 lessons are written.** Each has figures, playgrounds that simulate the
+idea in the page (their models tested against real output), terminal sessions
+recorded in the course container, a lab with live terminals (and, from Lesson 7,
+the container's desktop) in the page, a checker for the lab and a reference
+solution, a quiz and a recap. From Lesson 7 on, the labs build on each other:
+the robot of Lesson 7 is simulated in Lesson 9, its stack is put together in
+Lesson 13, and the capstone drives it to goals.
 
-## What is planned
+## The lessons
 
 | Part | Lessons |
 | --- | --- |

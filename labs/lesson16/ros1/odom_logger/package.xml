@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>odom_logger</name>
+  <version>0.1.0</version>
+  <description>Lesson 16: a small ROS 1 node, to read and port.</description>
+  <maintainer email="noreply@example.com">ROS 2 Companion</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>nav_msgs</depend>
+  <depend>std_msgs</depend>
+</package>

@@ -14,6 +14,8 @@ import lesson12Data from './lesson12.json'
 import lesson13Data from './lesson13.json'
 import lesson14Data from './lesson14.json'
 import lesson15Data from './lesson15.json'
+import lesson16Data from './lesson16.json'
+import lesson17Data from './lesson17.json'
 
 // The terminal sessions the lessons show, as recorded in the course container
 // by scripts/transcripts.mjs. The .json files are written by that script; do
@@ -47,3 +49,5 @@ export const lesson12 = lesson12Data as Transcript
 export const lesson13 = lesson13Data as Transcript
 export const lesson14 = lesson14Data as Transcript
 export const lesson15 = lesson15Data as Transcript
+export const lesson16 = lesson16Data as Transcript
+export const lesson17 = lesson17Data as Transcript

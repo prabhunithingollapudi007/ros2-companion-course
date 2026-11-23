@@ -1,0 +1,35 @@
+{
+  "scenarios": [
+    {
+      "name": "the capstone, run and recorded",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cd /labs/ws/src && cp -r /labs/lesson07/examples/rover_description /labs/lesson09/examples/rover_sim /labs/lesson10/solution/speed_limiter_interfaces /labs/lesson12/solution/speed_limiter /labs/lesson13/solution/rover_stack /labs/lesson13/solution/cmd_watchdog /labs/lesson17/interfaces/capstone_interfaces /labs/lesson17/solution/go_to /labs/lesson17/solution/capstone_bringup ." },
+        { "id": "cap-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "cap-launch", "cmd": "source install/setup.bash && ros2 launch capstone_bringup capstone.launch.py gui:=false", "cwd": "/labs/ws", "background": true, "settle": 20, "lines": 9, "mask": "numbers", "ignore": ["getifaddrs"], "check": false, "why": "Lines from seven processes arrive in varying order; cap-nodes checks what started." },
+        { "id": "cap-nodes", "cmd": "ros2 node list" },
+        { "id": "cap-actions", "cmd": "ros2 action list -t" },
+        { "name": "recorder", "cmd": "ros2 bag record -o /labs/ws/capstone_run --topics /odom /cmd_vel /cmd_vel_in", "background": true, "settle": 3 },
+        { "id": "cap-goal", "cmd": "source install/setup.bash && ros2 action send_goal /go_to capstone_interfaces/action/GoTo \"{x: 2.0, y: -1.0}\"", "cwd": "/labs/ws", "mask": "numbers" },
+        { "stop": "recorder" },
+        { "id": "cap-bag", "cmd": "ros2 bag info /labs/ws/capstone_run | grep -E '^(Duration|Messages)|Topic:'", "mask": "numbers" },
+        { "id": "cap-path", "cmd": "source install/setup.bash && python3 /labs/lesson17/bag_path.py /labs/ws/capstone_run", "cwd": "/labs/ws", "mask": "numbers", "check": false, "why": "The path depends on timing to the centimetre; lesson17.test.ts checks that it starts at the origin and ends at the goal." }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cd /labs/ws/src && cp -r /labs/lesson07/examples/rover_description /labs/lesson09/examples/rover_sim /labs/lesson10/solution/speed_limiter_interfaces /labs/lesson12/solution/speed_limiter /labs/lesson13/solution/rover_stack /labs/lesson13/solution/cmd_watchdog /labs/lesson17/interfaces/capstone_interfaces . && cd /labs/ws && colcon build > /dev/null" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson17/check.py", "mayFail": true },
+        { "cmd": "cp -r /labs/lesson17/solution/go_to /labs/lesson17/solution/capstone_bringup /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null" },
+        { "name": "sim", "cmd": "source install/setup.bash && ros2 launch capstone_bringup capstone.launch.py gui:=false", "cwd": "/labs/ws", "background": true, "settle": 20 },
+        { "name": "rec", "cmd": "ros2 bag record -o /labs/ws/capstone_run --topics /odom /cmd_vel", "background": true, "settle": 3 },
+        { "cmd": "source install/setup.bash && ros2 action send_goal /go_to capstone_interfaces/action/GoTo \"{x: 1.0, y: 0.5}\"", "cwd": "/labs/ws" },
+        { "stop": "rec" },
+        { "stop": "sim" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson17/check.py" }
+      ]
+    }
+  ]
+}

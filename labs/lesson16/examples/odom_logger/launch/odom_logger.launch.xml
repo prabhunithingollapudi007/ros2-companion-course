@@ -1,0 +1,7 @@
+<launch>
+  <!-- Lesson 16: the ROS 1 launch file, ported. ROS 2 still reads XML launch files. -->
+  <node pkg="odom_logger" exec="odom_logger" name="odom_logger" output="screen">
+    <param name="period" value="0.5"/>
+    <remap from="odom" to="/rover/odom"/>
+  </node>
+</launch>

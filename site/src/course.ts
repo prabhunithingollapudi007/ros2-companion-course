@@ -439,16 +439,17 @@ export const PARTS: Part[] = [
       {
         n: 17,
         title: 'Capstone: drive a robot to a goal',
-        summary: 'A simulated robot that plans a path to a goal and follows it, built from the pieces of the earlier lessons.',
+        summary: 'A simulated robot that drives itself to a goal on request, built on the pieces of the earlier lessons.',
         topics: [
           'Designing the graph',
           'Robot model, frames and simulation',
-          'A planner behind an action',
+          'A controller behind an action',
           'Configuration through parameters',
           'Recording a run and checking it',
+          'Where Nav2 takes it next',
         ],
-        playgrounds: [],
-        lab: 'The project is the lab: bring up the robot, plan to a goal, follow the path and record the run.',
+        playgrounds: ['The go_to controller, simulated'],
+        lab: 'The project is the lab: write go_to and its bringup on top of the stack, drive to goals, and record a run.',
         sources: [
           {
             from: 'ETH',

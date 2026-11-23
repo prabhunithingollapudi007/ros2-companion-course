@@ -1,0 +1,31 @@
+{
+  "scenarios": [
+    {
+      "name": "the ported node",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson16/examples/odom_logger /labs/ws/src/" },
+        { "id": "port-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "port-launch", "cmd": "source install/setup.bash && ros2 launch odom_logger odom_logger.launch.xml", "cwd": "/labs/ws", "background": true, "settle": 3, "lines": 4 },
+        { "id": "port-info", "cmd": "ros2 node info /odom_logger | sed -n 1,7p" },
+        { "id": "port-param", "cmd": "ros2 param get /odom_logger period" },
+        { "id": "port-drive", "cmd": "for x in 0.0 0.5 1.0 1.5; do ros2 topic pub --once -w 1 /rover/odom nav_msgs/msg/Odometry \"{pose: {pose: {position: {x: $x}}}}\" > /dev/null; done; echo published 4 positions" },
+        { "cmd": "sleep 1" },
+        { "id": "port-log", "tail": "port-launch", "lines": 1 },
+        { "id": "port-distance", "cmd": "ros2 topic echo --once /distance" }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson16/check.py", "mayFail": true },
+        { "cmd": "cp -r /labs/lesson16/solution/heartbeat /labs/ws/src/" },
+        { "id": "lab-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-run", "cmd": "source install/setup.bash && (ros2 launch heartbeat heartbeat.launch.xml > /dev/null 2>&1 &) && sleep 3 && ros2 topic echo --once /heartbeat --field data && ros2 param get /heartbeat rate", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson16/check.py" }
+      ]
+    }
+  ]
+}

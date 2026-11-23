@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "cap-build": {
+      "command": "colcon build",
+      "output": "Starting >>> rover_description\nStarting >>> speed_limiter_interfaces\nStarting >>> capstone_interfaces\nStarting >>> cmd_watchdog\nFinished <<< rover_description [0.78s]\nStarting >>> rover_sim\nFinished <<< rover_sim [0.72s]\nFinished <<< speed_limiter_interfaces [6.03s]\nStarting >>> speed_limiter\nFinished <<< capstone_interfaces [7.50s]\nStarting >>> go_to\nFinished <<< cmd_watchdog [9.64s]\nFinished <<< speed_limiter [9.47s]\nStarting >>> rover_stack\nFinished <<< rover_stack [0.74s]\nFinished <<< go_to [10.2s]\nStarting >>> capstone_bringup\nFinished <<< capstone_bringup [0.62s]\n\nSummary: 9 packages finished [18.4s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "cap-nodes": {
+      "command": "ros2 node list",
+      "output": "/cmd_watchdog\n/go_to\n/robot_state_publisher\n/ros_gz_bridge\n/speed_limiter",
+      "ended": "exit"
+    },
+    "cap-actions": {
+      "command": "ros2 action list -t",
+      "output": "/go_to [capstone_interfaces/action/GoTo]",
+      "ended": "exit"
+    },
+    "cap-goal": {
+      "command": "source install/setup.bash && ros2 action send_goal /go_to capstone_interfaces/action/GoTo \"{x: 2.0, y: -1.0}\"",
+      "output": "Waiting for an action server to become available...\nSending goal:\n     x: 2.0\ny: -1.0\n\nGoal accepted with ID: 5d9ea8229fab43c8a90724aeadaf01e9\n\nResult:\n    reached: true\ndistance_left: 0.09735657146553171\n\nGoal finished with status: SUCCEEDED",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "cap-bag": {
+      "command": "ros2 bag info /labs/ws/capstone_run | grep -E '^(Duration|Messages)|Topic:'",
+      "output": "Duration:          9.249032924s\nMessages:          539\nTopic information: Topic: /cmd_vel | Type: geometry_msgs/msg/Twist | Count: 150 | Serialization Format: cdr\n                   Topic: /cmd_vel_in | Type: geometry_msgs/msg/Twist | Count: 116 | Serialization Format: cdr\n                   Topic: /odom | Type: nav_msgs/msg/Odometry | Count: 273 | Serialization Format: cdr",
+      "ended": "exit"
+    },
+    "cap-path": {
+      "command": "source install/setup.bash && python3 /labs/lesson17/bag_path.py /labs/ws/capstone_run",
+      "output": "0.0 0.00 -0.00\n0.5 0.00 -0.00\n1.0 0.00 -0.00\n1.5 0.00 -0.00\n2.0 0.00 -0.00\n2.5 0.00 -0.00\n3.0 0.00 -0.00\n3.5 -0.00 0.00\n4.0 0.21 -0.06\n4.5 0.44 -0.17\n5.0 0.67 -0.28\n5.5 0.88 -0.39\n6.0 1.11 -0.51\n6.5 1.33 -0.63\n7.0 1.54 -0.75\n7.5 1.70 -0.83\n8.0 1.80 -0.89\n8.5 1.87 -0.93\n9.0 1.91 -0.95\n9.2 1.92 -0.95",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "cap-launch": {
+      "command": "source install/setup.bash && ros2 launch capstone_bringup capstone.launch.py gui:=false",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-14-15-29-322136-ros-companion-1707\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [gazebo-1]: process started with pid [1711]\n[INFO] [robot_state_publisher-2]: process started with pid [1712]\n[INFO] [create-3]: process started with pid [1714]\n[INFO] [parameter_bridge-4]: process started with pid [1715]\n[INFO] [speed_limiter-5]: process started with pid [1716]\n[INFO] [cmd_watchdog-6]: process started with pid [1717]\n[INFO] [go_to-7]: process started with pid [1718]",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson17/check.py",
+      "output": "Lesson 17 capstone: checking /labs/ws\n  FAIL  every package is built: rover_description, rover_sim, speed_limiter_interfaces, speed_limiter, rover_stack, cmd_watchdog, capstone_interfaces, go_to, capstone_bringup\n        Missing: go_to, capstone_bringup.\n  FAIL  go_to has parameters max_speed 0.5 and tolerance 0.1, from capstone.yaml\n        Needs every package built first.\n  FAIL  a goal of (2.0, -1.0) is accepted and succeeds, reached, within tolerance\n        Needs every package built first.\n  FAIL  its feedback counts the distance down\n        Needs every package built first.\n  FAIL  odometry agrees: the rover is within 0.15 m of (2.0, -1.0)\n        Needs every package built first.\n  FAIL  a goal cancelled after 2 s ends canceled, not reached\n        Needs every package built first.\n  FAIL  two seconds after the cancel, the rover has stopped\n        Needs every package built first.\n  FAIL  a bag of a run is in /labs/ws/capstone_run, with /odom in it\n        Record one while a goal runs: ros2 bag record -o /labs/ws/capstone_run --topics /odom /cmd_vel\n0 of 8 checks passed.",
+      "ended": "exit"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson17/check.py",
+      "output": "Lesson 17 capstone: checking /labs/ws\n  PASS  every package is built: rover_description, rover_sim, speed_limiter_interfaces, speed_limiter, rover_stack, cmd_watchdog, capstone_interfaces, go_to, capstone_bringup\n  PASS  go_to has parameters max_speed 0.5 and tolerance 0.1, from capstone.yaml\n  PASS  a goal of (2.0, -1.0) is accepted and succeeds, reached, within tolerance\n  PASS  its feedback counts the distance down\n  PASS  odometry agrees: the rover is within 0.15 m of (2.0, -1.0)\n  PASS  a goal cancelled after 2 s ends canceled, not reached\n  PASS  two seconds after the cancel, the rover has stopped\n  PASS  a bag of a run is in /labs/ws/capstone_run, with /odom in it\nAll 8 checks passed.",
+      "ended": "exit"
+    }
+  }
+}

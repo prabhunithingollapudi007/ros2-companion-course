@@ -1,0 +1,9 @@
+# Lesson 17 capstone: drive to a point in the odom frame.
+float64 x  # metres
+float64 y  # metres
+---
+bool reached
+float64 distance_left  # metres, when it stopped
+---
+float64 distance_left  # metres
+float64 heading_error  # radians: how far it must still turn to face the goal

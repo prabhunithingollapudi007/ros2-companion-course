@@ -1,0 +1,6 @@
+<launch>
+  <!-- Lesson 16 lab: a faster heartbeat. -->
+  <node pkg="heartbeat" type="heartbeat" name="heartbeat" output="screen">
+    <param name="rate" value="5.0"/>
+  </node>
+</launch>

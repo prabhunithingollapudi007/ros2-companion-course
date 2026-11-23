@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "port-build": {
+      "command": "colcon build",
+      "output": "Starting >>> odom_logger\nFinished <<< odom_logger [8.17s]\n\nSummary: 1 package finished [8.28s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "port-info": {
+      "command": "ros2 node info /odom_logger | sed -n 1,7p",
+      "output": "/odom_logger\n  Subscribers:\n    /parameter_events: rcl_interfaces/msg/ParameterEvent\n    /rover/odom: nav_msgs/msg/Odometry\n  Publishers:\n    /distance: std_msgs/msg/Float64\n    /parameter_events: rcl_interfaces/msg/ParameterEvent",
+      "ended": "exit"
+    },
+    "port-param": {
+      "command": "ros2 param get /odom_logger period",
+      "output": "Double value is: 0.5",
+      "ended": "exit"
+    },
+    "port-drive": {
+      "command": "for x in 0.0 0.5 1.0 1.5; do ros2 topic pub --once -w 1 /rover/odom nav_msgs/msg/Odometry \"{pose: {pose: {position: {x: $x}}}}\" > /dev/null; done; echo published 4 positions",
+      "output": "published 4 positions",
+      "ended": "exit"
+    },
+    "port-log": {
+      "command": "source install/setup.bash && ros2 launch odom_logger odom_logger.launch.xml",
+      "output": "[odom_logger-1] [INFO] [1795442854.407663336] [odom_logger]: driven 1.50 m",
+      "ended": "running",
+      "tail": true
+    },
+    "port-distance": {
+      "command": "ros2 topic echo --once /distance",
+      "output": "data: 1.5\n---",
+      "ended": "exit"
+    },
+    "port-launch": {
+      "command": "source install/setup.bash && ros2 launch odom_logger odom_logger.launch.xml",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-14-07-25-252404-ros-companion-194\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [odom_logger-1]: process started with pid [197]\n[odom_logger-1] [INFO] [1795442845.907611393] [odom_logger]: driven 0.00 m",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson16/check.py",
+      "output": "Lesson 16 lab: checking /labs/ws\n  FAIL  there is a package in src/heartbeat\n        Create it in /labs/ws/src: a ROS 2 package, not the catkin one.\n  FAIL  it is a ROS 2 package: format 3, built with ament_cmake\n        package.xml needs format=\"3\" and <export><build_type>ament_cmake</build_type></export>.\n  FAIL  the node heartbeat is built and installed\n        Port CMakeLists.txt to ament_cmake, install the program, then colcon build.\n  FAIL  it publishes alive 1, alive 2, ... on /heartbeat, twice a second by default\n        Needs the node: build it first.\n  FAIL  rate is a parameter, 2.0 by default\n        Needs the node: build it first.\n  FAIL  false on /heartbeat_cmd pauses it, true resumes it, and the count carries on\n        Needs the node: build it first.\n  FAIL  launch/heartbeat.launch.xml starts it at rate 5\n        Port launch/heartbeat.launch to launch/heartbeat.launch.xml and install it.\n0 of 7 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build",
+      "output": "Starting >>> heartbeat\nFinished <<< heartbeat [8.07s]\n\nSummary: 1 package finished [8.17s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-run": {
+      "command": "source install/setup.bash && (ros2 launch heartbeat heartbeat.launch.xml > /dev/null 2>&1 &) && sleep 3 && ros2 topic echo --once /heartbeat --field data && ros2 param get /heartbeat rate",
+      "output": "alive 18\n---\nDouble value is: 5.0",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson16/check.py",
+      "output": "Lesson 16 lab: checking /labs/ws\n  PASS  there is a package in src/heartbeat\n  PASS  it is a ROS 2 package: format 3, built with ament_cmake\n  PASS  the node heartbeat is built and installed\n  PASS  it publishes alive 1, alive 2, ... on /heartbeat, twice a second by default\n  PASS  rate is a parameter, 2.0 by default\n  PASS  false on /heartbeat_cmd pauses it, true resumes it, and the count carries on\n  PASS  launch/heartbeat.launch.xml starts it at rate 5\nAll 7 checks passed.",
+      "ended": "exit"
+    }
+  }
+}

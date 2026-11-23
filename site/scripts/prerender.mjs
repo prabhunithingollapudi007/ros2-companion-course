@@ -63,5 +63,5 @@ await rm(serverDir, { recursive: true, force: true })
 
 const lessons = server.ALL_ROUTES.length - 1
 console.log(
-  `Prerendered ${server.ALL_ROUTES.length} pages (${Math.round(total / 1024)} kB of HTML; ${written} of ${lessons} lessons written, the rest as outlines), sitemap.xml, llms.txt and 404.html.`,
+  `Prerendered ${server.ALL_ROUTES.length} pages (${Math.round(total / 1024)} kB of HTML; ${written} of ${lessons} lessons written${written < lessons ? ', the rest as outlines' : ''}), sitemap.xml, llms.txt and 404.html.`,
 )

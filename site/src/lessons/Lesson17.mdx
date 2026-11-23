@@ -1,0 +1,126 @@
+import { BigPicture, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { CapstoneGraph } from '../figures/lesson17'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { GoToPlayground } from '../playgrounds/lesson17/GoToPlayground'
+import { lesson17 } from '../transcripts'
+import { code } from './lesson17.code'
+import { lesson17Lab } from './lesson17.lab'
+import { lesson17Quiz } from './lesson17.quiz'
+
+export const r = lesson17.runs
+export const recordedPath = r['cap-path'].output
+  .split('\n')
+  .map((l) => l.trim().split(/\s+/).map(Number))
+  .filter((p) => p.length === 3 && p.every((v) => Number.isFinite(v)))
+  .map(([, x, y]) => ({ x, y }))
+
+<BigPicture>
+
+The capstone puts the course together: the rover of Lesson 7 in the Gazebo world of Lesson 9, its commands passing through the speed limiter and watchdog of Lessons 10 to 13, and on top a new node, **go_to**, an action server that drives the robot to a point and reports its progress. You write go_to and its bringup, run it, record a run in a bag, and let the checker drive it. This page gives the design, the contract and what a finished run looks like; the code is yours.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson17} />
+
+## The design
+
+<CapstoneGraph />
+
+Each choice comes from an earlier lesson:
+
+- **An action** for "drive to (x, y)": it takes seconds, has progress worth reporting, and must be stoppable (Lesson 11).
+- **Commands into `/cmd_vel_in`**, so they pass the speed limiter and the watchdog like any other source (Lesson 13).
+- **Position from `/odom`**, which Gazebo's DiffDrive publishes; the goal is in the odom frame (Lessons 8 and 9).
+- **Parameters** for everything tunable, in one YAML file (Lesson 12): `max_speed`, `max_turn` and `tolerance`.
+- **Simulated time** for go_to, like every node that works with the simulation's data (Lessons 6 and 9).
+- **The work on a thread of its own**, with a mutex around the pose it shares with the odometry callback (Lesson 15).
+- **A bag** of `/odom` and the commands, to check the run afterwards (Lesson 6).
+
+## The contract
+
+The action is given, in `labs/lesson17/interfaces/capstone_interfaces`, so every solution can be driven the same way:
+
+<Listing {...code.goToAction} />
+
+## The controller
+
+go_to needs a rule from the robot's pose and the goal to a velocity command. A simple one that works: turn towards the goal (`angular.z` proportional to the heading error, at most `max_turn`); drive forwards only when facing it within about 0.3 rad, slowing down as it gets close (at most `max_speed`); and stop when within `tolerance`. Try it here before writing it in C++:
+
+<GoToPlayground recorded={recordedPath} />
+
+<TryThis>
+
+- **Lower max_turn to 0.3.** The rover turns slowly before it can set off: the time to arrive grows, the path does not.
+- **Put the goal behind the rover**, at (−1, 0). It turns on the spot first, because it only drives when facing the goal.
+- **Put the goal at (4, 1).** The path goes straight through a crate. go_to is a controller, not a planner: it knows nothing of obstacles.
+
+</TryThis>
+
+## A finished run
+
+The reference solution, launched without a window, on top of the whole stack:
+
+<Terminal run={[r['cap-build'], r['cap-launch'], r['cap-nodes'], r['cap-actions']]} />
+
+A goal, sent from the terminal while a bag records:
+
+<Terminal run={r['cap-goal']} />
+
+<Terminal run={r['cap-bag']} />
+
+The bag holds the whole run. A few lines of Python read the path back out of it, which is how the orange path in the playground was drawn:
+
+<Listing {...code.bagPath} />
+
+<Terminal run={r['cap-path']} />
+
+<PlainWords>
+
+This is the loop real robot software is developed in: run it, record it, look at the recording, change one thing, and compare. A controller change that makes the path worse shows up in the bag before it shows up as a robot in a wall.
+
+</PlainWords>
+
+## Beyond this course
+
+go_to drives straight at its goal; a real robot needs to know where things are and plan around them. **Nav2**, the ROS 2 navigation stack, adds maps, localisation in them, global and local planners, and behaviours for when things go wrong, all behind actions like `NavigateToPose`, in the same shape as go_to. **ros2_control** standardises the layer below, between controllers and motors. Both are built from exactly the parts in this course: nodes, topics, services, actions, parameters, frames and launch files.
+
+## The project
+
+Write two packages, using the given `capstone_interfaces`:
+
+| | |
+| --- | --- |
+| `go_to` | C++ node `go_to`: action server `/go_to` of type `capstone_interfaces/action/GoTo`; subscribes `odom`, publishes `cmd_vel_in`; parameters `max_speed`, `max_turn`, `tolerance`; feedback while driving; stops the robot on success and on cancel; rejects goals while busy |
+| `capstone_bringup` | `launch/capstone.launch.py` with a `gui` argument: includes `rover_stack`'s `stack.launch.py` (with the watchdog of the Lesson 13 lab) and starts go_to on simulated time with `config/capstone.yaml`: `max_speed` 0.5, `max_turn` 1.0, `tolerance` 0.1 |
+| A run | a bag of a run in `/labs/ws/capstone_run`, with `/odom` in it |
+
+The workspace needs the whole stack: `rover_description`, `rover_sim`, `speed_limiter_interfaces`, `speed_limiter`, `rover_stack` and `cmd_watchdog` from earlier labs (or their reference solutions), and `capstone_interfaces` from `labs/lesson17/interfaces`. `python3 /labs/lesson17/goal_client.py X Y [CANCEL_AFTER]` sends a goal and reports what happened. Check with `python3 /labs/lesson17/check.py`, which drives your robot to (2, −1), cancels a second goal, and reads your bag. A reference solution is in `labs/lesson17/solution`.
+
+<ContainerTerminals
+  desktop
+  terminals={[
+    { title: 'Terminal 1', first: 'cd /labs/ws && colcon build && source install/setup.bash && ros2 launch capstone_bringup capstone.launch.py', height: 220 },
+    { title: 'Terminal 2', first: 'python3 /labs/lesson17/goal_client.py 2.0 -1.0', height: 220 },
+  ]}
+/>
+
+<LabQuestions questions={lesson17Lab} />
+
+## Quiz
+
+<Quiz questions={lesson17Quiz} />
+
+<Recap>
+
+- A robot's software is a graph of small nodes; a new capability is one more node that speaks the interfaces already there.
+- go_to: an **action** server, reading **odometry**, sending commands through the **safety layer**, configured by **parameters**, on **simulated time**, with its work on its own thread.
+- A **bag** of every run lets you check behaviour afterwards and compare changes on the same data.
+- Planning around obstacles is the next step: Nav2, built from the same parts.
+- That is the course: from `ros2 run` to a robot that drives itself to a goal.
+
+</Recap>

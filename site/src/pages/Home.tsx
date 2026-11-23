@@ -38,7 +38,7 @@ export function Home({ completed }: { completed: number[] }) {
           Python and are comfortable in a Linux terminal, and that you have not used ROS. Everything targets
           ROS 2 {ROS_DISTRO}, the release the 2026 course uses.
         </p>
-        <p>Each lesson is planned around the same parts, in the same order:</p>
+        <p>Each lesson has the same parts, in the same order:</p>
         <ul>
           <li>
             <strong>Big picture.</strong> Where the lesson sits and what problem it solves.

@@ -1,0 +1,6 @@
+# Reference solution for the Lesson 17 capstone. Try it before reading this.
+go_to:
+  ros__parameters:
+    max_speed: 0.5
+    max_turn: 1.0
+    tolerance: 0.1

@@ -1,0 +1,118 @@
+import { BigPicture, Bridge, PlainWords, Recap } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { MasterVsDds } from '../figures/lesson16'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { SideBySidePlayground } from '../playgrounds/lesson16/SideBySidePlayground'
+import { lesson16 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson16.code'
+import { lesson16Lab } from './lesson16.lab'
+import { lesson16Quiz } from './lesson16.quiz'
+
+export const r = lesson16.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+ROS 1's last release, Noetic, reached its end of life in May 2025, but a great deal of robot code, papers and answers online are still ROS 1. You will read it, and sometimes port it. Most of a port is mechanical: new names for the same ideas. A few changes alter how the program behaves, and those are where ports go wrong. This lesson reads a small ROS 1 package, ports it, and runs the port.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson16} />
+
+## ROS 1 in brief
+
+<MasterVsDds />
+
+Reading ROS 1 code, look for these:
+
+- **roscore**, the master: started first, in every system.
+- **catkin**: the build system, with `catkin_make` or `catkin build`; `devel/setup.bash` to source.
+- **The parameter server**, global: `nh.param(...)`, `rosparam`, and the private `~` namespace for a node's own.
+- **roscpp and rospy**: `ros::NodeHandle`, `ros::Rate` loops with `ros::spinOnce()`, `ROS_INFO`.
+- **roslaunch** XML files with `type=` for the program.
+- **TCPROS**: connections were reliable by default, with no QoS to choose.
+
+There is no ROS 1 in the course container (ROS 1 does not support Ubuntu 24.04), so the ROS 1 files here are for reading. Here is a small node:
+
+<Listing {...code.ros1Cpp} highlight={at(code.ros1Cpp, 'ros::NodeHandle private_nh("~");', 'private_nh.param("period"', 'nh.subscribe("odom"', 'nh.advertise<std_msgs::Float64>', 'nh.createTimer', 'ros::spin();')} />
+
+<Listing {...code.ros1Launch} />
+
+## Porting it
+
+<SideBySidePlayground />
+
+The build files change the same way: catkin becomes ament_cmake, and package.xml moves to format 3.
+
+<Listing {...code.ros2Cmake} highlight={at(code.ros2Cmake, 'find_package(ament_cmake REQUIRED)', 'ament_target_dependencies', 'ament_package()')} />
+
+<Listing {...code.ros1Cmake} highlight={at(code.ros1Cmake, 'find_package(catkin', 'catkin_package()', 'target_link_libraries')} />
+
+ROS 2 still reads XML launch files, so this one ports with one attribute renamed, `type` to `exec`:
+
+<Listing {...code.ros2Launch} highlight={at(code.ros2Launch, 'exec="odom_logger"')} />
+
+The port, built and run. A few positions published on `/rover/odom` make it add up a distance:
+
+<Terminal run={[r['port-build'], r['port-launch'], r['port-info'], r['port-param']]} />
+
+<Terminal run={[r['port-drive'], r['port-log'], r['port-distance']]} />
+
+<PlainWords>
+
+Port in this order, and test after each step: interfaces (messages, services, actions) first, keeping their names; then the build files; then the node code; then the launch files; and only then the meaning: QoS, discovery, executors. A ROS 1 node that "worked" while making a blocking call from a callback may deadlock in ROS 2 (Lesson 15), and a subscriber that silently relied on TCP's reliability may need a QoS profile that says so (Lesson 14). Record a bag from the old system and replay it into the new one (Lesson 6): the same input should give the same output.
+
+</PlainWords>
+
+## Both at once: ros1_bridge
+
+A robot can be ported package by package. **ros1_bridge** runs alongside both, passing topics and services between a ROS 1 master and a ROS 2 graph, so ported and unported nodes can talk during the migration. It needs ROS 1 and ROS 2 installed on one machine, which on recent Ubuntu means building one of them from source or using containers, and it is the last thing to remove when the port is done.
+
+<Bridge title="ETH's course">
+
+ETH's fourth lecture is about migrating from ROS 1: why ROS 2 differs (no master, distributed discovery, QoS, executors), a playbook (strategy, interfaces first, build system, node code, launch, then semantics, then validation with bags), the catkin to ament_cmake mapping, a minimal node port, common gotchas (node-local parameters, time, actionlib to rclcpp_action, nodelets to composition, launch), and ros1_bridge for doing it in stages. Its minimal port keeps the ROS 1 loop, with `rclcpp::WallRate` and `spin_some`; this lesson's ports use a timer instead, the more usual ROS 2 shape.
+
+</Bridge>
+
+## Lab: port a heartbeat
+
+`labs/lesson16/ros1/heartbeat` is a small ROS 1 package. Port it to a ROS 2 package `heartbeat` in `/labs/ws/src`:
+
+<Listing {...code.heartbeatRos1} highlight={at(code.heartbeatRos1, 'private_nh.param("rate", rate, 2.0);', 'nh.subscribe<std_msgs::Bool>(', 'ros::Rate loop(rate);', 'ros::spinOnce();')} />
+
+| | |
+| --- | --- |
+| Behaviour | the same: `alive 1`, `alive 2`, ... on `/heartbeat` at `rate` per second (a parameter, 2.0 by default); `false` on `/heartbeat_cmd` pauses, `true` resumes, and the count carries on |
+| Package | format 3, ament_cmake, installing the program and `launch` |
+| Launch | `launch/heartbeat.launch.xml`, ported from `heartbeat.launch`: rate 5 |
+
+Check with `python3 /labs/lesson16/check.py`. A reference solution is in `labs/lesson16/solution`.
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1', first: 'cd /labs/ws/src && ros2 pkg create --build-type ament_cmake heartbeat', height: 240 },
+    { title: 'Terminal 2', first: 'ls /labs/lesson16/ros1/heartbeat', height: 240 },
+  ]}
+/>
+
+<LabQuestions questions={lesson16Lab} />
+
+## Quiz
+
+<Quiz questions={lesson16Quiz} />
+
+<Recap>
+
+- ROS 1 had a **master** (roscore), a **global parameter server**, **catkin**, and reliable **TCPROS**; ROS 2 has none of them.
+- Mechanical changes: headers and namespaces, `NodeHandle` to `Node`, `advertise` to `create_publisher`, `ROS_INFO` to `RCLCPP_INFO`, catkin to ament_cmake, `type` to `exec` in XML launch files.
+- Changes of meaning: parameters belong to nodes, connections have QoS, callbacks run in executors you choose.
+- Port in order: interfaces, build, code, launch, then semantics; validate with bags.
+- **ros1_bridge** lets ROS 1 and ROS 2 run together during a staged migration.
+- Next: the capstone, using everything at once.
+
+</Recap>
