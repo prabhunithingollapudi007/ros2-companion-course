@@ -13,5 +13,6 @@ for (const [path, load] of Object.entries(modules)) {
 
 /** Rough reading-and-playing time, shown under the lesson title. Add an entry when a lesson is written. */
 export const LESSON_MINUTES: Record<number, number> = {
+  1: 40,
   2: 50,
 }

@@ -1,0 +1,132 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal, TerminalPair } from '../components/Terminal'
+import { ContainerSetup, ReleaseTimeline, RosToolbox, SourcingFigure } from '../figures/lesson01'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { StopAPiece } from '../playgrounds/lesson01/StopAPiece'
+import { lesson01 } from '../transcripts'
+import { lesson01Lab } from './lesson01.lab'
+import { lesson01Quiz } from './lesson01.quiz'
+
+export const r = lesson01.runs
+
+<BigPicture>
+
+A robot's software has to read sensors, estimate where the robot is, decide what to do and drive motors, often on more than one computer, and written by people who never meet. ROS (the Robot Operating System) is the common ground that makes those pieces fit: a standard way for programs to exchange data, tools to watch and record what they do, and thousands of packages others have already written. This lesson sets up the environment the whole course runs in and starts your first two ROS programs.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson01} />
+
+## What ROS gives you
+
+<RosToolbox />
+
+The idea that holds it together is small: split the software into many small programs, called **nodes**, each with one job, and let them exchange messages over named channels. Lesson 2 is about that structure in detail. Everything else, the tools and the shared packages, works because every ROS program follows the same conventions.
+
+## ROS 1, ROS 2 and Jazzy
+
+<ReleaseTimeline />
+
+There are two generations. ROS 1 started in 2010 and is what much older code and many papers use. ROS 2 is a redesign that removed ROS 1's central server and made communication more robust and configurable (Lesson 16 compares them). Within ROS 2, each **release** has a name, and its first word is what you type: `jazzy`.
+
+## The course container
+
+<ContainerSetup />
+
+ROS 2 Jazzy is made for Ubuntu 24.04. Rather than ask you to install that, the course runs it in a container, as ETH's course does, so every command on these pages behaves the same for everyone.
+
+<Terminal run={[r['os-release'], r['ros-distro']]} />
+
+The lab at the end of this lesson starts it. From then on, each lab section has live terminals inside the container.
+
+## Sourcing: telling a terminal where ROS is
+
+Installing ROS puts its files in `/opt/ros/jazzy`, but a terminal does not know they are there until you **source** the setup file. In a terminal where that has not happened:
+
+<Terminal run={[r['fresh-ros2'], r['fresh-ros-vars']]} />
+
+Sourcing prints nothing. It changes the terminal's settings:
+
+<Terminal run={[r['fresh-source'], { ...r['fresh-after'], command: 'printenv | grep ^ROS | sort' }, { ...r['fresh-which'], command: 'which ros2' }]} />
+
+<SourcingFigure />
+
+<PlainWords>
+
+Sourcing is like giving one terminal a map to ROS. The map belongs to that terminal: open a new one and it has none. On your own computer you add the line to `~/.bashrc` so every new terminal sources it by itself. In the course container that is already done, so its terminals start ready.
+
+</PlainWords>
+
+## The ros2 command
+
+Almost everything in this course starts with `ros2`. Its help lists the areas it covers, and you will meet most of them:
+
+<Terminal run={r['ros2-help']} />
+
+`ros2 run` starts a program from a **package**, ROS's unit of software (Lesson 3 builds one). It takes two names, the package and the program:
+
+<Terminal run={r['pkg-executables']} />
+
+## Your first two nodes
+
+The `demo_nodes_cpp` package has two tiny nodes for exactly this moment. `talker` publishes a greeting once a second; `listener` prints whatever it receives.
+
+<TerminalPair>
+  <Terminal title="Terminal 1" run={r.talker} />
+  <Terminal title="Terminal 2" run={r.listener} />
+</TerminalPair>
+
+Look at the numbers and the clock times in the listener's output. In this recording the talker was stopped with Ctrl+C after a few greetings and started again a few seconds later. The listener stayed up, printed nothing in between, and picked up the new talker, which counts from 1 again, without being restarted. A third terminal shows the same from outside:
+
+<Terminal title="Terminal 3" run={[r['both-running'], r['after-stop'], r['after-restart']]} />
+
+This is the point of splitting software into nodes, and the playground shows it on a bigger robot.
+
+<StopAPiece />
+
+<TryThis>
+
+- **Stop `/line_detector`.** The camera and the recorder carry on; steering and the motor driver are still running but have nothing to act on.
+- **Start it again.** Everything downstream resumes on its own.
+- **Switch to one big program and stop `/recorder`.** A crash in the least important part stops the robot.
+
+</TryThis>
+
+<Bridge title="ETH's course">
+
+ETH's first lecture makes the same case in a list: standard communication, communication across machines, a standard package structure, modularity, ready-made tools, and the community's packages. Its setup also uses a Docker container with Jazzy on Ubuntu 24.04, opened in VS Code.
+
+</Bridge>
+
+## Lab: start the container
+
+Install [Docker](https://docs.docker.com/get-started/get-docker/), get a copy of this course's repository, and from its folder run the command shown below. Then answer the questions using the two terminals.
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1', first: 'ros2 run demo_nodes_cpp talker', height: 220 },
+    { title: 'Terminal 2', first: 'ros2 run demo_nodes_cpp listener', height: 220 },
+  ]}
+/>
+
+In a freshly started container, the first `ros2` command also starts a background helper that keeps track of the graph, and it can answer before it has found everything. If a list comes back empty or short, run the command again.
+
+<LabQuestions questions={lesson01Lab} />
+
+## Quiz
+
+<Quiz questions={lesson01Quiz} />
+
+<Recap>
+
+- **ROS** is communication, client libraries, tools and shared packages, running on an ordinary operating system. It is not an operating system itself.
+- Robot software in ROS is many small programs, **nodes**, that exchange messages. Stopping one leaves the others running.
+- **ROS 2** replaced ROS 1, which ended in May 2025. This course uses **Jazzy**, a long-term release supported until May 2029, on Ubuntu 24.04, in a container.
+- **Sourcing** `/opt/ros/jazzy/setup.bash` sets variables in the current terminal so it can find ROS. Each terminal needs it, so it usually goes in `~/.bashrc`.
+- `ros2 run <package> <program>` starts a node. `ros2 --help` lists everything else `ros2` can do.
+- Next: what the graph of nodes looks like, and how to inspect it.
+
+</Recap>

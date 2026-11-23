@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "fresh-ros2": {
+      "command": "ros2 --help",
+      "output": "bash: line 1: ros2: command not found",
+      "ended": "exit"
+    },
+    "fresh-ros-vars": {
+      "command": "printenv | grep ^ROS",
+      "output": "",
+      "ended": "exit"
+    },
+    "fresh-source": {
+      "command": "source /opt/ros/jazzy/setup.bash",
+      "output": "",
+      "ended": "exit"
+    },
+    "fresh-after": {
+      "command": "source /opt/ros/jazzy/setup.bash; printenv | grep ^ROS | sort",
+      "output": "ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET\nROS_DISTRO=jazzy\nROS_PYTHON_VERSION=3\nROS_VERSION=2",
+      "ended": "exit"
+    },
+    "fresh-ament": {
+      "command": "source /opt/ros/jazzy/setup.bash; echo $AMENT_PREFIX_PATH",
+      "output": "/opt/ros/jazzy",
+      "ended": "exit"
+    },
+    "fresh-which": {
+      "command": "source /opt/ros/jazzy/setup.bash; which ros2",
+      "output": "/opt/ros/jazzy/bin/ros2",
+      "ended": "exit"
+    },
+    "fresh-path": {
+      "command": "source /opt/ros/jazzy/setup.bash; echo $PATH | tr ':' '\\n' | head -3",
+      "output": "/opt/ros/jazzy/bin\n/usr/local/sbin\n/usr/local/bin",
+      "ended": "exit"
+    },
+    "os-release": {
+      "command": "grep PRETTY_NAME /etc/os-release",
+      "output": "PRETTY_NAME=\"Ubuntu 24.04.5 LTS\"",
+      "ended": "exit"
+    },
+    "ros-distro": {
+      "command": "echo $ROS_DISTRO",
+      "output": "jazzy",
+      "ended": "exit"
+    },
+    "ros2-help": {
+      "command": "ros2 --help",
+      "output": "usage: ros2 [-h] [--use-python-default-buffering]\n            Call `ros2 <command> -h` for more detailed usage. ...\n\nros2 is an extensible command-line tool for ROS 2.\n\noptions:\n  -h, --help            show this help message and exit\n  --use-python-default-buffering\n                        Do not force line buffering in stdout and instead use\n                        the python default buffering, which might be affected\n                        by PYTHONUNBUFFERED/-u and depends on whatever stdout\n                        is interactive or not\n\nCommands:\n  action     Various action related sub-commands\n  bag        Various rosbag related sub-commands\n  component  Various component related sub-commands\n  daemon     Various daemon related sub-commands\n  doctor     Check ROS setup and other potential issues\n  interface  Show information about ROS interfaces\n  launch     Run a launch file\n  lifecycle  Various lifecycle related sub-commands\n  multicast  Various multicast related sub-commands\n  node       Various node related sub-commands\n  param      Various param related sub-commands\n  pkg        Various package related sub-commands\n  plugin     Various plugin related sub-commands\n  run        Run a package specific executable\n  security   Various security related sub-commands\n  service    Various service related sub-commands\n  topic      Various topic related sub-commands\n  wtf        Use `wtf` as alias to `doctor`\n\n  Call `ros2 <command> -h` for more detailed usage.",
+      "ended": "exit"
+    },
+    "pkg-count": {
+      "command": "ros2 pkg list | wc -l",
+      "output": "197",
+      "ended": "exit"
+    },
+    "pkg-executables": {
+      "command": "ros2 pkg executables demo_nodes_cpp | grep -E \" (talker|listener)$\"",
+      "output": "demo_nodes_cpp listener\ndemo_nodes_cpp talker",
+      "ended": "exit"
+    },
+    "pkg-executables-count": {
+      "command": "ros2 pkg executables demo_nodes_cpp | wc -l",
+      "output": "28",
+      "ended": "exit"
+    },
+    "lab-clean-shell": {
+      "command": "env -i bash --norc -c \"ros2 --help\"",
+      "output": "bash: line 1: ros2: command not found",
+      "ended": "exit"
+    },
+    "both-running": {
+      "command": "ros2 node list",
+      "output": "/listener\n/talker",
+      "ended": "exit"
+    },
+    "after-stop": {
+      "command": "ros2 node list",
+      "output": "/listener",
+      "ended": "exit"
+    },
+    "heard-at-stop": {
+      "command": "grep -c 'I heard' /tmp/rec/listener.log",
+      "output": "4",
+      "ended": "exit"
+    },
+    "heard-while-stopped": {
+      "command": "grep -c 'I heard' /tmp/rec/listener.log",
+      "output": "4",
+      "ended": "exit"
+    },
+    "after-restart": {
+      "command": "ros2 node list",
+      "output": "/listener\n/talker",
+      "ended": "exit"
+    },
+    "heard-after-restart": {
+      "command": "grep -c 'I heard' /tmp/rec/listener.log",
+      "output": "8",
+      "ended": "exit"
+    },
+    "listener": {
+      "command": "ros2 run demo_nodes_cpp listener",
+      "output": "[INFO] [1795429759.273449514] [listener]: I heard: [Hello World: 1]\n[INFO] [1795429760.274112824] [listener]: I heard: [Hello World: 2]\n[INFO] [1795429761.273520372] [listener]: I heard: [Hello World: 3]\n[INFO] [1795429762.273227547] [listener]: I heard: [Hello World: 4]\n[INFO] [1795429769.668765299] [listener]: I heard: [Hello World: 1]\n[INFO] [1795429770.668610227] [listener]: I heard: [Hello World: 2]",
+      "ended": "running",
+      "truncated": true
+    },
+    "talker": {
+      "command": "ros2 run demo_nodes_cpp talker",
+      "output": "[INFO] [1795429759.273010547] [talker]: Publishing: 'Hello World: 1'\n[INFO] [1795429760.273241934] [talker]: Publishing: 'Hello World: 2'\n[INFO] [1795429761.273044394] [talker]: Publishing: 'Hello World: 3'",
+      "ended": "running",
+      "truncated": true
+    },
+    "talker-again": {
+      "command": "ros2 run demo_nodes_cpp talker",
+      "output": "[INFO] [1795429769.667935511] [talker]: Publishing: 'Hello World: 1'\n[INFO] [1795429770.667868135] [talker]: Publishing: 'Hello World: 2'",
+      "ended": "running",
+      "truncated": true
+    }
+  }
+}

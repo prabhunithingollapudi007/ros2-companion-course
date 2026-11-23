@@ -65,6 +65,18 @@
   stroke-width: 1.8;
 }
 
+/* A node the reader can click. */
+.clickable-node {
+  cursor: pointer;
+}
+.clickable-node:hover ellipse,
+.clickable-node:focus-visible ellipse {
+  stroke-width: 3;
+}
+.clickable-node:focus {
+  outline: none;
+}
+
 /* The list of nodes above the live graph. */
 .graph-editor {
   display: grid;

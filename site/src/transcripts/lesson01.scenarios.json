@@ -1,0 +1,144 @@
+{
+  "scenarios": [
+    {
+      "name": "a shell before and after sourcing",
+      "steps": [
+        {
+          "id": "fresh-ros2",
+          "cmd": "ros2 --help",
+          "fresh": true,
+          "mayFail": true
+        },
+        {
+          "id": "fresh-ros-vars",
+          "cmd": "printenv | grep ^ROS",
+          "fresh": true,
+          "mayFail": true
+        },
+        {
+          "id": "fresh-source",
+          "cmd": "source /opt/ros/jazzy/setup.bash",
+          "fresh": true
+        },
+        {
+          "id": "fresh-after",
+          "cmd": "source /opt/ros/jazzy/setup.bash; printenv | grep ^ROS | sort",
+          "fresh": true
+        },
+        {
+          "id": "fresh-ament",
+          "cmd": "source /opt/ros/jazzy/setup.bash; echo $AMENT_PREFIX_PATH",
+          "fresh": true
+        },
+        {
+          "id": "fresh-which",
+          "cmd": "source /opt/ros/jazzy/setup.bash; which ros2",
+          "fresh": true
+        },
+        {
+          "id": "fresh-path",
+          "cmd": "source /opt/ros/jazzy/setup.bash; echo $PATH | tr ':' '\\n' | head -3",
+          "fresh": true
+        }
+      ]
+    },
+    {
+      "name": "the course container",
+      "steps": [
+        {
+          "id": "os-release",
+          "cmd": "grep PRETTY_NAME /etc/os-release",
+          "mask": "numbers"
+        },
+        {
+          "id": "ros-distro",
+          "cmd": "echo $ROS_DISTRO"
+        },
+        {
+          "id": "ros2-help",
+          "cmd": "ros2 --help"
+        },
+        {
+          "id": "pkg-count",
+          "cmd": "ros2 pkg list | wc -l",
+          "mask": "numbers"
+        },
+        {
+          "id": "pkg-executables",
+          "cmd": "ros2 pkg executables demo_nodes_cpp | grep -E \" (talker|listener)$\""
+        },
+        {
+          "id": "pkg-executables-count",
+          "cmd": "ros2 pkg executables demo_nodes_cpp | wc -l"
+        },
+        {
+          "id": "lab-clean-shell",
+          "cmd": "env -i bash --norc -c \"ros2 --help\"",
+          "mayFail": true
+        }
+      ]
+    },
+    {
+      "name": "stopping and restarting one node",
+      "steps": [
+        {
+          "id": "listener",
+          "cmd": "ros2 run demo_nodes_cpp listener",
+          "background": true,
+          "settle": 2,
+          "lines": 6,
+          "mask": "numbers"
+        },
+        {
+          "id": "talker",
+          "cmd": "ros2 run demo_nodes_cpp talker",
+          "background": true,
+          "settle": 4,
+          "lines": 3,
+          "mask": "numbers"
+        },
+        {
+          "id": "both-running",
+          "cmd": "ros2 node list"
+        },
+        {
+          "cmd": "pkill -INT -f lib/demo_nodes_cpp/talker; sleep 2"
+        },
+        {
+          "id": "after-stop",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "heard-at-stop",
+          "cmd": "grep -c 'I heard' /tmp/rec/listener.log",
+          "mask": "numbers"
+        },
+        {
+          "cmd": "sleep 3"
+        },
+        {
+          "id": "heard-while-stopped",
+          "cmd": "grep -c 'I heard' /tmp/rec/listener.log",
+          "mask": "numbers"
+        },
+        {
+          "id": "talker-again",
+          "cmd": "ros2 run demo_nodes_cpp talker",
+          "background": true,
+          "settle": 4,
+          "lines": 2,
+          "mask": "numbers"
+        },
+        {
+          "id": "after-restart",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "heard-after-restart",
+          "cmd": "grep -c 'I heard' /tmp/rec/listener.log",
+          "mask": "numbers"
+        }
+      ]
+    }
+  ]
+}

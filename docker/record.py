@@ -25,6 +25,11 @@ A scenario is a JSON list of steps. A step is one of:
   {"cmd": "sleep 1"}
       No id: run it, record nothing.
 
+  {"id": "no-ros", "cmd": "ros2 --help", "fresh": true}
+      Run it in a clean shell where ROS has not been set up (no setup file
+      sourced, no ROS variables), as on a computer with ROS installed but not
+      yet sourced.
+
 `lines` keeps only the first lines of the output (the last ones for `tail`).
 """
 
@@ -47,13 +52,17 @@ def clean(text):
     return "\n".join(line.rstrip() for line in text.split("\n")).strip("\n")
 
 
-def start(cmd, log_path):
+CLEAN_ENV = {"HOME": "/root", "TERM": "xterm", "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"}
+
+
+def start(cmd, log_path, fresh=False):
     log = open(log_path, "wb")
-    env = {**os.environ, "PYTHONUNBUFFERED": "1"}
+    if fresh:
+        argv, env = ["bash", "--norc", "--noprofile", "-c", cmd], dict(CLEAN_ENV)
+    else:
+        argv, env = ["bash", "-c", f"{SETUP}; {cmd}"], {**os.environ, "PYTHONUNBUFFERED": "1"}
     # Its own process group, so the command and everything it starts can be stopped together.
-    return subprocess.Popen(
-        ["bash", "-c", f"{SETUP}; {cmd}"], stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True, env=env
-    )
+    return subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True, env=env)
 
 
 def stop(proc):
@@ -109,7 +118,7 @@ def main():
 
         cmd = step["cmd"]
         log_path = f"{LOGS}/{name}.log"
-        proc = start(cmd, log_path)
+        proc = start(cmd, log_path, fresh=step.get("fresh", False))
 
         if step.get("background"):
             background[name] = (proc, step, log_path)

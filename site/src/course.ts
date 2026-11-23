@@ -80,12 +80,14 @@ export const PARTS: Part[] = [
           'Sourcing the environment',
           'A first talker and listener',
         ],
-        playgrounds: ['A robot as a graph of small programs'],
-        lab: 'Start the container and pass a smoke test: one node talking, one listening.',
+        playgrounds: ['Stop one piece: separate nodes against one big program'],
+        lab: 'Start the container, find your way around it, and stop and restart a node.',
         sources: [
           eth(1, 'ROS architecture and philosophy'),
+          docs('Releases', 'ROS 2 releases and their support dates'),
           docs('Tutorials/Beginner-CLI-Tools/Configuring-ROS2-Environment', 'Configuring the environment'),
           docs('Concepts/Basic/About-Nodes', 'Concepts: nodes'),
+          { from: 'Other', label: 'Docker: get started', url: 'https://docs.docker.com/get-started/get-docker/' },
         ],
       },
       {

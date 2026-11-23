@@ -1,4 +1,5 @@
 import type { Run } from '../components/Terminal'
+import lesson01Data from './lesson01.json'
 import lesson02Data from './lesson02.json'
 
 // The terminal sessions the lessons show, as recorded in the course container
@@ -18,4 +19,5 @@ export interface Transcript {
   runs: Record<string, Run>
 }
 
+export const lesson01 = lesson01Data as Transcript
 export const lesson02 = lesson02Data as Transcript
