@@ -1,0 +1,77 @@
+{
+  "scenarios": [
+    {
+      "name": "record a bag and replay it",
+      "steps": [
+        { "cmd": "ros2 run demo_nodes_cpp talker", "background": true, "settle": 2 },
+        { "id": "record-help", "cmd": "ros2 bag record --help | grep -E -e '^  -o OUTPUT' -e '^  --topics' -e '^  -a, --all'" },
+        { "id": "record-old", "cmd": "ros2 bag record -o old /chatter", "cwd": "/root", "background": true, "settle": 3, "lines": 1 },
+        { "cmd": "pkill -INT -f 'ros2 bag record'; sleep 2" },
+        { "id": "record", "cmd": "ros2 bag record -o talk --topics /chatter", "cwd": "/root", "background": true, "settle": 5, "lines": 9, "mask": "numbers" },
+        { "cmd": "pkill -INT -f 'ros2 bag record'; sleep 2; pkill -INT -f lib/demo_nodes_cpp/talker; sleep 1" },
+        { "id": "bag-folder", "cmd": "ls talk", "cwd": "/root" },
+        { "id": "bag-info", "cmd": "ros2 bag info talk", "cwd": "/root", "mask": "numbers", "check": false, "why": "Its size, times and message count depend on when and for how long it recorded; bag-info-stable checks the rest." },
+        { "id": "bag-info-stable", "cmd": "ros2 bag info talk | grep -E 'Storage id|Topic: '", "cwd": "/root", "mask": "numbers" },
+        { "id": "listener", "cmd": "ros2 run demo_nodes_cpp listener", "background": true, "settle": 2, "lines": 3, "mask": "numbers" },
+        { "id": "play", "cmd": "ros2 bag play talk", "cwd": "/root", "mask": "numbers" },
+        { "cmd": "sleep 1" },
+        { "id": "listener-replayed", "tail": "listener", "lines": 3, "mask": "numbers" },
+        { "id": "replayed-count", "cmd": "grep -c 'I heard' /tmp/rec/listener.log", "mask": "numbers" }
+      ]
+    },
+    {
+      "name": "the weather bag",
+      "labs": true,
+      "steps": [
+        { "id": "header", "cmd": "ros2 interface show std_msgs/msg/Header" },
+        { "id": "make", "cmd": "python3 /labs/lesson06/make_weather_bag.py /root/weather" },
+        { "id": "weather-info", "cmd": "ros2 bag info weather", "cwd": "/root", "mask": "numbers" },
+        { "cmd": "ros2 bag play weather", "cwd": "/root", "background": true, "settle": 2 },
+        { "id": "echo-temperature", "cmd": "ros2 topic echo --once /temperature", "mask": "numbers" },
+        { "id": "echo-humidity", "cmd": "ros2 topic echo --once /humidity", "mask": "numbers" }
+      ]
+    },
+    {
+      "name": "wall time and simulated time",
+      "labs": true,
+      "steps": [
+        { "cmd": "python3 /labs/lesson06/make_weather_bag.py /root/weather > /dev/null" },
+        { "id": "wall", "cmd": "python3 /labs/lesson06/examples/what_time.py", "background": true, "settle": 3, "lines": 2, "mask": "numbers" },
+        { "id": "sim", "cmd": "python3 /labs/lesson06/examples/what_time.py --ros-args -p use_sim_time:=true", "background": true, "settle": 3, "lines": 4, "mask": "numbers" },
+        { "id": "sim-before", "cmd": "grep -c 'my clock' /tmp/rec/sim.log", "mayFail": true },
+        { "id": "play-clock", "cmd": "ros2 bag play weather --clock", "cwd": "/root", "background": true, "settle": 5, "lines": 2, "mask": "numbers" },
+        { "id": "clock-once", "cmd": "ros2 topic echo --once /clock", "mask": "numbers" },
+        { "id": "sim-during", "tail": "sim", "lines": 3, "mask": "numbers" }
+      ]
+    },
+    {
+      "name": "a bag played twice as fast",
+      "labs": true,
+      "steps": [
+        { "cmd": "python3 /labs/lesson06/make_weather_bag.py /root/weather > /dev/null" },
+        { "id": "sim-fast", "cmd": "python3 /labs/lesson06/examples/what_time.py --ros-args -p use_sim_time:=true", "background": true, "settle": 2, "lines": 4, "mask": "numbers" },
+        { "id": "play-fast", "cmd": "ros2 bag play weather --clock --rate 2", "cwd": "/root", "background": true, "settle": 4 },
+        { "id": "sim-fast-tail", "tail": "sim-fast", "lines": 3, "mask": "numbers" }
+      ]
+    },
+    {
+      "name": "pairing by time stamp",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson06/examples/sync_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null && python3 /labs/lesson06/make_weather_bag.py /root/weather > /dev/null" },
+        { "id": "pairs", "cmd": "source install/setup.bash && ros2 run sync_demo pair_printer", "cwd": "/labs/ws", "background": true, "settle": 2, "lines": 5, "mask": "numbers" },
+        { "cmd": "ros2 bag play weather", "cwd": "/root", "background": true, "settle": 7 }      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson06/check.py", "mayFail": true },
+        { "cmd": "cp -r /labs/lesson06/solution/weather_station /labs/ws/src/" },
+        { "id": "lab-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson06/check.py" }
+      ]
+    }
+  ]
+}

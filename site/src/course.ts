@@ -199,8 +199,8 @@ export const PARTS: Part[] = [
           'Approximate-time synchronisation with message_filters',
           'Looking at data: rqt and Foxglove',
         ],
-        playgrounds: ['Two sensor streams being matched by time stamp', 'Replaying a bag: what the clock does'],
-        lab: 'Re-stamp a sensor stream using simulated time and combine it with a second one.',
+        playgrounds: ['Pairing two sensors by time stamp', 'Whose clock is it? Replay rate, --clock and use_sim_time'],
+        lab: "A weather station's dew point: pair two sensors from a bag by time stamp and publish a stamped result.",
         sources: [
           eth(1, 'Rosbag, timing, synchronisation and visualisation tools'),
           docs('Tutorials/Beginner-CLI-Tools/Recording-And-Playing-Back-Data/Recording-And-Playing-Back-Data', 'Recording and playing back data'),

@@ -1,0 +1,5 @@
+# Files run inside the Linux container (scripts, launch files, package files)
+# must keep Linux line endings, also when the repository is checked out on Windows.
+* text=auto eol=lf
+*.png binary
+*.mcap binary

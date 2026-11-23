@@ -55,8 +55,13 @@ ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 DEFAULT_TIMEOUT = 40.0
 
 
+# Printed by ros2 bag only because the recorder runs commands without a terminal.
+# A reader's terminal never shows it, so it is left out of every recording.
+NO_TERMINAL = "stdin is not a terminal device. Keyboard handling disabled."
+
+
 def clean(text):
-    text = ANSI.sub("", text).replace("\r\n", "\n").replace("\r", "\n")
+    text = ANSI.sub("", text).replace("\r\n", "\n").replace("\r", "\n").replace(NO_TERMINAL, "")
     return "\n".join(line.rstrip() for line in text.split("\n")).strip("\n")
 
 

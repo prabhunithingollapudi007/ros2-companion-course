@@ -114,6 +114,16 @@
   border-radius: 3px;
 }
 
+/* Pairing and clock playgrounds. */
+.pair-unused {
+  fill: var(--surface-1);
+  stroke: var(--axis);
+  stroke-width: 1.5;
+}
+.col-band {
+  fill: var(--accent-wash);
+}
+
 /* A recorded folder listing beside the commands that produced it. */
 .stepper {
   display: grid;

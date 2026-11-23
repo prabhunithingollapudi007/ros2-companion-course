@@ -84,7 +84,11 @@ lab answers to those recordings.
 
 Both need Docker and the image built once (`docker compose -f docker/compose.yaml build`).
 The check ignores what is expected to change between runs: clock times, generated
-ids and, for commands marked so, measured numbers such as rates.
+ids and, for commands marked so, measured numbers such as rates. Where output
+depends on timing (several processes' lines interleaving, how long discovery took),
+a scenario shows it but leaves it out of the check, says why, and checks the same
+fact another way. The recorder runs commands without a terminal, so it removes the
+one line `ros2 bag` prints only in that case ("stdin is not a terminal device").
 
 ## Tests
 

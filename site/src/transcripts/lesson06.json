@@ -1,0 +1,176 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "record-help": {
+      "command": "ros2 bag record --help | grep -E -e '^  -o OUTPUT' -e '^  --topics' -e '^  -a, --all'",
+      "output": "  -o OUTPUT, --output OUTPUT\n  --topics Topic [Topic ...]\n  -a, --all             Record all topics and services (Exclude hidden topic).",
+      "ended": "exit"
+    },
+    "bag-folder": {
+      "command": "ls talk",
+      "output": "metadata.yaml\ntalk_0.mcap",
+      "ended": "exit",
+      "cwd": "/root"
+    },
+    "bag-info": {
+      "command": "ros2 bag info talk",
+      "output": "Files:             talk_0.mcap\nBag size:          5.3 KiB\nStorage id:        mcap\nROS Distro:        jazzy\nDuration:          4.000143740s\nStart:             Nov 23 2026 11:40:48.403059755 (1795434048.403059755)\nEnd:               Nov 23 2026 11:40:52.403203495 (1795434052.403203495)\nMessages:          5\nTopic information: Topic: /chatter | Type: std_msgs/msg/String | Count: 5 | Serialization Format: cdr\nService:           0\nService information:",
+      "ended": "exit",
+      "cwd": "/root"
+    },
+    "bag-info-stable": {
+      "command": "ros2 bag info talk | grep -E 'Storage id|Topic: '",
+      "output": "Storage id:        mcap\nTopic information: Topic: /chatter | Type: std_msgs/msg/String | Count: 5 | Serialization Format: cdr",
+      "ended": "exit",
+      "cwd": "/root"
+    },
+    "play": {
+      "command": "ros2 bag play talk",
+      "output": "[INFO] [1795434058.903210521] [rosbag2_player]: Set rate to 1\n[INFO] [1795434058.908428303] [rosbag2_player]: Adding keyboard callbacks.\n[INFO] [1795434058.908447970] [rosbag2_player]: Press SPACE for Pause/Resume\n[INFO] [1795434058.908452562] [rosbag2_player]: Press CURSOR_RIGHT for Play Next Message\n[INFO] [1795434058.908456720] [rosbag2_player]: Press CURSOR_UP for Increase Rate 10%\n[INFO] [1795434058.908460595] [rosbag2_player]: Press CURSOR_DOWN for Decrease Rate 10%\n[INFO] [1795434058.910358666] [rosbag2_player]: Playback until timestamp: -1",
+      "ended": "exit",
+      "cwd": "/root"
+    },
+    "listener-replayed": {
+      "command": "ros2 run demo_nodes_cpp listener",
+      "output": "[INFO] [1795434061.012234323] [listener]: I heard: [Hello World: 10]\n[INFO] [1795434062.011644142] [listener]: I heard: [Hello World: 11]\n[INFO] [1795434063.012215419] [listener]: I heard: [Hello World: 12]",
+      "ended": "running",
+      "tail": true
+    },
+    "replayed-count": {
+      "command": "grep -c 'I heard' /tmp/rec/listener.log",
+      "output": "4",
+      "ended": "exit"
+    },
+    "record-old": {
+      "command": "ros2 bag record -o old /chatter",
+      "output": "[WARN] [ros2bag]: Positional \"topics\" argument deprecated. Please use optional \"--topics\" argument instead.",
+      "ended": "running",
+      "cwd": "/root",
+      "truncated": true
+    },
+    "record": {
+      "command": "ros2 bag record -o talk --topics /chatter",
+      "output": "[INFO] [1795434048.040491759] [rosbag2_recorder]: Press SPACE for pausing/resuming\n[INFO] [1795434048.040528258] [rosbag2_recorder]: Event publisher thread: Started\n[INFO] [1795434048.044609538] [rosbag2_recorder]: Starting recording to 'talk'\n[INFO] [1795434048.046311413] [rosbag2_recorder]: Listening for topics...\n[INFO] [1795434048.046327958] [rosbag2_recorder]: Recording...\n[INFO] [1795434048.046361866] [rosbag2_recorder]: Topics discovery started.\n[INFO] [1795434048.148099066] [rosbag2_recorder]: Subscribed to topic '/chatter'\n[INFO] [1795434048.148155973] [rosbag2_recorder]: All requested topics are subscribed. Stopping discovery...\n[INFO] [1795434048.148160285] [rosbag2_recorder]: Topics discovery stopped.",
+      "ended": "running",
+      "cwd": "/root",
+      "truncated": true
+    },
+    "listener": {
+      "command": "ros2 run demo_nodes_cpp listener",
+      "output": "[INFO] [1795434060.011991276] [listener]: I heard: [Hello World: 9]\n[INFO] [1795434061.012234323] [listener]: I heard: [Hello World: 10]\n[INFO] [1795434062.011644142] [listener]: I heard: [Hello World: 11]",
+      "ended": "running",
+      "truncated": true
+    },
+    "header": {
+      "command": "ros2 interface show std_msgs/msg/Header",
+      "output": "# Standard metadata for higher-level stamped data types.\n# This is generally used to communicate timestamped data\n# in a particular coordinate frame.\n\n# Two-integer timestamp that is expressed as seconds and nanoseconds.\nbuiltin_interfaces/Time stamp\n\tint32 sec\n\tuint32 nanosec\n\n# Transform frame with which this data is associated.\nstring frame_id",
+      "ended": "exit"
+    },
+    "make": {
+      "command": "python3 /labs/lesson06/make_weather_bag.py /root/weather",
+      "output": "Wrote /root/weather: 120 temperature and 30 humidity readings over 30 s.",
+      "ended": "exit"
+    },
+    "weather-info": {
+      "command": "ros2 bag info weather",
+      "output": "Files:             weather_0.mcap\nBag size:          23.6 KiB\nStorage id:        mcap\nROS Distro:        jazzy\nDuration:          29.750000128s\nStart:             May 28 2026 20:26:40.035000064 (1780000000.035000064)\nEnd:               May 28 2026 20:27:09.785000192 (1780000029.785000192)\nMessages:          150\nTopic information: Topic: /humidity | Type: sensor_msgs/msg/RelativeHumidity | Count: 30 | Serialization Format: cdr\n                   Topic: /temperature | Type: sensor_msgs/msg/Temperature | Count: 120 | Serialization Format: cdr\nService:           0\nService information:",
+      "ended": "exit",
+      "cwd": "/root"
+    },
+    "echo-temperature": {
+      "command": "ros2 topic echo --once /temperature",
+      "output": "header:\n  stamp:\n    sec: 1780000002\n    nanosec: 529999971\n  frame_id: weather_station\ntemperature: 19.047\nvariance: 0.0\n---",
+      "ended": "exit"
+    },
+    "echo-humidity": {
+      "command": "ros2 topic echo --once /humidity",
+      "output": "header:\n  stamp:\n    sec: 1780000004\n    nanosec: 109999895\n  frame_id: weather_station\nrelative_humidity: 0.6043\nvariance: 0.0\n---",
+      "ended": "exit"
+    },
+    "sim-before": {
+      "command": "grep -c 'my clock' /tmp/rec/sim.log",
+      "output": "0",
+      "ended": "exit"
+    },
+    "clock-once": {
+      "command": "ros2 topic echo --once /clock",
+      "output": "clock:\n  sec: 1780000005\n  nanosec: 560284351\n---",
+      "ended": "exit"
+    },
+    "sim-during": {
+      "command": "python3 /labs/lesson06/examples/what_time.py --ros-args -p use_sim_time:=true",
+      "output": "[INFO] [1795434083.757718239] [what_time]: my clock says 1780000003.01 s, that is 2026-05-28 20:26:43 UTC\n[INFO] [1795434084.750823838] [what_time]: my clock says 1780000004.01 s, that is 2026-05-28 20:26:44 UTC\n[INFO] [1795434085.746085326] [what_time]: my clock says 1780000005.01 s, that is 2026-05-28 20:26:45 UTC",
+      "ended": "running",
+      "tail": true
+    },
+    "wall": {
+      "command": "python3 /labs/lesson06/examples/what_time.py",
+      "output": "[INFO] [1795434075.528156216] [what_time]: my clock says 1795434075.51 s, that is 2026-11-23 11:41:15 UTC\n[INFO] [1795434076.517502815] [what_time]: my clock says 1795434076.51 s, that is 2026-11-23 11:41:16 UTC",
+      "ended": "running",
+      "truncated": true
+    },
+    "sim": {
+      "command": "python3 /labs/lesson06/examples/what_time.py --ros-args -p use_sim_time:=true",
+      "output": "[INFO] [1795434080.809729591] [what_time]: my clock says 1780000000.06 s, that is 2026-05-28 20:26:40 UTC\n[INFO] [1795434081.747804893] [what_time]: my clock says 1780000001.01 s, that is 2026-05-28 20:26:41 UTC\n[INFO] [1795434082.757905897] [what_time]: my clock says 1780000002.01 s, that is 2026-05-28 20:26:42 UTC\n[INFO] [1795434083.757718239] [what_time]: my clock says 1780000003.01 s, that is 2026-05-28 20:26:43 UTC",
+      "ended": "running",
+      "truncated": true
+    },
+    "play-clock": {
+      "command": "ros2 bag play weather --clock",
+      "output": "[INFO] [1795434080.654128001] [rosbag2_player]: Set rate to 1\n[INFO] [1795434080.662064184] [rosbag2_player]: Adding keyboard callbacks.",
+      "ended": "running",
+      "cwd": "/root",
+      "truncated": true
+    },
+    "sim-fast-tail": {
+      "command": "python3 /labs/lesson06/examples/what_time.py --ros-args -p use_sim_time:=true",
+      "output": "[INFO] [1795434094.642167430] [what_time]: my clock says 1780000005.04 s, that is 2026-05-28 20:26:45 UTC\n[INFO] [1795434095.135658729] [what_time]: my clock says 1780000006.04 s, that is 2026-05-28 20:26:46 UTC\n[INFO] [1795434095.641912865] [what_time]: my clock says 1780000007.04 s, that is 2026-05-28 20:26:47 UTC",
+      "ended": "running",
+      "tail": true
+    },
+    "sim-fast": {
+      "command": "python3 /labs/lesson06/examples/what_time.py --ros-args -p use_sim_time:=true",
+      "output": "[INFO] [1795434092.499331871] [what_time]: my clock says 1780000000.74 s, that is 2026-05-28 20:26:40 UTC\n[INFO] [1795434092.635867637] [what_time]: my clock says 1780000001.04 s, that is 2026-05-28 20:26:41 UTC\n[INFO] [1795434093.149996794] [what_time]: my clock says 1780000002.04 s, that is 2026-05-28 20:26:42 UTC\n[INFO] [1795434093.635593144] [what_time]: my clock says 1780000003.04 s, that is 2026-05-28 20:26:43 UTC",
+      "ended": "running",
+      "truncated": true
+    },
+    "play-fast": {
+      "command": "ros2 bag play weather --clock --rate 2",
+      "output": "[INFO] [1795434092.021056318] [rosbag2_player]: Set rate to 2\n[INFO] [1795434092.028236277] [rosbag2_player]: Adding keyboard callbacks.\n[INFO] [1795434092.028270244] [rosbag2_player]: Press SPACE for Pause/Resume\n[INFO] [1795434092.028275512] [rosbag2_player]: Press CURSOR_RIGHT for Play Next Message\n[INFO] [1795434092.028280242] [rosbag2_player]: Press CURSOR_UP for Increase Rate 10%\n[INFO] [1795434092.028284153] [rosbag2_player]: Press CURSOR_DOWN for Decrease Rate 10%\n[INFO] [1795434092.029640609] [rosbag2_player]: Playback until timestamp: -1",
+      "ended": "running",
+      "cwd": "/root"
+    },
+    "pairs": {
+      "command": "source install/setup.bash && ros2 run sync_demo pair_printer",
+      "output": "[INFO] [1795434113.439390960] [pair_printer]: temperature at 1780000000.03 s with humidity at 1780000000.11 s\n[INFO] [1795434114.362767620] [pair_printer]: temperature at 1780000001.03 s with humidity at 1780000001.11 s\n[INFO] [1795434115.363020933] [pair_printer]: temperature at 1780000002.03 s with humidity at 1780000002.11 s\n[INFO] [1795434116.362785854] [pair_printer]: temperature at 1780000003.03 s with humidity at 1780000003.11 s\n[INFO] [1795434117.362817495] [pair_printer]: temperature at 1780000004.03 s with humidity at 1780000004.11 s",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson06/check.py",
+      "output": "Lesson 6 lab: checking /labs/ws\n  FAIL  there is a package in src/weather_station\n        Create it in /labs/ws/src with ros2 pkg create.\n  FAIL  the workspace has been built\n        Run colcon build from /labs/ws.\n  FAIL  it publishes on /dew_point\n        Build the workspace first.\n  FAIL  it publishes at least one dew point per humidity reading\n        Build the workspace first.\n  FAIL  each dew point carries the stamp and frame of a temperature reading\n        Build the workspace first.\n  FAIL  every dew point matches a temperature and a humidity reading less than 0.5 s apart\n        Build the workspace first.\n0 of 6 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build",
+      "output": "Starting >>> weather_station\nFinished <<< weather_station [11.4s]\n\nSummary: 1 package finished [11.6s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson06/check.py",
+      "output": "Lesson 6 lab: checking /labs/ws\n  PASS  there is a package in src/weather_station\n  PASS  the workspace has been built\n  PASS  it publishes on /dew_point\n  PASS  it publishes at least one dew point per humidity reading\n  PASS  each dew point carries the stamp and frame of a temperature reading\n  PASS  every dew point matches a temperature and a humidity reading less than 0.5 s apart\nAll 6 checks passed.",
+      "ended": "exit"
+    }
+  }
+}

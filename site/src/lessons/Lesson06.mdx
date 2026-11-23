@@ -1,0 +1,155 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal, TerminalPair } from '../components/Terminal'
+import { BagRoundTrip, ThreeTimes, WhereTimeComes } from '../figures/lesson06'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { ClockPlayground } from '../playgrounds/lesson06/ClockPlayground'
+import { PairingPlayground } from '../playgrounds/lesson06/PairingPlayground'
+import { lesson06 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson06.code'
+import { lesson06Lab } from './lesson06.lab'
+import { lesson06Quiz } from './lesson06.quiz'
+
+export const r = lesson06.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+Robots are expensive to run and the world does not repeat itself, so a lot of robot software is written against **recordings**: drive once, record every sensor, then replay the same data at a desk as often as needed. ROS calls a recording a **bag**. Replaying data raises two questions this lesson answers: what time is it, and which reading goes with which? The answers are **header stamps**, **simulated time** and **synchronisation**.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson06} />
+
+## Recording and replaying
+
+<BagRoundTrip />
+
+`ros2 bag record` subscribes to the topics you name, or to all of them with `-a`, and writes every message into a folder. In Jazzy the topics go after `--topics`; naming them alone still works but is deprecated:
+
+<Terminal run={[r['record-help'], r['record-old']]} />
+
+Here it records the demo talker for a few seconds, then stops with Ctrl+C:
+
+<Terminal run={[r.record, r['bag-folder'], r['bag-info']]} />
+
+With the talker gone, a listener and `ros2 bag play`:
+
+<TerminalPair>
+  <Terminal title="Terminal 1" run={r.play} />
+  <Terminal title="Terminal 2, the listener" run={r['listener-replayed']} />
+</TerminalPair>
+
+The listener cannot tell the replay from the original. The ETH course's advice is worth repeating: if your code does not need to act on the robot, record a dataset once and develop against it, with the same data and the same timing every time.
+
+## Three times, and the one that matters
+
+<ThreeTimes />
+
+<Terminal run={r.header} />
+
+The lab uses a bag from a pretend weather station: a thermometer read 4 times a second and a humidity sensor read once a second, both stamped with the station's clock. A script writes it, so everyone gets the same file:
+
+<Terminal run={[r.make, r['weather-info']]} />
+
+<Terminal run={[r['echo-temperature'], r['echo-humidity']]} />
+
+The stamps are from May 2026, the date of the recording. That is about to matter.
+
+## Whose clock?
+
+<WhereTimeComes />
+
+`what_time.py` is a node that prints what its clock says once a second:
+
+<Listing {...code.whatTime} highlight={at(code.whatTime, 'self.get_clock().now()')} />
+
+Run normally, it prints today's date. Started with `use_sim_time:=true`, it prints nothing at all until the bag plays with `--clock`, and then the bag's date:
+
+<TerminalPair>
+  <Terminal title="use_sim_time false" run={r.wall} />
+  <Terminal title="use_sim_time true, bag playing with --clock" run={r['sim-during']} />
+</TerminalPair>
+
+<Terminal run={[r['play-clock'], r['clock-once']]} />
+
+<ClockPlayground />
+
+<TryThis>
+
+- **Turn `--clock` off.** A sim-time node has no time at all: its timer never fires. This is the classic "my node does nothing" problem when replaying bags.
+- **Set the rate to 2.** The node's clock runs twice as fast as real time, and its timer ticks twice a real second, as in the recording of `--rate 2`.
+- **Turn `use_sim_time` off.** The node now ignores the bag's time and shows today's date, which is wrong for anything that compares data stamps with "now".
+
+</TryThis>
+
+## Pairing readings by time
+
+The dew point needs a temperature and a humidity from about the same moment. The two arrive at different rates and at different instants, so neither "the latest of each" nor "equal stamps" works. **message_filters** pairs them by stamp. Its ApproximateTime policy waits for readings on both topics and hands your callback a pair whose stamps are close:
+
+<Listing {...code.pairPrinter} highlight={at(code.pairPrinter, 'using Policy', 'temperature_.subscribe', 'humidity_.subscribe', 'std::make_shared<message_filters::Synchronizer', 'registerCallback')} />
+
+It needs `message_filters` as a dependency, in `package.xml` and in `CMakeLists.txt`:
+
+<Listing {...code.syncCmake} highlight={at(code.syncCmake, 'find_package(message_filters', 'ament_target_dependencies')} />
+
+Replaying the weather bag into it, each humidity reading is paired with the temperature reading closest to it:
+
+<Terminal run={r.pairs} />
+
+<PairingPlayground />
+
+<PlainWords>
+
+A synchroniser is a matchmaker with a short memory. It keeps the last few readings from each sensor in a queue (the `10` in `Policy(10)`), and whenever it can form a pair of readings close in time, it calls you with that pair and forgets older ones. You never see a reading that found no partner.
+
+</PlainWords>
+
+<Bridge title="ETH's course">
+
+ETH's first lecture covers bags (`ros2 bag record`, `play`, `info`), timing, and synchronisation with message_filters, and recommends Foxglove and rqt for looking at data. Both are graphical tools; Foxglove connects through `foxglove_bridge` and can also open bag files directly.
+
+</Bridge>
+
+## Lab: a weather station's dew point
+
+Make the bag with `python3 /labs/lesson06/make_weather_bag.py /labs/ws/weather`, then write a C++ node:
+
+| | |
+| --- | --- |
+| Package, node | `weather_station`, the program and node `dew_point` |
+| Subscribes | `/temperature` (`sensor_msgs/msg/Temperature`, °C) and `/humidity` (`sensor_msgs/msg/RelativeHumidity`, a fraction) |
+| Pairs | with message_filters' ApproximateTime policy |
+| Publishes | `/dew_point` as `sensor_msgs/msg/Temperature`, one per pair, with the temperature reading's header |
+| Dew point | Magnus formula: γ = ln(RH) + 17.62·T / (243.12 + T), then T<sub>d</sub> = 243.12·γ / (17.62 − γ) |
+
+Build it, run it in one terminal, play the bag in the other, and watch `/dew_point` with `ros2 topic echo`. Check with `python3 /labs/lesson06/check.py`; it makes its own copy of the bag, plays it, and checks every dew point against the readings in it. A reference solution is in `labs/lesson06/solution`.
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1', first: 'python3 /labs/lesson06/make_weather_bag.py /labs/ws/weather', height: 220 },
+    { title: 'Terminal 2', first: 'cd /labs/ws/src', height: 300 },
+  ]}
+/>
+
+<LabQuestions questions={lesson06Lab} />
+
+## Quiz
+
+<Quiz questions={lesson06Quiz} />
+
+<Recap>
+
+- A **bag** records topics to a folder (`metadata.yaml` plus `.mcap` files): `ros2 bag record -o NAME --topics ...` or `-a`, then `ros2 bag info` and `ros2 bag play`.
+- Replayed messages look exactly like live ones, so you can develop against recorded data.
+- A **header stamp** says when data was measured; `frame_id` says where. Pair and compare data by stamp, not by arrival.
+- With `use_sim_time:=true`, a node's clock follows `/clock`. Play bags with `--clock`, or sim-time nodes see time zero and their timers never fire.
+- **message_filters** pairs topics by stamp: ExactTime needs equal stamps; ApproximateTime pairs readings close in time.
+- A value computed from a reading keeps that reading's header.
+- Next: describing the robot itself, its links and joints.
+
+</Recap>
