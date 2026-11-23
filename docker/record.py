@@ -34,6 +34,8 @@ A scenario is a JSON list of steps. A step is one of:
       yet sourced.
 
 `lines` keeps only the first lines of the output (the last ones for `tail`).
+`"check": false` (with a `why`) records a step and shows it, but the stability
+check does not compare it, because what it prints depends on timing.
 `ignore` is a list of regular expressions: lines matching one are left out
 before that. It is for lines that appear only on some runs, such as a warning
 printed while discovery is still going on, and the lesson says so where it matters.

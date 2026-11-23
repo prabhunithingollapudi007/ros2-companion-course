@@ -5,11 +5,18 @@ a summary, and exits with 0 only if every check passed. The lessons record a
 checker passing on the reference solution, so CI notices if one stops working.
 """
 
+import os
+import signal
 import subprocess
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 WS = Path("/labs/ws")
+
+# Checkers that start nodes do it on a domain of their own, so nothing the
+# reader left running in another terminal can join in, and vice versa.
+CHECK_DOMAIN = "77"
 
 
 class Checker:
@@ -53,11 +60,77 @@ def dependencies(root):
     return {e.text.strip() for e in root if e.tag.endswith("depend") and e.text}
 
 
-def ros(command, workspace=WS, timeout=30):
+def _script(command, workspace):
+    return f"source /opt/ros/jazzy/setup.bash && source {workspace}/install/setup.bash && {command}"
+
+
+def _env(isolated):
+    env = dict(os.environ)
+    if isolated:
+        env["ROS_DOMAIN_ID"] = CHECK_DOMAIN
+    return env
+
+
+_daemon_ready = False
+
+
+def _ensure_daemon():
+    """Starts the ros2 command's background helper for the check's domain before
+    anything else runs there. Started later, it can answer before it has found
+    every node."""
+    global _daemon_ready
+    if not _daemon_ready:
+        subprocess.run(
+            ["bash", "-c", "source /opt/ros/jazzy/setup.bash && ros2 daemon start"],
+            capture_output=True,
+            env=_env(True),
+            timeout=60,
+        )
+        _daemon_ready = True
+
+
+def ros(command, workspace=WS, timeout=30, isolated=False):
     """Runs a command with ROS and the workspace sourced. Returns (exit code, output)."""
-    script = f"source /opt/ros/jazzy/setup.bash && source {workspace}/install/setup.bash && {command}"
+    if isolated:
+        _ensure_daemon()
     try:
-        done = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=timeout)
+        done = subprocess.run(
+            ["bash", "-c", _script(command, workspace)], capture_output=True, text=True, timeout=timeout, env=_env(isolated)
+        )
     except subprocess.TimeoutExpired:
         return None, "(it did not finish within the time allowed)"
     return done.returncode, (done.stdout + done.stderr).strip()
+
+
+def ros_for(command, seconds, workspace=WS, isolated=True):
+    """Runs a command that does not stop by itself for `seconds`, then stops it. Returns its output."""
+    proc = background(command, workspace, isolated)
+    time.sleep(seconds)
+    stop(proc)
+    return proc.stdout.read().decode("utf-8", errors="replace").strip()
+
+
+def background(command, workspace=WS, isolated=True):
+    """Starts a command with ROS and the workspace sourced, and leaves it running."""
+    if isolated:
+        _ensure_daemon()
+    return subprocess.Popen(
+        ["bash", "-c", _script(command, workspace)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        stdin=subprocess.DEVNULL,
+        start_new_session=True,
+        env=_env(isolated),
+    )
+
+
+def stop(proc):
+    """Stops a command started with background(), and everything it started."""
+    for sig, wait in ((signal.SIGINT, 3), (signal.SIGKILL, 2)):
+        if proc.poll() is not None:
+            return
+        try:
+            os.killpg(proc.pid, sig)
+            proc.wait(timeout=wait)
+        except (ProcessLookupError, subprocess.TimeoutExpired):
+            continue

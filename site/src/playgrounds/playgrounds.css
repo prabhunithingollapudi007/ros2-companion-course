@@ -65,6 +65,55 @@
   stroke-width: 1.8;
 }
 
+/* The queue playground. */
+.q-handled,
+.q-handled-swatch {
+  fill: var(--series-1);
+  background: var(--series-1);
+}
+.q-dropped,
+.q-dropped-swatch {
+  fill: var(--bad);
+  background: var(--bad);
+  opacity: 0.75;
+}
+.q-waiting,
+.q-waiting-swatch {
+  fill: var(--axis);
+  background: var(--axis);
+}
+.q-busy {
+  fill: var(--accent-wash);
+  stroke: var(--accent);
+  stroke-width: 1;
+}
+.q-busy-label {
+  fill: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 4px 0 8px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.swatches li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
 /* A recorded folder listing beside the commands that produced it. */
 .stepper {
   display: grid;
@@ -111,6 +160,35 @@
   .stepper {
     grid-template-columns: 1fr;
   }
+}
+
+.arg-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.arg-field input {
+  width: 10em;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* Name resolution, one step per line. */
+.resolve-steps {
+  margin: 4px 0 10px;
+  padding-left: 1.4em;
+  line-height: 1.7;
+}
+.card-value.mono {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
 }
 
 /* A node the reader can click. */

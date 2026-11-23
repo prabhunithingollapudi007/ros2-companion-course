@@ -1,0 +1,285 @@
+{
+  "scenarios": [
+    {
+      "name": "renaming from the command line",
+      "steps": [
+        {
+          "id": "cli-speaker",
+          "cmd": "ros2 run demo_nodes_cpp talker --ros-args -r __node:=speaker",
+          "background": true,
+          "settle": 1,
+          "lines": 1,
+          "mask": "numbers"
+        },
+        {
+          "id": "cli-robot1",
+          "cmd": "ros2 run demo_nodes_cpp talker --ros-args -r __ns:=/robot1",
+          "background": true,
+          "settle": 1,
+          "lines": 1,
+          "mask": "numbers"
+        },
+        {
+          "id": "cli-robot2",
+          "cmd": "ros2 run demo_nodes_cpp talker --ros-args -r __ns:=/robot2 -r chatter:=news",
+          "background": true,
+          "settle": 1,
+          "lines": 1,
+          "mask": "numbers"
+        },
+        {
+          "id": "cli-robot3",
+          "cmd": "ros2 run demo_nodes_cpp talker --ros-args -r __ns:=/robot3 -r chatter:=/news",
+          "background": true,
+          "settle": 3,
+          "lines": 1,
+          "mask": "numbers"
+        },
+        {
+          "id": "cli-nodes",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "cli-topics",
+          "cmd": "ros2 topic list"
+        }
+      ]
+    },
+    {
+      "name": "a first launch file",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson05/examples/launch_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "installed",
+          "cmd": "ls install/launch_demo/share/launch_demo/launch",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "launch-basic",
+          "cmd": "source install/setup.bash && ros2 launch launch_demo talk_listen.launch.py",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 5,
+          "lines": 8,
+          "mask": "numbers",
+          "check": false,
+          "why": "The two processes' lines arrive in varying order; launch-nodes checks what was started."
+        },
+        {
+          "id": "launch-nodes",
+          "cmd": "ros2 node list"
+        },
+        {
+          "cmd": "pkill -INT -f 'ros2 launch'; sleep 3"
+        },
+        {
+          "id": "after-ctrl-c",
+          "cmd": "ros2 node list"
+        }
+      ]
+    },
+    {
+      "name": "two pairs in namespaces",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson05/examples/launch_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "pairs-launch",
+          "cmd": "source install/setup.bash && ros2 launch launch_demo two_pairs.launch.py",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 5,
+          "lines": 10,
+          "mask": "numbers",
+          "check": false,
+          "why": "Lines from several processes arrive in varying order; the node and topic lists after it are checked."
+        },
+        {
+          "id": "pairs-nodes",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "pairs-topics",
+          "cmd": "ros2 topic list"
+        },
+        {
+          "id": "pairs-left-info",
+          "cmd": "ros2 topic info /left/chatter"
+        }
+      ]
+    },
+    {
+      "name": "names and remapping in a launch file",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson05/examples/launch_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "renamed-launch",
+          "cmd": "source install/setup.bash && ros2 launch launch_demo renamed.launch.py",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 5,
+          "lines": 6,
+          "mask": "numbers",
+          "check": false,
+          "why": "Lines from several processes arrive in varying order; the node and topic lists after it are checked."
+        },
+        {
+          "id": "renamed-nodes",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "renamed-topics",
+          "cmd": "ros2 topic list"
+        },
+        {
+          "id": "renamed-info",
+          "cmd": "ros2 topic info /announcements"
+        }
+      ]
+    },
+    {
+      "name": "launch arguments, default",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson05/examples/launch_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "show-args",
+          "cmd": "source install/setup.bash && ros2 launch launch_demo with_args.launch.py --show-args",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "args-default-launch",
+          "cmd": "source install/setup.bash && ros2 launch launch_demo with_args.launch.py",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 5,
+          "lines": 6,
+          "mask": "numbers",
+          "check": false,
+          "why": "Lines from several processes arrive in varying order; the node and topic lists after it are checked."
+        },
+        {
+          "id": "args-default-nodes",
+          "cmd": "ros2 node list"
+        }
+      ]
+    },
+    {
+      "name": "launch arguments, given",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson05/examples/launch_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "args-rover-launch",
+          "cmd": "source install/setup.bash && ros2 launch launch_demo with_args.launch.py robot:=rover",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 5,
+          "lines": 6,
+          "mask": "numbers",
+          "check": false,
+          "why": "Lines from several processes arrive in varying order; the node and topic lists after it are checked."
+        },
+        {
+          "id": "args-rover-nodes",
+          "cmd": "ros2 node list"
+        }
+      ]
+    },
+    {
+      "name": "including a launch file",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson05/examples/launch_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "include-launch",
+          "cmd": "source install/setup.bash && ros2 launch launch_demo include.launch.py",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 5,
+          "lines": 6,
+          "mask": "numbers",
+          "check": false,
+          "why": "Lines from several processes arrive in varying order; the node and topic lists after it are checked."
+        },
+        {
+          "id": "include-nodes",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "missing",
+          "cmd": "source install/setup.bash && ros2 launch launch_demo missing.launch.py",
+          "cwd": "/labs/ws",
+          "mayFail": true
+        }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson05/fleet_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "lab-check-early",
+          "cmd": "python3 /labs/lesson05/check.py",
+          "mayFail": true
+        },
+        {
+          "cmd": "cp -r /labs/lesson05/solution/fleet_bringup /labs/ws/src/"
+        },
+        {
+          "id": "lab-build",
+          "cmd": "colcon build",
+          "cwd": "/labs/ws",
+          "mask": "numbers"
+        },
+        {
+          "id": "lab-show-args",
+          "cmd": "source install/setup.bash && ros2 launch fleet_bringup fleet.launch.py --show-args",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "lab-launch",
+          "cmd": "source install/setup.bash && ros2 launch fleet_bringup fleet.launch.py",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 6,
+          "mask": "numbers",
+          "check": false,
+          "why": "Lines from several processes arrive in varying order; the node and topic lists after it are checked."
+        },
+        {
+          "id": "lab-nodes",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "lab-dashboard-info",
+          "cmd": "ros2 node info /dashboard | sed -n 1,4p"
+        },
+        {
+          "cmd": "pkill -INT -f 'ros2 launch'; sleep 3"
+        },
+        {
+          "id": "lab-check",
+          "cmd": "python3 /labs/lesson05/check.py"
+        }
+      ]
+    }
+  ]
+}

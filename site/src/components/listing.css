@@ -1,0 +1,63 @@
+/* A source file, styled like the terminal so code and commands read as one family. */
+.listing {
+  margin: 1.2em 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #151514;
+  font-family: var(--font-ui);
+}
+.listing-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid #2c2c2a;
+  background: #1f1f1d;
+}
+.listing-name {
+  color: #e8e6e1;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+.listing-name:hover {
+  text-decoration: underline;
+}
+.listing-path {
+  color: #8f8d87;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  order: -1;
+}
+.listing-head .terminal-copy {
+  margin-left: auto;
+}
+.listing-body {
+  margin: 0;
+  padding: 10px 0;
+  overflow-x: auto;
+  color: #d9d7d0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.listing-line {
+  display: block;
+  padding: 0 14px 0 0;
+  white-space: pre;
+}
+.listing-line.is-marked {
+  background: rgba(57, 135, 229, 0.22);
+  box-shadow: inset 3px 0 0 #3987e5;
+}
+.listing-n {
+  display: inline-block;
+  width: 3.2em;
+  padding-right: 1em;
+  color: #5f5d58;
+  text-align: right;
+  user-select: none;
+}

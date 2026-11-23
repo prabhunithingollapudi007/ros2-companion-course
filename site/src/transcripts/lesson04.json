@@ -1,0 +1,157 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "example-tree": {
+      "command": "find greeter_cpp -type f | sort",
+      "output": "greeter_cpp/CMakeLists.txt\ngreeter_cpp/msg/Greeting.msg\ngreeter_cpp/package.xml\ngreeter_cpp/src/counter.cpp\ngreeter_cpp/src/greeter.cpp\ngreeter_cpp/src/listener.cpp\ngreeter_cpp/src/slow_listener.cpp",
+      "ended": "exit",
+      "cwd": "/labs/ws/src"
+    },
+    "example-build": {
+      "command": "colcon build",
+      "output": "Starting >>> greeter_cpp\nFinished <<< greeter_cpp [10.7s]\n\nSummary: 1 package finished [10.8s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "example-interface": {
+      "command": "source install/setup.bash && ros2 interface show greeter_cpp/msg/Greeting",
+      "output": "string text\nuint32 count",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "generated-headers": {
+      "command": "ls install/greeter_cpp/include/greeter_cpp/greeter_cpp/msg",
+      "output": "detail\ngreeting.h\ngreeting.hpp\nrosidl_generator_c__visibility_control.h\nrosidl_generator_cpp__visibility_control.hpp\nrosidl_typesupport_fastrtps_c__visibility_control.h\nrosidl_typesupport_fastrtps_cpp__visibility_control.h\nrosidl_typesupport_introspection_c__visibility_control.h",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "generated-python": {
+      "command": "source install/setup.bash && python3 -c 'from greeter_cpp.msg import Greeting; print(Greeting(text=\"hi\", count=1))'",
+      "output": "greeter_cpp.msg.Greeting(text='hi', count=1)",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "nodes": {
+      "command": "ros2 node list",
+      "output": "/greeter\n/listener",
+      "ended": "exit"
+    },
+    "topic-info": {
+      "command": "source install/setup.bash && ros2 topic info /greetings",
+      "output": "Type: greeter_cpp/msg/Greeting\nPublisher count: 1\nSubscription count: 1",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "echo-once": {
+      "command": "source install/setup.bash && ros2 topic echo --once /greetings",
+      "output": "text: hello\ncount: 16\n---",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "greeter": {
+      "command": "source install/setup.bash && ros2 run greeter_cpp greeter",
+      "output": "[INFO] [1795432280.940766233] [greeter]: Sending greeting 1\n[INFO] [1795432281.440641050] [greeter]: Sending greeting 2\n[INFO] [1795432281.940709651] [greeter]: Sending greeting 3\n[INFO] [1795432282.440579850] [greeter]: Sending greeting 4",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "listener": {
+      "command": "source install/setup.bash && ros2 run greeter_cpp listener",
+      "output": "[INFO] [1795432283.620124575] [listener]: Got 'hello' number 6\n[INFO] [1795432283.940799502] [listener]: Got 'hello' number 7\n[INFO] [1795432284.441371480] [listener]: Got 'hello' number 8\n[INFO] [1795432284.941610972] [listener]: Got 'hello' number 9",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "slow-3-handled": {
+      "command": "source install/setup.bash && ros2 run greeter_cpp slow_listener 3",
+      "output": "[INFO] [1795432309.727096662] [slow_listener]: Handling number 102\n[INFO] [1795432309.977520672] [slow_listener]: Handling number 107\n[INFO] [1795432310.227895150] [slow_listener]: Handling number 112\n[INFO] [1795432310.478415399] [slow_listener]: Handling number 117\n[INFO] [1795432310.728844521] [slow_listener]: Handling number 122\n[INFO] [1795432310.979128690] [slow_listener]: Handling number 127\n[INFO] [1795432311.229377109] [slow_listener]: Handling number 132\n[INFO] [1795432311.479849562] [slow_listener]: Handling number 137\n[INFO] [1795432311.730240588] [slow_listener]: Handling number 142\n[INFO] [1795432311.980728961] [slow_listener]: Handling number 147",
+      "ended": "running",
+      "tail": true
+    },
+    "slow-3-steps": {
+      "command": "grep -o \"number [0-9]*\" /tmp/rec/slow-3.log | cut -d\" \" -f2 | awk 'NR>1 {print $1-p} {p=$1}' | tail -n +3 | sort -u",
+      "output": "5",
+      "ended": "exit"
+    },
+    "slow-3": {
+      "command": "source install/setup.bash && ros2 run greeter_cpp slow_listener 3",
+      "output": "[INFO] [1795432304.969640379] [slow_listener]: Handling number 9\n[INFO] [1795432305.220239461] [slow_listener]: Handling number 12\n[INFO] [1795432305.470539412] [slow_listener]: Handling number 17\n[INFO] [1795432305.720779613] [slow_listener]: Handling number 22\n[INFO] [1795432305.971071691] [slow_listener]: Handling number 27\n[INFO] [1795432306.221443858] [slow_listener]: Handling number 32\n[INFO] [1795432306.471926478] [slow_listener]: Handling number 37\n[INFO] [1795432306.722304364] [slow_listener]: Handling number 42\n[INFO] [1795432306.972755768] [slow_listener]: Handling number 47\n[INFO] [1795432307.223115681] [slow_listener]: Handling number 52\n[INFO] [1795432307.473708030] [slow_listener]: Handling number 57\n[INFO] [1795432307.724153846] [slow_listener]: Handling number 62",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "counter-3": {
+      "command": "source install/setup.bash && ros2 run greeter_cpp counter 20",
+      "output": "",
+      "ended": "running",
+      "cwd": "/labs/ws"
+    },
+    "slow-100-handled": {
+      "command": "source install/setup.bash && ros2 run greeter_cpp slow_listener 100",
+      "output": "[INFO] [1795432332.891024003] [slow_listener]: Handling number 23\n[INFO] [1795432333.141548927] [slow_listener]: Handling number 24\n[INFO] [1795432333.392043266] [slow_listener]: Handling number 25\n[INFO] [1795432333.642524838] [slow_listener]: Handling number 26\n[INFO] [1795432333.893050097] [slow_listener]: Handling number 27\n[INFO] [1795432334.143675032] [slow_listener]: Handling number 29\n[INFO] [1795432334.394279443] [slow_listener]: Handling number 34\n[INFO] [1795432334.644598959] [slow_listener]: Handling number 39\n[INFO] [1795432334.895132855] [slow_listener]: Handling number 44\n[INFO] [1795432335.145533883] [slow_listener]: Handling number 49",
+      "ended": "running",
+      "tail": true
+    },
+    "slow-100-steps": {
+      "command": "grep -o \"number [0-9]*\" /tmp/rec/slow-100.log | head -n 12 | cut -d\" \" -f2 | awk 'NR>1 {print $1-p} {p=$1}' | tail -n +3 | sort -u",
+      "output": "1",
+      "ended": "exit"
+    },
+    "slow-100": {
+      "command": "source install/setup.bash && ros2 run greeter_cpp slow_listener 100",
+      "output": "[INFO] [1795432327.883333371] [slow_listener]: Handling number 3\n[INFO] [1795432328.133900829] [slow_listener]: Handling number 4\n[INFO] [1795432328.384415305] [slow_listener]: Handling number 5\n[INFO] [1795432328.634947854] [slow_listener]: Handling number 6\n[INFO] [1795432328.885390845] [slow_listener]: Handling number 7\n[INFO] [1795432329.135716383] [slow_listener]: Handling number 8\n[INFO] [1795432329.386005459] [slow_listener]: Handling number 9\n[INFO] [1795432329.636256005] [slow_listener]: Handling number 10\n[INFO] [1795432329.886803528] [slow_listener]: Handling number 11\n[INFO] [1795432330.137330769] [slow_listener]: Handling number 12\n[INFO] [1795432330.387595556] [slow_listener]: Handling number 13\n[INFO] [1795432330.637937419] [slow_listener]: Handling number 14",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "counter-100": {
+      "command": "source install/setup.bash && ros2 run greeter_cpp counter 20",
+      "output": "",
+      "ended": "running",
+      "cwd": "/labs/ws"
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson04/check.py",
+      "output": "Lesson 4 lab: checking /labs/ws\n  FAIL  there is a package in src/power_monitor\n        Create it in /labs/ws/src with ros2 pkg create.\n  FAIL  package.xml names it power_monitor\n        'NoneType' object has no attribute 'find'\n  FAIL  it depends on rclcpp and std_msgs\n        'NoneType' object is not iterable\n  FAIL  package.xml declares it generates messages\n        It needs <buildtool_depend>rosidl_default_generators</buildtool_depend>, <exec_depend>rosidl_default_runtime</exec_depend> and <member_of_group>rosidl_interface_packages</member_of_group>.\n  FAIL  msg/BatteryStatus.msg has float32 voltage, float32 percent and bool low\n        Found: no such file\n  FAIL  the workspace has been built\n        Run colcon build from /labs/ws. If it fails, read the first error it prints.\n  FAIL  ROS knows the message type power_monitor/msg/BatteryStatus\n        Build the workspace first.\n  FAIL  a node called /battery_monitor is running\n        Build the workspace first.\n  FAIL  /battery_status carries power_monitor/msg/BatteryStatus\n        Build the workspace first.\n  FAIL  it publishes a status for each reading\n        Build the workspace first.\n  FAIL  percent and low are right for every reading\n        Build the workspace first.\n0 of 11 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build",
+      "output": "Starting >>> power_monitor\nFinished <<< power_monitor [10.1s]\n\nSummary: 1 package finished [10.2s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-echo": {
+      "command": "source install/setup.bash && ros2 topic echo --csv /battery_status",
+      "output": "23.100000381469727,50.0,False\n22.399999618530273,33.33332061767578,False\n21.600000381469727,14.285720825195312,True\n21.0,0.0,True\n20.600000381469727,0.0,True\n25.200000762939453,100.0,False",
+      "ended": "stopped",
+      "cwd": "/labs/ws"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson04/check.py",
+      "output": "Lesson 4 lab: checking /labs/ws\n  PASS  there is a package in src/power_monitor\n  PASS  package.xml names it power_monitor\n  PASS  it depends on rclcpp and std_msgs\n  PASS  package.xml declares it generates messages\n  PASS  msg/BatteryStatus.msg has float32 voltage, float32 percent and bool low\n  PASS  the workspace has been built\n  PASS  ROS knows the message type power_monitor/msg/BatteryStatus\n  PASS  a node called /battery_monitor is running\n  PASS  /battery_status carries power_monitor/msg/BatteryStatus\n  PASS  it publishes a status for each reading\n  PASS  percent and low are right for every reading\nAll 11 checks passed.",
+      "ended": "exit"
+    },
+    "lab-sim": {
+      "command": "python3 /labs/lesson04/battery_sim.py",
+      "output": "[INFO] [1795432349.534339314] [battery_sim]: Battery at 25.2 V\n[INFO] [1795432350.023154332] [battery_sim]: Battery at 24.3 V\n[INFO] [1795432350.525680195] [battery_sim]: Battery at 23.1 V",
+      "ended": "running",
+      "truncated": true
+    },
+    "lab-monitor": {
+      "command": "source install/setup.bash && ros2 run power_monitor battery_monitor",
+      "output": "",
+      "ended": "running",
+      "cwd": "/labs/ws"
+    }
+  }
+}

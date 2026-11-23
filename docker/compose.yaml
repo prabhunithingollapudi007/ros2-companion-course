@@ -11,6 +11,7 @@ services:
   ros:
     build: .
     image: ros-companion:jazzy
+    hostname: ros-companion
     init: true
     ports:
       # Reachable from this computer only, never from the network.

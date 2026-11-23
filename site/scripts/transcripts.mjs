@@ -45,6 +45,8 @@ function normalise(text, mask) {
     .replace(/_ros2cli_\d+/g, '_ros2cli_N')
     // `ros2 topic pub` prints this only if discovery has not finished when it starts.
     .replace(/^Waiting for at least \d+ matching subscription\(s\)\.\.\.\n/m, '')
+    // `ros2 launch` names its log folder after the date, the host and its process id.
+    .replace(/\/\.ros\/log\/\S+/g, '/.ros/log/RUN')
   // For output that is all measurements or counters (rates, "Hello World: 12"): compare its shape only.
   if (mask === 'numbers') out = out.replace(/-?\d+(\.\d+)?(e-?\d+)?/g, '#')
   return out
@@ -57,7 +59,12 @@ function runScenario(scenario) {
   if (scenario.labs) mounts.push('-v', `${path.join(repo, 'labs')}:/labs:ro`, '--tmpfs', '/labs/ws:rw,exec,size=512m')
   // No network: discovery still works inside the container, and nothing running
   // in any other container can join the graph being recorded.
-  const result = docker(['run', '--rm', '-i', '--network', 'none', ...mounts, IMAGE, 'python3', '/tools/record.py'], JSON.stringify(scenario.steps))
+  // A fixed host name, the same as docker/compose.yaml gives readers, because
+  // some output (launch's log folders) includes it.
+  const result = docker(
+    ['run', '--rm', '-i', '--network', 'none', '--hostname', 'ros-companion', ...mounts, IMAGE, 'python3', '/tools/record.py'],
+    JSON.stringify(scenario.steps),
+  )
   let report
   try {
     report = JSON.parse(result.stdout)
@@ -102,6 +109,8 @@ for (const lesson of lessons) {
   const ids = steps.map((s) => s.id)
   const repeated = ids.filter((id, i) => ids.indexOf(id) !== i)
   if (repeated.length) throw new Error(`${lesson}: step ids used more than once: ${[...new Set(repeated)].join(', ')}`)
+  const unexplained = steps.filter((s) => s.check === false && !s.why).map((s) => s.id)
+  if (unexplained.length) throw new Error(`${lesson}: steps left out of the check need a "why": ${unexplained.join(', ')}`)
 
   const runs = {}
   for (const scenario of scenarios) {
@@ -130,6 +139,9 @@ for (const lesson of lessons) {
   for (const step of steps) {
     const was = stored[step.id]
     const now = runs[step.id]
+    // A step marked "check": false is run and shown but not compared, because what it
+    // prints depends on timing; the scenario must verify the same thing another way.
+    if (was && step.check === false) continue
     if (!was) {
       console.error(`\n${lesson}: "${step.id}" has never been recorded.`)
       problems += 1

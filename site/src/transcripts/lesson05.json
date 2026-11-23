@@ -1,0 +1,201 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "cli-nodes": {
+      "command": "ros2 node list",
+      "output": "/robot1/talker\n/robot2/talker\n/robot3/talker\n/speaker",
+      "ended": "exit"
+    },
+    "cli-topics": {
+      "command": "ros2 topic list",
+      "output": "/chatter\n/news\n/parameter_events\n/robot1/chatter\n/robot2/news\n/rosout",
+      "ended": "exit"
+    },
+    "cli-speaker": {
+      "command": "ros2 run demo_nodes_cpp talker --ros-args -r __node:=speaker",
+      "output": "[INFO] [1795432492.529076452] [speaker]: Publishing: 'Hello World: 1'",
+      "ended": "running",
+      "truncated": true
+    },
+    "cli-robot1": {
+      "command": "ros2 run demo_nodes_cpp talker --ros-args -r __ns:=/robot1",
+      "output": "[INFO] [1795432493.540484599] [robot1.talker]: Publishing: 'Hello World: 1'",
+      "ended": "running",
+      "truncated": true
+    },
+    "cli-robot2": {
+      "command": "ros2 run demo_nodes_cpp talker --ros-args -r __ns:=/robot2 -r chatter:=news",
+      "output": "[INFO] [1795432494.545590576] [robot2.talker]: Publishing: 'Hello World: 1'",
+      "ended": "running",
+      "truncated": true
+    },
+    "cli-robot3": {
+      "command": "ros2 run demo_nodes_cpp talker --ros-args -r __ns:=/robot3 -r chatter:=/news",
+      "output": "[INFO] [1795432495.550576214] [robot3.talker]: Publishing: 'Hello World: 1'",
+      "ended": "running",
+      "truncated": true
+    },
+    "installed": {
+      "command": "ls install/launch_demo/share/launch_demo/launch",
+      "output": "include.launch.py\nrenamed.launch.py\ntalk_listen.launch.py\ntwo_pairs.launch.py\nwith_args.launch.py",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "launch-nodes": {
+      "command": "ros2 node list",
+      "output": "/listener\n/talker",
+      "ended": "exit"
+    },
+    "after-ctrl-c": {
+      "command": "ros2 node list",
+      "output": "",
+      "ended": "exit"
+    },
+    "launch-basic": {
+      "command": "source install/setup.bash && ros2 launch launch_demo talk_listen.launch.py",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-11-15-01-617821-ros-companion-155\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [talker-1]: process started with pid [158]\n[INFO] [listener-2]: process started with pid [159]\n[talker-1] [INFO] [1795432502.684107011] [talker]: Publishing: 'Hello World: 1'\n[listener-2] [INFO] [1795432502.684430928] [listener]: I heard: [Hello World: 1]\n[talker-1] [INFO] [1795432503.684147023] [talker]: Publishing: 'Hello World: 2'\n[listener-2] [INFO] [1795432503.684899381] [listener]: I heard: [Hello World: 2]",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "pairs-nodes": {
+      "command": "ros2 node list",
+      "output": "/left/listener\n/left/talker\n/right/listener\n/right/talker",
+      "ended": "exit"
+    },
+    "pairs-topics": {
+      "command": "ros2 topic list",
+      "output": "/left/chatter\n/parameter_events\n/right/chatter\n/rosout",
+      "ended": "exit"
+    },
+    "pairs-left-info": {
+      "command": "ros2 topic info /left/chatter",
+      "output": "Type: std_msgs/msg/String\nPublisher count: 1\nSubscription count: 1",
+      "ended": "exit"
+    },
+    "pairs-launch": {
+      "command": "source install/setup.bash && ros2 launch launch_demo two_pairs.launch.py",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-11-15-13-056314-ros-companion-147\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [talker-1]: process started with pid [150]\n[INFO] [listener-2]: process started with pid [151]\n[INFO] [talker-3]: process started with pid [152]\n[INFO] [listener-4]: process started with pid [153]\n[talker-1] [INFO] [1795432514.141480923] [left.talker]: Publishing: 'Hello World: 1'\n[listener-2] [INFO] [1795432514.141996649] [left.listener]: I heard: [Hello World: 1]\n[talker-3] [INFO] [1795432514.143976300] [right.talker]: Publishing: 'Hello World: 1'\n[listener-4] [INFO] [1795432514.144247518] [right.listener]: I heard: [Hello World: 1]",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "renamed-nodes": {
+      "command": "ros2 node list",
+      "output": "/audience\n/speaker",
+      "ended": "exit"
+    },
+    "renamed-topics": {
+      "command": "ros2 topic list",
+      "output": "/announcements\n/parameter_events\n/rosout",
+      "ended": "exit"
+    },
+    "renamed-info": {
+      "command": "ros2 topic info /announcements",
+      "output": "Type: std_msgs/msg/String\nPublisher count: 1\nSubscription count: 1",
+      "ended": "exit"
+    },
+    "renamed-launch": {
+      "command": "source install/setup.bash && ros2 launch launch_demo renamed.launch.py",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-11-15-21-895958-ros-companion-147\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [talker-1]: process started with pid [150]\n[INFO] [listener-2]: process started with pid [151]\n[talker-1] [INFO] [1795432522.970976059] [speaker]: Publishing: 'Hello World: 1'\n[listener-2] [INFO] [1795432522.971320222] [audience]: I heard: [Hello World: 1]",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "show-args": {
+      "command": "source install/setup.bash && ros2 launch launch_demo with_args.launch.py --show-args",
+      "output": "Arguments (pass arguments as '<name>:=<value>'):\n\n    'robot':\n        Namespace to start the pair in\n        (default: 'robot1')",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "args-default-nodes": {
+      "command": "ros2 node list",
+      "output": "/robot1/listener\n/robot1/talker",
+      "ended": "exit"
+    },
+    "args-default-launch": {
+      "command": "source install/setup.bash && ros2 launch launch_demo with_args.launch.py",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-11-15-31-254325-ros-companion-166\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [talker-1]: process started with pid [169]\n[INFO] [listener-2]: process started with pid [170]\n[talker-1] [INFO] [1795432532.299608263] [robot1.talker]: Publishing: 'Hello World: 1'\n[listener-2] [INFO] [1795432532.300536267] [robot1.listener]: I heard: [Hello World: 1]",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "args-rover-nodes": {
+      "command": "ros2 node list",
+      "output": "/rover/listener\n/rover/talker",
+      "ended": "exit"
+    },
+    "args-rover-launch": {
+      "command": "source install/setup.bash && ros2 launch launch_demo with_args.launch.py robot:=rover",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-11-15-39-272306-ros-companion-147\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [talker-1]: process started with pid [150]\n[INFO] [listener-2]: process started with pid [151]\n[talker-1] [INFO] [1795432540.345659760] [rover.talker]: Publishing: 'Hello World: 1'\n[listener-2] [INFO] [1795432540.346000249] [rover.listener]: I heard: [Hello World: 1]",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "include-nodes": {
+      "command": "ros2 node list",
+      "output": "/base/listener\n/base/talker",
+      "ended": "exit"
+    },
+    "missing": {
+      "command": "source install/setup.bash && ros2 launch launch_demo missing.launch.py",
+      "output": "file 'missing.launch.py' was not found in the share directory of package 'launch_demo' which is at '/labs/ws/install/launch_demo/share/launch_demo'",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "include-launch": {
+      "command": "source install/setup.bash && ros2 launch launch_demo include.launch.py",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-11-15-47-308797-ros-companion-147\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [talker-1]: process started with pid [150]\n[INFO] [listener-2]: process started with pid [151]\n[talker-1] [INFO] [1795432548.387072042] [base.talker]: Publishing: 'Hello World: 1'\n[listener-2] [INFO] [1795432548.387662942] [base.listener]: I heard: [Hello World: 1]",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson05/check.py",
+      "output": "Lesson 5 lab: checking /labs/ws\n  PASS  fleet_demo has been built\n  FAIL  there is a package in src/fleet_bringup\n        Create it in /labs/ws/src with ros2 pkg create.\n  FAIL  it has launch/fleet.launch.py\n  FAIL  the launch file is installed\n        Add install(DIRECTORY launch DESTINATION share/${PROJECT_NAME}) to CMakeLists.txt, then build.\n  FAIL  it declares a launch argument second_robot\n        Not installed yet.\n  FAIL  it starts the five nodes\n        Install the launch file first.\n  FAIL  the dashboard listens to the first robot\n        Install the launch file first.\n  FAIL  the dashboard listens to the second robot\n        Install the launch file first.\n  FAIL  the dashboard reports a charge for both robots\n        Install the launch file first.\n  FAIL  it starts the five nodes\n        Install the launch file first.\n  FAIL  the dashboard listens to the first robot\n        Install the launch file first.\n  FAIL  the dashboard listens to the second robot\n        Install the launch file first.\n  FAIL  the dashboard reports a charge for both robots\n        Install the launch file first.\n1 of 13 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build",
+      "output": "Starting >>> fleet_demo\nFinished <<< fleet_demo [0.75s]\nStarting >>> fleet_bringup\nFinished <<< fleet_bringup [0.47s]\n\nSummary: 2 packages finished [1.32s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-show-args": {
+      "command": "source install/setup.bash && ros2 launch fleet_bringup fleet.launch.py --show-args",
+      "output": "Arguments (pass arguments as '<name>:=<value>'):\n\n    'second_robot':\n        Namespace of the second robot\n        (default: 'robot2')",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-nodes": {
+      "command": "ros2 node list",
+      "output": "/dashboard\n/robot1/battery\n/robot1/monitor\n/robot2/battery\n/robot2/monitor",
+      "ended": "exit"
+    },
+    "lab-dashboard-info": {
+      "command": "ros2 node info /dashboard | sed -n 1,4p",
+      "output": "/dashboard\n  Subscribers:\n    /robot1/battery_status: std_msgs/msg/Float32\n    /robot2/battery_status: std_msgs/msg/Float32",
+      "ended": "exit"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson05/check.py",
+      "output": "Lesson 5 lab: checking /labs/ws\n  PASS  fleet_demo has been built\n  PASS  there is a package in src/fleet_bringup\n  PASS  it has launch/fleet.launch.py\n  PASS  the launch file is installed\n  PASS  it declares a launch argument second_robot\n  PASS  it starts /dashboard, /robot1/battery, /robot1/monitor, /robot2/battery, /robot2/monitor\n  PASS  the dashboard listens to /robot1/battery_status\n  PASS  the dashboard listens to /robot2/battery_status\n  PASS  the dashboard reports a charge for both robots\n  PASS  it starts /dashboard, /robot1/battery, /robot1/monitor, /rover/battery, /rover/monitor\n  PASS  the dashboard listens to /robot1/battery_status\n  PASS  the dashboard listens to /rover/battery_status\n  PASS  the dashboard reports a charge for both robots\nAll 13 checks passed.",
+      "ended": "exit"
+    },
+    "lab-launch": {
+      "command": "source install/setup.bash && ros2 launch fleet_bringup fleet.launch.py",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-11-15-58-537271-ros-companion-207\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [battery-1]: process started with pid [210]\n[INFO] [monitor-2]: process started with pid [211]\n[INFO] [battery-3]: process started with pid [212]\n[INFO] [monitor-4]: process started with pid [213]\n[INFO] [dashboard-5]: process started with pid [214]\n[dashboard-5] [INFO] [1795432560.866190593] [dashboard]: robot_a: 97.6 % | robot_b: 97.6 %\n[dashboard-5] [INFO] [1795432562.844142033] [dashboard]: robot_a: 92.9 % | robot_b: 92.9 %\n[dashboard-5] [INFO] [1795432564.843387145] [dashboard]: robot_a: 88.1 % | robot_b: 88.1 %\n[WARNING] [launch]: user interrupted with ctrl-c (SIGINT)\n[INFO] [dashboard-5]: sending signal 'SIGINT' to process[dashboard-5]\n[INFO] [monitor-4]: sending signal 'SIGINT' to process[monitor-4]\n[INFO] [battery-3]: sending signal 'SIGINT' to process[battery-3]\n[INFO] [monitor-2]: sending signal 'SIGINT' to process[monitor-2]\n[INFO] [battery-1]: sending signal 'SIGINT' to process[battery-1]\n[INFO] [dashboard-5]: process has finished cleanly [pid 214]\n[INFO] [monitor-2]: process has finished cleanly [pid 211]\n[INFO] [monitor-4]: process has finished cleanly [pid 213]\n[INFO] [battery-3]: process has finished cleanly [pid 212]\n[INFO] [battery-1]: process has finished cleanly [pid 210]",
+      "ended": "running",
+      "cwd": "/labs/ws"
+    }
+  }
+}

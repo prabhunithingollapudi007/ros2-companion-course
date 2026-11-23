@@ -1,0 +1,134 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { WhereLaunchLooks, WhyLaunch } from '../figures/lesson05'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { LaunchToGraph } from '../playgrounds/lesson05/LaunchToGraph'
+import { NameResolver } from '../playgrounds/lesson05/NameResolver'
+import { lesson05 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { cmake, launchFiles } from './lesson05.code'
+import { lesson05Lab } from './lesson05.lab'
+import { lesson05Quiz } from './lesson05.quiz'
+
+export const r = lesson05.runs
+
+<BigPicture>
+
+A real robot runs dozens of nodes, and one `ros2 run` per terminal stops being practical somewhere around the third. **Launch files** describe a whole system in one place: which nodes to start, what to call them, and how to wire their topics together. To use them well you need ROS's naming rules, because the same program started twice must not end up on the same topics by accident. This lesson covers both.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson05} />
+
+## Why launch files
+
+<WhyLaunch />
+
+Here is the smallest useful one. It starts the demo talker and listener:
+
+<Listing {...launchFiles.talk_listen} />
+
+A launch file is a Python module with a function called `generate_launch_description`. It returns a `LaunchDescription`, a list of things to do; each `Node` starts one program. Running it shows every process's output in one terminal, each line labelled with the process it came from, and one Ctrl+C stops them all:
+
+<Terminal run={[r['launch-basic']]} />
+
+<Terminal title="Another terminal, before and after Ctrl+C" run={[r['launch-nodes'], r['after-ctrl-c']]} />
+
+## Names, namespaces and remapping
+
+Before more launch files, the rules they rely on. Every node has a **name** and a **namespace**, and its full name is the two together, like a path: `/robot1/talker`. Topic names in a node's code are one of three kinds:
+
+| Written as | Kind | In namespace `/robot1`, node `talker`, it becomes |
+| --- | --- | --- |
+| `chatter` | relative | `/robot1/chatter` |
+| `/chatter` | absolute | `/chatter` |
+| `~/chatter` | private | `/robot1/talker/chatter` |
+
+**Remapping** renames a topic, or the node itself, from the outside, without touching the code. On the command line each rule is `-r from:=to` after `--ros-args`. Here are four talkers started with different rules:
+
+<Terminal run={[r['cli-speaker'], r['cli-robot1'], r['cli-robot2'], r['cli-robot3']]} />
+
+<Terminal run={[r['cli-nodes'], r['cli-topics']]} />
+
+`__node:=` renames the node and `__ns:=` moves it into a namespace. The demo talker publishes on the relative name `chatter`, so the talker in `/robot1` publishes on `/robot1/chatter`. In `/robot2`, the rule `chatter:=news` renames it to `/robot2/news`; in `/robot3`, `chatter:=/news` renames it to the absolute `/news`.
+
+<NameResolver />
+
+<PlainWords>
+
+Think of namespaces as folders and relative names as file names inside them. Starting a node in a namespace is like running it from inside a folder: everything it calls by a relative name lands in that folder. That is why well-written nodes use relative names, and why two copies of a robot's software can run side by side by giving each copy its own namespace.
+
+</PlainWords>
+
+## The same in launch files
+
+A launch file sets the same things as arguments to `Node`: `namespace`, `name` and `remappings`. A **launch argument** makes a value configurable when the file is launched, and `--show-args` lists the arguments without starting anything. A launch file can also include another, here inside a namespace pushed onto everything it starts.
+
+<LaunchToGraph />
+
+<TryThis>
+
+- **Open `two_pairs.launch.py`.** Two copies of the same pair, kept apart only by `namespace`.
+- **Open `with_args.launch.py` and type a different robot name.** That is what `ros2 launch launch_demo with_args.launch.py robot:=rover` does.
+- **Open `renamed.launch.py`.** Both nodes are renamed, and both remap `chatter` to the same new name, so they still meet.
+
+</TryThis>
+
+Recorded in the container:
+
+<Terminal run={[r['pairs-nodes'], r['pairs-topics']]} />
+
+<Terminal run={[r['show-args'], r['args-rover-launch'], r['args-rover-nodes']]} />
+
+## Where launch files live
+
+<WhereLaunchLooks />
+
+A launch file belongs to a package, and the package's `CMakeLists.txt` must install it:
+
+<Listing {...cmake} highlight={[lineOf(cmake.code, 'install(DIRECTORY launch')]} />
+
+<Terminal run={[r.installed, r.missing]} />
+
+<Bridge title="ETH's course">
+
+ETH's first lecture shows a Python launch file that starts two turtlesim nodes in two namespaces, and notes that launch files can also set parameters, include other launch files and set namespaces. Its slides write the command as `roslaunch`, which is ROS 1; in ROS 2 it is `ros2 launch`. Parameters in launch files are Lesson 12.
+
+</Bridge>
+
+## Lab: a fleet in one command
+
+The package `labs/lesson05/fleet_demo` has three small Python nodes: `battery` publishes `battery_voltage`, `monitor` turns it into a charge in percent on `battery_status`, and `dashboard` reports the charge of two robots it hears on `robot_a/status` and `robot_b/status`. All their names are relative.
+
+Copy it into `/labs/ws/src` and build it. Then write a package `fleet_bringup` with a launch file `fleet.launch.py` that:
+
+| | |
+| --- | --- |
+| Robots | starts `battery` and `monitor` in the namespace `robot1`, and again in a second namespace |
+| Argument | `second_robot`, the second namespace, with the default `robot2` |
+| Dashboard | starts `dashboard` with no namespace, its `robot_a/status` remapped to the first robot's `battery_status` and `robot_b/status` to the second's |
+
+A remapping can be built from pieces, `['/', LaunchConfiguration('second_robot'), '/battery_status']`, when part of the name is an argument. Install the launch folder, build, launch, and check with `python3 /labs/lesson05/check.py`, which launches your file twice, once with `second_robot:=rover`. A reference solution is in `labs/lesson05/solution`.
+
+<ContainerTerminals terminals={[{ title: 'Terminal', first: 'cp -r /labs/lesson05/fleet_demo /labs/ws/src/', height: 380 }]} />
+
+<LabQuestions questions={lesson05Lab} />
+
+## Quiz
+
+<Quiz questions={lesson05Quiz} />
+
+<Recap>
+
+- A **launch file** is Python: `generate_launch_description()` returns a `LaunchDescription` of `Node`s and other actions. `ros2 launch <package> <file>` starts everything, labels the output, and stops it all on Ctrl+C.
+- A node's full name is its **namespace** plus its **name**. Topic names in code are **relative** (`chatter`, placed in the namespace), **absolute** (`/chatter`) or **private** (`~/chatter`, under the node's own name).
+- **Remapping** renames topics and nodes from outside: `-r from:=to` on the command line, `remappings=[(from, to)]`, `name=` and `namespace=` in a launch file.
+- **Launch arguments** make a launch file configurable (`name:=value`); `--show-args` lists them.
+- Launch files must be **installed** into the package's share folder; `ros2 launch` never reads `src`.
+- Next: recording what a system did, and replaying it.
+
+</Recap>

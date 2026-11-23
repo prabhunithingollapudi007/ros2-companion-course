@@ -1,0 +1,203 @@
+{
+  "scenarios": [
+    {
+      "name": "build the example package",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson04/examples/greeter_cpp /labs/ws/src/"
+        },
+        {
+          "id": "example-tree",
+          "cmd": "find greeter_cpp -type f | sort",
+          "cwd": "/labs/ws/src"
+        },
+        {
+          "id": "example-build",
+          "cmd": "colcon build",
+          "cwd": "/labs/ws",
+          "mask": "numbers"
+        },
+        {
+          "id": "example-interface",
+          "cmd": "source install/setup.bash && ros2 interface show greeter_cpp/msg/Greeting",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "generated-headers",
+          "cmd": "ls install/greeter_cpp/include/greeter_cpp/greeter_cpp/msg",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "generated-python",
+          "cmd": "source install/setup.bash && python3 -c 'from greeter_cpp.msg import Greeting; print(Greeting(text=\"hi\", count=1))'",
+          "cwd": "/labs/ws"
+        }
+      ]
+    },
+    {
+      "name": "greeter and listener",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson04/examples/greeter_cpp /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "greeter",
+          "cmd": "source install/setup.bash && ros2 run greeter_cpp greeter",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 3,
+          "lines": 4,
+          "mask": "numbers"
+        },
+        {
+          "id": "listener",
+          "cmd": "source install/setup.bash && ros2 run greeter_cpp listener",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 3,
+          "lines": 4,
+          "mask": "numbers"
+        },
+        {
+          "id": "nodes",
+          "cmd": "ros2 node list"
+        },
+        {
+          "id": "topic-info",
+          "cmd": "source install/setup.bash && ros2 topic info /greetings",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "echo-once",
+          "cmd": "source install/setup.bash && ros2 topic echo --once /greetings",
+          "cwd": "/labs/ws",
+          "mask": "numbers"
+        }
+      ]
+    },
+    {
+      "name": "a slow listener with a short queue",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson04/examples/greeter_cpp /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "slow-3",
+          "cmd": "source install/setup.bash && ros2 run greeter_cpp slow_listener 3",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 2,
+          "lines": 12,
+          "mask": "numbers"
+        },
+        {
+          "id": "counter-3",
+          "cmd": "source install/setup.bash && ros2 run greeter_cpp counter 20",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 8
+        },
+        {
+          "id": "slow-3-handled",
+          "tail": "slow-3",
+          "lines": 10,
+          "check": false,
+          "why": "How many lines exist by then depends on how long discovery took; slow-3-steps checks the pattern."
+        },
+        {
+          "id": "slow-3-steps",
+          "cmd": "grep -o \"number [0-9]*\" /tmp/rec/slow-3.log | cut -d\" \" -f2 | awk 'NR>1 {print $1-p} {p=$1}' | tail -n +3 | sort -u"
+        }
+      ]
+    },
+    {
+      "name": "a slow listener with a long queue",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson04/examples/greeter_cpp /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null"
+        },
+        {
+          "id": "slow-100",
+          "cmd": "source install/setup.bash && ros2 run greeter_cpp slow_listener 100",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 2,
+          "lines": 12,
+          "mask": "numbers"
+        },
+        {
+          "id": "counter-100",
+          "cmd": "source install/setup.bash && ros2 run greeter_cpp counter 20",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 8
+        },
+        {
+          "id": "slow-100-handled",
+          "tail": "slow-100",
+          "lines": 10,
+          "check": false,
+          "why": "How many lines exist by then depends on how long discovery took; slow-100-steps checks the pattern."
+        },
+        {
+          "id": "slow-100-steps",
+          "cmd": "grep -o \"number [0-9]*\" /tmp/rec/slow-100.log | head -n 12 | cut -d\" \" -f2 | awk 'NR>1 {print $1-p} {p=$1}' | tail -n +3 | sort -u"
+        }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src"
+        },
+        {
+          "id": "lab-check-early",
+          "cmd": "python3 /labs/lesson04/check.py",
+          "mayFail": true
+        },
+        {
+          "cmd": "cp -r /labs/lesson04/solution/power_monitor /labs/ws/src/"
+        },
+        {
+          "id": "lab-build",
+          "cmd": "colcon build",
+          "cwd": "/labs/ws",
+          "mask": "numbers"
+        },
+        {
+          "id": "lab-sim",
+          "cmd": "python3 /labs/lesson04/battery_sim.py",
+          "background": true,
+          "settle": 2,
+          "lines": 3,
+          "mask": "numbers"
+        },
+        {
+          "id": "lab-monitor",
+          "cmd": "source install/setup.bash && ros2 run power_monitor battery_monitor",
+          "cwd": "/labs/ws",
+          "background": true,
+          "settle": 2
+        },
+        {
+          "id": "lab-echo",
+          "cmd": "source install/setup.bash && ros2 topic echo --csv /battery_status",
+          "cwd": "/labs/ws",
+          "seconds": 4.2,
+          "check": false,
+          "why": "Which readings it catches depends on where the battery is in its cycle; lab-check verifies every value on each run."
+        },
+        {
+          "id": "lab-check",
+          "cmd": "python3 /labs/lesson04/check.py"
+        }
+      ]
+    }
+  ]
+}

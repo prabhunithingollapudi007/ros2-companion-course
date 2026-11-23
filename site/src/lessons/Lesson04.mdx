@@ -1,0 +1,155 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal, TerminalPair } from '../components/Terminal'
+import { MsgNaming, NodeAnatomy, SpinLoop } from '../figures/lesson04'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { QueuePlayground } from '../playgrounds/lesson04/QueuePlayground'
+import { lesson04 } from '../transcripts'
+import { code, lineOf } from './lesson04.code'
+import { lesson04Lab } from './lesson04.lab'
+import { lesson04Quiz } from './lesson04.quiz'
+
+export const r = lesson04.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+Lesson 2 inspected a graph made of other people's nodes; Lesson 3 built an empty package. Now the package gets real nodes, written in C++ with **rclcpp**, ROS's C++ client library: one that publishes, one that subscribes, and a message type of our own for them to exchange. The same shape, a class with a constructor that sets things up and callbacks that do the work, carries every C++ node in the rest of the course.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson04} />
+
+Every file on this page is in the course repository under `labs/lesson04/examples/greeter_cpp`, and every recording below built and ran exactly these files.
+
+## The shape of a node
+
+<NodeAnatomy />
+
+Here is the publisher. The highlighted lines are the ones that make it a ROS node; the rest is ordinary C++.
+
+<Listing {...code.greeter} highlight={at(code.greeter, 'Node("greeter")', 'create_publisher', 'create_wall_timer', 'publisher_->publish(msg)', 'rclcpp::spin')} />
+
+The subscriber has the same shape. Its constructor creates a subscription with a **callback**, a function ROS calls with each message that arrives:
+
+<Listing {...code.listener} highlight={at(code.listener, 'create_subscription', 'RCLCPP_INFO')} />
+
+Both log with `RCLCPP_INFO`, which prints a timestamp and the node's name and also sends the line to `/rosout`. Built and running:
+
+<TerminalPair>
+  <Terminal title="Terminal 1" run={r.greeter} />
+  <Terminal title="Terminal 2" run={r.listener} />
+</TerminalPair>
+
+<Terminal title="Terminal 3" run={[r.nodes, r['topic-info'], r['echo-once']]} />
+
+## What spin does
+
+<SpinLoop />
+
+<PlainWords>
+
+A node is not a program that runs from top to bottom. It sets up what it reacts to, then hands control to `spin`, which waits and calls the right function each time something happens. If you have written a GUI or a web server, it is the same idea: an event loop.
+
+</PlainWords>
+
+## A message of your own
+
+`std_msgs/msg/String` was fine for a demo, but its own definition says to use something meaningful. A message type is a `.msg` file in a package's `msg` folder, one field per line:
+
+<Listing {...code.msg} />
+
+Field types include `bool`, the integer types (`int32`, `uint8`, …), `float32` and `float64`, `string`, other messages (`geometry_msgs/Twist` in Lesson 2 was two `Vector3`s), and arrays of any of them (`float64[]`). The build turns the file into code for C++ and Python:
+
+<Terminal run={[r['example-build'], r['example-interface'], r['generated-headers'], r['generated-python']]} />
+
+<MsgNaming />
+
+A package that defines messages needs a few more lines in both files. In `CMakeLists.txt`, `rosidl_generate_interfaces` generates the code, and when programs in the same package use it they link to it with `rosidl_get_typesupport_target` and `target_link_libraries`:
+
+<Listing {...code.cmake} highlight={at(code.cmake, 'find_package(rosidl_default_generators', 'rosidl_generate_interfaces', 'rosidl_get_typesupport_target', 'target_link_libraries', 'ament_export_dependencies')} />
+
+In `package.xml`, the generator is a build tool, the runtime is needed to run, and the package joins the group of packages that define interfaces:
+
+<Listing {...code.packageXml} highlight={at(code.packageXml, 'rosidl_default_generators', 'rosidl_default_runtime', 'member_of_group')} />
+
+## Queues: when a callback cannot keep up
+
+`create_publisher` and `create_subscription` both took a `10`. That is the **queue depth**: how many messages are kept waiting when they cannot be handled at once. It matters as soon as a callback is slower than the messages arriving. This listener's callback takes a quarter of a second, and its queue depth is the program's first argument:
+
+<Listing {...code.slowListener} lines={[at(code.slowListener, 'class SlowListener')[0], at(code.slowListener, 'subscription_;')[0] + 1]} highlight={at(code.slowListener, '"greetings", depth', 'sleep_for')} />
+
+A second program, `counter`, publishes 20 numbered messages a second at it. With a queue of 3, and then of 100:
+
+<TerminalPair>
+  <Terminal title="Queue of 3" run={r['slow-3-handled']} />
+  <Terminal title="Queue of 100" run={r['slow-100-handled']} />
+</TerminalPair>
+
+With 3, the listener handles every fifth message: five arrive while it works, the queue keeps the newest three, and the rest are dropped. With 100, nothing is dropped yet, but it falls further behind every second: messages arrive every 50 ms and each takes 250 ms, so the backlog grows by 16 messages a second. At that rate even the queue of 100 is full after about six seconds, and from then on it drops messages too.
+
+<QueuePlayground />
+
+<TryThis>
+
+- **Set the callback to 40 ms.** It now keeps up with 20 messages a second: nothing waits, nothing is dropped, whatever the depth.
+- **Set the depth to 1.** The listener always handles the newest message there is. For a sensor stream where only the latest reading matters, that is what you want.
+- **Set the depth to 100.** Nothing is dropped, but the waiting count only grows: each message is handled later than the last.
+
+</TryThis>
+
+## Lab: a battery monitor
+
+A pretend battery, `labs/lesson04/battery_sim.py`, publishes its voltage twice a second. Write a C++ node that turns each reading into a status message of your own.
+
+| | |
+| --- | --- |
+| Package | `power_monitor`, in `/labs/ws/src` |
+| Message | `msg/BatteryStatus.msg` with `float32 voltage`, `float32 percent`, `bool low` |
+| Node | the program `battery_monitor`, node name `battery_monitor` |
+| Subscribes | `/battery_voltage`, `std_msgs/msg/Float32` |
+| Publishes | `/battery_status`, `power_monitor/msg/BatteryStatus`, one per reading |
+| Percent | 21.0 V is 0 %, 25.2 V is 100 %, in a straight line between, never below 0 or above 100 |
+| Low | `true` when percent is below 20 |
+
+1. In `/labs/ws/src`: `ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies rclcpp std_msgs --node-name battery_monitor power_monitor`.
+2. Add the message file, and the message lines to `CMakeLists.txt` and `package.xml`, following `greeter_cpp` above.
+3. Write the node in `src/battery_monitor.cpp`. `std::clamp` from `<algorithm>` keeps a value between two limits.
+4. Build from `/labs/ws`. Run the battery in one terminal and your node in another, and watch with `ros2 topic echo /battery_status` from a third (the button opens one in a new tab).
+5. Check with `python3 /labs/lesson04/check.py`. It runs its own copies of the battery and your node, so it works whether or not yours are running.
+
+A reference solution is in `labs/lesson04/solution`. Try it yourself first.
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1, the battery', first: 'python3 /labs/lesson04/battery_sim.py', height: 170 },
+    { title: 'Terminal 2, your node', first: 'cd /labs/ws/src', height: 360 },
+  ]}
+/>
+
+<LabQuestions questions={lesson04Lab} />
+
+<Bridge title="ETH's course">
+
+ETH's first exercise has the same ingredients: a node that subscribes to a sensor, changes each reading and republishes it, and a custom message with its own header. Its slides also warn about the naming rule: `MsgType.msg` is included as `msg_type.hpp`.
+
+</Bridge>
+
+## Quiz
+
+<Quiz questions={lesson04Quiz} />
+
+<Recap>
+
+- An rclcpp node is a class derived from `rclcpp::Node`. Its **constructor** sets things up: a name, publishers, subscriptions, timers.
+- **Callbacks** do the work: a timer callback when the timer fires, a subscription callback when a message arrives.
+- `main` is always `rclcpp::init`, `rclcpp::spin(node)`, `rclcpp::shutdown`. **spin** waits for work and runs one callback at a time, each to the end.
+- A **message type** is a `.msg` file of fields. `Thing.msg` in package `pkg` is used as `pkg::msg::Thing`, from the header `pkg/msg/thing.hpp`.
+- Defining messages takes `rosidl_generate_interfaces` in CMake and three additions to `package.xml`.
+- The number in `create_publisher` and `create_subscription` is the **queue depth**. When a callback is too slow, a short queue drops old messages and a long one falls ever further behind.
+- Next: starting several nodes at once with launch files.
+
+</Recap>

@@ -20,4 +20,7 @@ export default defineConfig({
     },
     react(),
   ],
+  // Lessons show source files from ../labs (imported with ?raw), so the code on
+  // the page is exactly the code the recordings compiled.
+  server: { fs: { allow: ['..'] } },
 })

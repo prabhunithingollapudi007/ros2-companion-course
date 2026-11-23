@@ -154,8 +154,8 @@ export const PARTS: Part[] = [
           'Defining a message in a .msg file',
           'From MsgType.msg to msg_type.hpp: the naming rule',
         ],
-        playgrounds: ['Callbacks and the spin loop, one step at a time', 'A full queue: which messages are dropped'],
-        lab: 'Write a node that cleans a sensor stream and republishes it in your own message type.',
+        playgrounds: ['A queue that cannot keep up: which messages are handled and which dropped'],
+        lab: 'A battery monitor: turn voltage readings into a status message of your own, checked in the container.',
         sources: [
           eth(1, 'Creating a C++ package, messages, publish and subscribe'),
           docs('Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Publisher-And-Subscriber', 'Writing a simple publisher and subscriber (C++)'),
@@ -175,13 +175,15 @@ export const PARTS: Part[] = [
           'Including other launch files',
           'Installing launch files with the package',
         ],
-        playgrounds: ['From launch file to graph', 'Remapping: rewiring a graph without touching code'],
-        lab: 'Launch your nodes together, twice, in two namespaces.',
+        playgrounds: ['Where does a name end up?', 'From launch file to graph'],
+        lab: 'A two-robot fleet and a dashboard from one launch file, with a launch argument and remapping.',
         sources: [
           eth(1, 'Launch files'),
           docs('Tutorials/Beginner-CLI-Tools/Launching-Multiple-Nodes/Launching-Multiple-Nodes', 'Launching nodes'),
           docs('Tutorials/Intermediate/Launch/Launch-Main', 'Launch tutorials'),
           docs('Concepts/Basic/About-Launch', 'Concepts: launch'),
+          { from: 'Other', label: 'ROS 2 design: topic and service names', url: 'https://design.ros2.org/articles/topic_and_service_names.html' },
+          { from: 'Other', label: 'ROS 2 design: remapping names', url: 'https://design.ros2.org/articles/static_remapping.html' },
         ],
       },
       {
