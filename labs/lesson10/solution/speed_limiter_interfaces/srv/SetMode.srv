@@ -1,0 +1,6 @@
+# Reference solution for the Lesson 10 lab. Try the lab before reading it.
+string mode  # "normal" or "careful"
+---
+bool success
+string message
+float64 max_speed  # the limit now in force, m/s

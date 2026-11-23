@@ -1,0 +1,37 @@
+{
+  "scenarios": [
+    {
+      "name": "an action of our own",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson11/examples/drive_interfaces /labs/lesson11/examples/drive_demo /labs/ws/src/" },
+        { "id": "drive-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "drive-show", "cmd": "source install/setup.bash && ros2 interface show drive_interfaces/action/DriveDistance", "cwd": "/labs/ws" },
+        { "id": "drive-server", "cmd": "source install/setup.bash && ros2 run drive_demo drive_server", "cwd": "/labs/ws", "background": true, "settle": 2, "mask": "numbers" },
+        { "id": "action-list", "cmd": "ros2 action list -t" },
+        { "id": "action-info", "cmd": "ros2 action info /drive_distance" },
+        { "id": "send-goal", "cmd": "source install/setup.bash && ros2 action send_goal /drive_distance drive_interfaces/action/DriveDistance \"{distance: 1.0, speed: 0.5}\"", "cwd": "/labs/ws" },
+        { "id": "send-goal-feedback", "cmd": "source install/setup.bash && ros2 action send_goal --feedback /drive_distance drive_interfaces/action/DriveDistance \"{distance: 0.3, speed: 0.5}\"", "cwd": "/labs/ws", "check": false, "why": "The first feedback can be printed before or after the line saying the goal was accepted; lesson11.test.ts checks the feedback values." },
+        { "id": "send-goal-bad", "cmd": "source install/setup.bash && ros2 action send_goal /drive_distance drive_interfaces/action/DriveDistance \"{distance: -1.0, speed: 0.5}\"", "cwd": "/labs/ws" },
+        { "cmd": "source install/setup.bash && ros2 run drive_demo drive_client 3.0 0.5", "cwd": "/labs/ws", "background": true, "settle": 3 },
+        { "id": "send-goal-busy", "cmd": "source install/setup.bash && ros2 action send_goal /drive_distance drive_interfaces/action/DriveDistance \"{distance: 1.0, speed: 1.0}\"", "cwd": "/labs/ws" },
+        { "cmd": "sleep 5" },
+        { "id": "client-cancel", "cmd": "source install/setup.bash && ros2 run drive_demo drive_client 3.0 1.0 1.0 2>&1 | grep -v 'to go'", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "server-log", "tail": "drive-server", "lines": 7, "mask": "numbers" },
+        { "id": "action-topics", "cmd": "ros2 topic list --include-hidden-topics | grep drive_distance && ros2 service list --include-hidden-services | grep drive_distance" }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson11/check.py", "mayFail": true },
+        { "cmd": "cp -r /labs/lesson11/solution/charger_interfaces /labs/lesson11/solution/charger /labs/ws/src/" },
+        { "id": "lab-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-client", "cmd": "source install/setup.bash && (ros2 run charger charger > /dev/null 2>&1 &) && sleep 2 && python3 /labs/lesson11/goal_client.py 0.3", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson11/check.py" }
+      ]
+    }
+  ]
+}

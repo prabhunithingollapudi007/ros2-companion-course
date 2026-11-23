@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "params-build": {
+      "command": "colcon build",
+      "output": "Starting >>> params_demo\nFinished <<< params_demo [4.96s]\n\nSummary: 1 package finished [5.08s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "param-list": {
+      "command": "ros2 param list /blinker",
+      "output": "  label\n  qos_overrides./parameter_events.publisher.depth\n  qos_overrides./parameter_events.publisher.durability\n  qos_overrides./parameter_events.publisher.history\n  qos_overrides./parameter_events.publisher.reliability\n  rate\n  start_type_description_service\n  use_sim_time\n  verbose",
+      "ended": "exit"
+    },
+    "param-get": {
+      "command": "ros2 param get /blinker rate",
+      "output": "Double value is: 2.0",
+      "ended": "exit"
+    },
+    "param-describe": {
+      "command": "ros2 param describe /blinker rate",
+      "output": "Parameter name: rate\n  Type: double\n  Description: blinks per second\n  Constraints:\n    Min value: 0.5\n    Max value: 10.0",
+      "ended": "exit"
+    },
+    "param-set": {
+      "command": "ros2 param set /blinker rate 5.0",
+      "output": "Set parameter successful",
+      "ended": "exit"
+    },
+    "param-set-range": {
+      "command": "ros2 param set /blinker rate 50.0",
+      "output": "Setting parameter failed: Parameter {rate} doesn't comply with floating point range.",
+      "ended": "exit"
+    },
+    "param-set-empty": {
+      "command": "ros2 param set /blinker label ''",
+      "output": "Setting parameter failed: label must not be empty",
+      "ended": "exit"
+    },
+    "param-set-type": {
+      "command": "ros2 param set /blinker rate fast",
+      "output": "Setting parameter failed: Wrong parameter type, parameter {rate} is of type {double}, setting it to {string} is not allowed.",
+      "ended": "exit"
+    },
+    "param-dump": {
+      "command": "ros2 param dump /blinker",
+      "output": "/blinker:\n  ros__parameters:\n    label: light\n    qos_overrides:\n      /parameter_events:\n        publisher:\n          depth: 1000\n          durability: volatile\n          history: keep_last\n          reliability: reliable\n    rate: 5.0\n    start_type_description_service: true\n    use_sim_time: false\n    verbose: false",
+      "ended": "exit"
+    },
+    "blinker-log": {
+      "command": "source install/setup.bash && ros2 run params_demo blinker",
+      "output": "[INFO] [1795439763.147951982] [blinker]: light: blinking 2.0 times a second\n[INFO] [1795439768.760386391] [blinker]: now blinking 5.0 times a second",
+      "ended": "running"
+    },
+    "blinker": {
+      "command": "source install/setup.bash && ros2 run params_demo blinker",
+      "output": "[INFO] [1795439763.147951982] [blinker]: light: blinking 2.0 times a second\n[INFO] [1795439768.760386391] [blinker]: now blinking 5.0 times a second",
+      "ended": "running",
+      "cwd": "/labs/ws"
+    },
+    "start-default": {
+      "command": "source install/setup.bash && ros2 run params_demo blinker",
+      "output": "[INFO] [1795439780.755984485] [blinker]: light: blinking 2.0 times a second",
+      "ended": "stopped",
+      "cwd": "/labs/ws"
+    },
+    "start-p": {
+      "command": "source install/setup.bash && ros2 run params_demo blinker --ros-args -p rate:=4.0",
+      "output": "[INFO] [1795439782.617895259] [blinker]: light: blinking 4.0 times a second",
+      "ended": "stopped",
+      "cwd": "/labs/ws"
+    },
+    "start-file": {
+      "command": "source install/setup.bash && ros2 run params_demo blinker --ros-args --params-file install/params_demo/share/params_demo/config/porch.yaml",
+      "output": "[INFO] [1795439784.207435934] [blinker]: porch: blinking 1.0 times a second",
+      "ended": "stopped",
+      "cwd": "/labs/ws"
+    },
+    "start-file-then-p": {
+      "command": "source install/setup.bash && ros2 run params_demo blinker --ros-args --params-file install/params_demo/share/params_demo/config/porch.yaml -p rate:=4.0",
+      "output": "[INFO] [1795439785.811130972] [blinker]: porch: blinking 4.0 times a second",
+      "ended": "stopped",
+      "cwd": "/labs/ws"
+    },
+    "start-p-then-file": {
+      "command": "source install/setup.bash && ros2 run params_demo blinker --ros-args -p rate:=4.0 --params-file install/params_demo/share/params_demo/config/porch.yaml",
+      "output": "[INFO] [1795439787.474954008] [blinker]: porch: blinking 1.0 times a second",
+      "ended": "stopped",
+      "cwd": "/labs/ws"
+    },
+    "start-out-of-range": {
+      "command": "source install/setup.bash && ros2 run params_demo blinker --ros-args -p rate:=50.0",
+      "output": "terminate called after throwing an instance of 'rclcpp::exceptions::InvalidParameterValueException'\n  what():  parameter 'rate' could not be set: Parameter {rate} doesn't comply with floating point range.\n[ros2run]: Aborted",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "porch-launch": {
+      "command": "source install/setup.bash && ros2 launch params_demo porch.launch.py",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-13-16-30-188708-ros-companion-391\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [blinker-1]: process started with pid [394]\n[blinker-1] [INFO] [1795439790.261691568] [blinker]: porch: blinking 1.0 times a second\n[blinker-1] [INFO] [1795439790.761946032] [blinker]: porch on\n[blinker-1] [INFO] [1795439791.262114846] [blinker]: porch off\n[blinker-1] [INFO] [1795439791.762088624] [blinker]: porch on",
+      "ended": "stopped",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson12/check.py",
+      "output": "Lesson 12 lab: checking /labs/ws\n  PASS  speed_limiter and speed_limiter_interfaces from Lesson 10 are built\n  FAIL  config/limits.yaml and launch/limiter.launch.py are installed\n        Install config and launch in CMakeLists.txt, then colcon build.\n  FAIL  normal_speed and careful_speed are parameters, 1.0 and 0.3 by default\n        ros2 param get gave (None, None).\n  FAIL  their ranges are 0.1 to 2.0 and 0.05 to 1.0\n        Give each a ParameterDescriptor with a floating_point_range.\n  FAIL  setting normal_speed to 1.5 while it runs takes effect at once\n        The set failed, and 1.6 m/s came out as 1.0.\n  FAIL  3.0 (out of range) and 0.2 (below careful_speed) are refused, and the value stays 1.5\n        3.0 was refused, 0.2 was refused; the value is None.\n  FAIL  limiter.launch.py loads limits.yaml: 0.8 and 0.2\n        Install the launch file and the YAML file first.\n1 of 7 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build",
+      "output": "Starting >>> speed_limiter_interfaces\nFinished <<< speed_limiter_interfaces [0.51s]\nStarting >>> speed_limiter\nFinished <<< speed_limiter [7.87s]\n\nSummary: 2 packages finished [8.51s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-describe": {
+      "command": "source install/setup.bash && (ros2 run speed_limiter speed_limiter > /dev/null 2>&1 &) && sleep 2 && ros2 param describe /speed_limiter careful_speed",
+      "output": "Parameter name: careful_speed\n  Type: double\n  Description: limit in careful mode, m/s\n  Constraints:\n    Min value: 0.05\n    Max value: 1.0",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson12/check.py",
+      "output": "Lesson 12 lab: checking /labs/ws\n  PASS  speed_limiter and speed_limiter_interfaces from Lesson 10 are built\n  PASS  config/limits.yaml and launch/limiter.launch.py are installed\n  PASS  normal_speed and careful_speed are parameters, 1.0 and 0.3 by default\n  PASS  their ranges are 0.1 to 2.0 and 0.05 to 1.0\n  PASS  setting normal_speed to 1.5 while it runs takes effect at once\n  PASS  3.0 (out of range) and 0.2 (below careful_speed) are refused, and the value stays 1.5\n  PASS  limiter.launch.py loads limits.yaml: 0.8 and 0.2\nAll 7 checks passed.",
+      "ended": "exit"
+    },
+    "lab-check-10": {
+      "command": "python3 /labs/lesson10/check.py",
+      "output": "Lesson 10 lab: checking /labs/ws\n  PASS  there are packages src/speed_limiter_interfaces and src/speed_limiter\n  PASS  speed_limiter_interfaces/srv/SetMode is built, with request 'string mode' and response 'bool success, string message, float64 max_speed'\n  PASS  the node speed_limiter is built and installed\n  PASS  in normal mode, 0.8 m/s passes through unchanged\n  PASS  /set_mode careful succeeds and reports a limit of 0.3\n  PASS  in careful mode, 0.8 comes out as 0.3, and -0.8 as -0.3\n  PASS  an unknown mode fails, and leaves the limit as it was\n  PASS  /set_mode normal puts the limit back to 1.0\nAll 8 checks passed.",
+      "ended": "exit"
+    }
+  }
+}

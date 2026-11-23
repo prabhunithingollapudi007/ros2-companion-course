@@ -1,0 +1,5 @@
+# Lesson 13 example: the settings of the rover's stack, one section per node.
+speed_limiter:
+  ros__parameters:
+    normal_speed: 0.8
+    careful_speed: 0.2

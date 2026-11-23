@@ -1,0 +1,134 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { ParamLayers } from '../figures/lesson12'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { ParamSourcesPlayground } from '../playgrounds/lesson12/ParamSourcesPlayground'
+import { lesson12 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson12.code'
+import { lesson12Lab } from './lesson12.lab'
+import { lesson12Quiz } from './lesson12.quiz'
+
+export const r = lesson12.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+Every robot program is full of numbers that someone will want to change: a speed limit, a rate, a gain, a frame name. Recompiling for each is slow, and different robots need different values from the same code. **Parameters** are named values that belong to a node, set when it starts (from a YAML file, a launch file or the command line) and, if the node allows it, changed while it runs. This lesson declares parameters in C++, sets them every way there is, and works out which value wins.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson12} />
+
+## Declaring parameters
+
+The example is a blinking light: a node that publishes on and off on `/light`, at a rate, with a label for its log. Three parameters:
+
+<Listing {...code.blinker} lines={[lineOf(code.blinker.code, 'class Blinker'), lineOf(code.blinker.code, "verbose_ = declare_parameter")]} highlight={at(code.blinker, 'rate_info.description', 'rate_info.floating_point_range[0].from_value', 'rate_ = declare_parameter("rate", 2.0, rate_info);', 'label_ = declare_parameter("label", "light");')} />
+
+`declare_parameter(name, default)` creates the parameter, gives it its type (a double, from `2.0`) and returns its value: the default, or whatever overrides it at start. A **descriptor** adds a description and a range, both of which ROS then enforces and reports.
+
+## From the terminal
+
+<Terminal run={[r.blinker, r['param-list'], r['param-get'], r['param-describe']]} />
+
+Besides its own three, the node has the parameters every node has, such as `use_sim_time` from Lesson 6. Changing one while it runs:
+
+<Terminal run={[r['param-set'], r['param-set-range'], r['param-set-type'], r['param-set-empty'], r['blinker-log']]} />
+
+The range and the type are checked by ROS itself. The empty label is refused by the node's own code, below. `ros2 param dump` prints every value as YAML, ready to save as a file:
+
+<Terminal run={r['param-dump']} />
+
+## Reacting to a change
+
+A node that read its parameters once at start would not notice `ros2 param set`. Two callbacks handle changes: one **before** the change, which can refuse it, and one **after**, which acts on it.
+
+<Listing {...code.blinker} lines={[lineOf(code.blinker.code, '// Before a change is made'), lineOf(code.blinker.code, 'publisher_ = create_publisher')]} highlight={at(code.blinker, 'check_ = add_on_set_parameters_callback(', 'result.successful = false;', 'apply_ = add_post_set_parameters_callback(', 'start_timer();')} />
+
+<PlainWords>
+
+Validate in the first callback, act in the second. The first must not change anything: if any parameter in the same request is refused, none of them is set, and you would have acted on a change that never happened. Keep the handles the two functions return, as the blinker does in `check_` and `apply_`: when a handle is destroyed, its callback is removed.
+
+</PlainWords>
+
+## From a file, a launch file and the command line
+
+A parameters file is YAML, keyed by node name, with the values under `ros__parameters`:
+
+<Listing {...code.porchYaml} />
+
+`--params-file` loads it; `-p name:=value` sets one parameter. Each start below prints the rate the node ended up with:
+
+<Terminal run={[r['start-default'], r['start-p'], r['start-file'], r['start-file-then-p'], r['start-p-then-file']]} />
+
+When both say something about `rate`, **the last one given wins**. A launch file does the same with its `parameters` list, in order:
+
+<Listing {...code.porchLaunch} highlight={at(code.porchLaunch, "parameters=[config, {'verbose': True}],")} />
+
+<Terminal run={r['porch-launch']} />
+
+At start, a value out of range is not refused quietly: `declare_parameter` throws, and the node stops.
+
+<Terminal run={r['start-out-of-range']} />
+
+<ParamLayers />
+
+<ParamSourcesPlayground />
+
+<TryThis>
+
+- **Swap the order** of the file and `-p`. The value follows whichever comes last.
+- **Give -p a value of 12.** The node does not start at all.
+- **Start it, then set 12.** It runs on with the old value: refused, not crashed.
+
+</TryThis>
+
+<Bridge title="ETH's course">
+
+ETH's third lecture covers parameters as node-specific (unlike ROS 1, where they lived on a global parameter server), the `ros2 param` commands, `declare_parameter` and `get_parameter` in C++, parameter callbacks for changes at run time, and setting values in a launch file from a dictionary or a YAML file, as here.
+
+</Bridge>
+
+## Lab: the speed limiter, configurable
+
+Extend your speed limiter from Lesson 10 (or the reference solution in `labs/lesson10/solution`):
+
+| | |
+| --- | --- |
+| Parameters | `normal_speed`, default 1.0, range 0.1 to 2.0; `careful_speed`, default 0.3, range 0.05 to 1.0; both doubles with a description |
+| Rule | `careful_speed` may never be more than `normal_speed`: refuse any change that would make it so |
+| While running | a change takes effect at once, in whichever mode the node is in |
+| Files | `config/limits.yaml` with 0.8 and 0.2, and `launch/limiter.launch.py` that starts the node with it, both installed |
+
+The defaults keep the Lesson 10 checker passing. Check with `python3 /labs/lesson12/check.py`. A reference solution is in `labs/lesson12/solution`.
+
+<Terminal run={r['lab-describe']} />
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1', first: 'cd /labs/ws && colcon build && source install/setup.bash && ros2 run speed_limiter speed_limiter', height: 240 },
+    { title: 'Terminal 2', first: 'ros2 param describe /speed_limiter normal_speed careful_speed', height: 240 },
+  ]}
+/>
+
+<LabQuestions questions={lesson12Lab} />
+
+## Quiz
+
+<Quiz questions={lesson12Quiz} />
+
+<Recap>
+
+- A **parameter** belongs to one node: declared with a default (`declare_parameter`), optionally with a description and a range.
+- Set at start by `--params-file` and `-p` (the last one wins), or a launch file's `parameters` list (in order); a value that fails the checks at start stops the node.
+- `ros2 param list`, `get`, `set`, `describe` and `dump` from the terminal; a refused set leaves the value as it was.
+- React to changes: refuse in an on-set callback, act in a post-set callback, and keep both handles.
+- A YAML file is keyed by node name, with values under `ros__parameters`; `ros2 param dump` writes one.
+- Next: putting topics, services, actions and parameters together into a robot's software.
+
+</Recap>

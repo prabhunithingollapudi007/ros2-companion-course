@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rover_stack</name>
+  <version>0.1.0</version>
+  <description>Reference solution for the Lesson 13 lab: the rover stack with a command watchdog.</description>
+  <maintainer email="noreply@example.com">ROS 2 Companion</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>rover_sim</exec_depend>
+  <exec_depend>speed_limiter</exec_depend>
+  <exec_depend>cmd_watchdog</exec_depend>
+  <exec_depend>teleop_twist_keyboard</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

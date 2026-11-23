@@ -139,7 +139,7 @@ The camera says "the object is 1 m in front of me". In front of where the camera
 
 <Bridge title="ETH's course">
 
-ETH's second lecture covers the TF transformation system and RViz: the tree, `/tf` and `/tf_static`, the tools (`tf2_echo`, `view_frames`, `tf2_monitor`) and lookups in C++ with a buffer and a listener. For message streams, `tf2_ros::MessageFilter` goes one step further than a timeout: it holds each message until the transform for its stamp is available.
+ETH's second lecture covers the TF transformation system and RViz: the tree, `/tf` and `/tf_static`, robot_state_publisher, and the tools (`static_transform_publisher`, `tf2_echo`, `tf2_monitor`, `view_frames`). Its exercise writes a node that uses `lookupTransform` to report the simulated robot's pose. For message streams, `tf2_ros::MessageFilter` goes one step further than a timeout: it holds each message until the transform for its stamp is available.
 
 </Bridge>
 

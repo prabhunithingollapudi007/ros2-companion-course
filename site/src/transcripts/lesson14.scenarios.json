@@ -1,0 +1,60 @@
+{
+  "scenarios": [
+    {
+      "name": "the middleware",
+      "steps": [
+        { "id": "doctor-rmw", "cmd": "ros2 doctor --report 2>/dev/null | grep -A1 'RMW MIDDLEWARE'" },
+        { "id": "rmw-packages", "cmd": "ros2 pkg list | grep ^rmw_" }
+      ]
+    },
+    {
+      "name": "reliability",
+      "steps": [
+        { "id": "pub-best-effort", "cmd": "ros2 topic pub -r 5 --qos-reliability best_effort /chatter std_msgs/msg/String \"{data: hello}\"", "background": true, "settle": 2, "lines": 1 },
+        { "id": "echo-reliable", "cmd": "ros2 topic echo --qos-reliability reliable /chatter", "seconds": 4, "lines": 1 },
+        { "id": "echo-best-effort", "cmd": "ros2 topic echo --once --qos-reliability best_effort /chatter" },
+        { "id": "topic-info-qos", "cmd": "ros2 topic info -v /chatter | sed -n '1,4p;6,18p'" }
+      ]
+    },
+    {
+      "name": "durability and late joiners",
+      "steps": [
+        { "id": "pub-latched", "cmd": "ros2 topic pub --once -w 0 --keep-alive 60 --qos-durability transient_local --qos-reliability reliable /status std_msgs/msg/String \"{data: ready}\"", "background": true, "settle": 3, "lines": 2 },
+        { "id": "echo-late-tl", "cmd": "ros2 topic echo --once --qos-durability transient_local --qos-reliability reliable /status" },
+        { "id": "echo-late-volatile", "cmd": "ros2 topic echo --qos-durability volatile --qos-reliability reliable /status", "seconds": 4 }
+      ]
+    },
+    {
+      "name": "discovery switched off",
+      "steps": [
+        { "cmd": "ROS_AUTOMATIC_DISCOVERY_RANGE=OFF ros2 run demo_nodes_cpp talker", "background": true, "settle": 3 },
+        { "id": "off-node-list", "cmd": "ros2 node list" },
+        { "id": "off-echo", "cmd": "ros2 topic echo --once /chatter", "mayFail": true }
+      ]
+    },
+    {
+      "name": "a discovery server",
+      "steps": [
+        { "id": "ds-server", "cmd": "fastdds discovery --server-id 0", "background": true, "settle": 2, "lines": 4 },
+        { "cmd": "ROS_DISCOVERY_SERVER=127.0.0.1:11811 ros2 run demo_nodes_cpp talker", "background": true, "settle": 1 },
+        { "id": "ds-listener", "cmd": "ROS_DISCOVERY_SERVER=127.0.0.1:11811 ros2 run demo_nodes_cpp listener", "background": true, "settle": 4, "lines": 1, "mask": "numbers" },
+        { "id": "ds-heard", "tail": "ds-listener", "lines": 1, "mask": "numbers" },
+        { "id": "ds-plain-list", "cmd": "ros2 node list" },
+        { "id": "ds-super-list", "cmd": "ROS_DISCOVERY_SERVER=127.0.0.1:11811 ROS_SUPER_CLIENT=True ros2 node list --no-daemon --spin-time 3" }
+      ]
+    },
+    {
+      "name": "lab",
+      "steps": [
+        { "id": "lab-lidar", "cmd": "python3 /labs/lesson14/silent_graphs.py lidar --seconds 3" },
+        { "id": "lab-map", "cmd": "python3 /labs/lesson14/silent_graphs.py map --seconds 3" },
+        { "id": "lab-odom", "cmd": "python3 /labs/lesson14/silent_graphs.py odom --seconds 3" },
+        { "id": "lab-odom-topics", "cmd": "(python3 /labs/lesson14/silent_graphs.py odom --seconds 6 > /dev/null &) && sleep 3 && ros2 topic list | grep odom" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson14/check.py", "mayFail": true },
+        { "cmd": "mkdir -p /labs/ws/lesson14 && cp /labs/lesson14/solution/fixes.yaml /labs/ws/lesson14/" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson14/check.py" }
+      ],
+      "labs": true
+    }
+  ]
+}

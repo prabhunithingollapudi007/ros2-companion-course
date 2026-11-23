@@ -1,0 +1,43 @@
+{
+  "scenarios": [
+    {
+      "name": "one thread or two",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson15/examples/executors_demo /labs/ws/src/" },
+        { "id": "demo-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "busy-1-same", "cmd": "source install/setup.bash && ros2 run executors_demo busy_node 1 same", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "busy-2-same", "cmd": "source install/setup.bash && ros2 run executors_demo busy_node 2 same", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "busy-2-separate", "cmd": "source install/setup.bash && ros2 run executors_demo busy_node 2 separate", "cwd": "/labs/ws", "mask": "numbers" }
+      ]
+    },
+    {
+      "name": "a callback that waits",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson15/examples/executors_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null" },
+        { "cmd": "ros2 run demo_nodes_cpp add_two_ints_server", "background": true, "settle": 2 },
+        { "id": "caller-wait", "cmd": "source install/setup.bash && ros2 run executors_demo caller wait", "cwd": "/labs/ws", "seconds": 8, "lines": 2 },
+        { "id": "caller-groups", "cmd": "source install/setup.bash && ros2 run executors_demo caller groups", "cwd": "/labs/ws", "seconds": 5, "lines": 2 },
+        { "id": "caller-callback", "cmd": "source install/setup.bash && ros2 run executors_demo caller callback", "cwd": "/labs/ws", "seconds": 5, "lines": 2 }
+      ]
+    },
+    {
+      "name": "lab",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson15/lab/battery_interfaces /labs/lesson15/lab/battery_monitor /labs/ws/src/" },
+        { "id": "lab-build-broken", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "cmd": "source install/setup.bash && python3 /labs/lesson15/estimator.py", "cwd": "/labs/ws", "background": true, "settle": 2 },
+        { "cmd": "source install/setup.bash && ros2 run battery_monitor battery_monitor", "cwd": "/labs/ws", "background": true, "settle": 2 },
+        { "cmd": "ros2 topic pub -r 2 /battery_voltage std_msgs/msg/Float64 \"{data: 3.84}\"", "background": true, "settle": 1 },
+        { "id": "lab-frozen-echo", "cmd": "ros2 topic echo /battery_charge std_msgs/msg/Float64", "seconds": 4 },
+        { "id": "lab-frozen-params", "cmd": "timeout 5 ros2 param list /battery_monitor; echo \"exit code $?\"" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson15/check.py", "mayFail": true },
+        { "cmd": "cp /labs/lesson15/solution/battery_monitor/src/battery_monitor.cpp /labs/ws/src/battery_monitor/src/" },
+        { "id": "lab-build", "cmd": "colcon build --packages-select battery_monitor", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson15/check.py" }
+      ]
+    }
+  ]
+}

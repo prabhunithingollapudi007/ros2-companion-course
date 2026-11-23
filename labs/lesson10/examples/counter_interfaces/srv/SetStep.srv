@@ -1,0 +1,7 @@
+# Lesson 10 example: change how much the counter adds each time.
+# The request, above the line:
+int64 step  # from 1 to 100
+---
+# The response, below it:
+bool accepted
+string message

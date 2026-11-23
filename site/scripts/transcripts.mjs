@@ -50,6 +50,11 @@ function normalise(text, mask) {
     .replace(/transform_listener_impl_[0-9a-f]+/g, 'transform_listener_impl_ID')
     // static_transform_publisher gives itself a random name unless told one.
     .replace(/static_transform_publisher_[A-Za-z0-9]{16}/g, 'static_transform_publisher_ID')
+    // ros2 launch reports each process's id.
+    .replace(/process started with pid \[\d+\]/g, 'process started with pid [N]')
+    .replace(/process has finished cleanly \[pid \d+\]/g, 'process has finished cleanly [pid N]')
+    // Every action goal gets a random id.
+    .replace(/Goal accepted with ID: [0-9a-f]+/g, 'Goal accepted with ID: ID')
     // `ros2 topic pub` prints this only if discovery has not finished when it starts.
     .replace(/^Waiting for at least \d+ matching subscription\(s\)\.\.\.\n/m, '')
     // `ros2 launch` names its log folder after the date, the host and its process id.

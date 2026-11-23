@@ -1,0 +1,142 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { TopicVsService } from '../figures/lesson10'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { TopicOrServicePlayground } from '../playgrounds/lesson10/TopicOrServicePlayground'
+import { lesson10 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson10.code'
+import { lesson10Lab } from './lesson10.lab'
+import { lesson10Quiz } from './lesson10.quiz'
+
+export const r = lesson10.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+Topics are for streams: a sensor publishes whether or not anyone listens, and nobody answers. Sometimes a node needs to *ask*: reset this, switch to that mode, what is the value now? and needs to know whether it worked. That is a **service**: a request from a **client**, handled by the one **server** for that service name, and a response back to that client. This lesson calls services from the terminal, defines one in a `.srv` file, and writes a server and a client in C++.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson10} />
+
+## When a topic is the wrong tool
+
+<TopicVsService />
+
+Use a topic when data flows continuously and many nodes may want it. Use a service when one node asks another to do something quick, or to tell it something, and needs the answer before going on. (For requests that take a long time, with progress along the way, there are actions: Lesson 11.)
+
+<TopicOrServicePlayground />
+
+<TryThis>
+
+- **Start the counter late**, at 3 s, as a topic. A and B have nothing until it starts. As a service, they wait for it instead, then get an answer.
+- **Make the server slow**, 2 s per request, and have A and B ask at the same moment. The second waits for the first.
+- **Compare the age** of the topic answers with the waits of the service answers: freshness costs waiting.
+
+</TryThis>
+
+## Calling services from the terminal
+
+The demo package has a server that adds two numbers:
+
+<Terminal run={[r['add-server'], r['service-list'], r['add-type']]} />
+
+Like a message, a service type has a definition, with the **request** above `---` and the **response** below:
+
+<Terminal run={[r['add-show'], r['add-call'], r['add-server-log']]} />
+
+A service exists only while a node offers it. Calling one that nobody offers waits for a server to appear:
+
+<Terminal run={r['no-server']} />
+
+## Defining a service
+
+The counter of this lesson counts up once a second and offers a service to change its step. Its type lives in a package that holds only interfaces, which is the usual way: any package, in C++ or Python, can depend on it without pulling in node code.
+
+<Listing {...code.setStep} />
+
+<Listing {...code.interfacesCmake} highlight={at(code.interfacesCmake, 'rosidl_generate_interfaces', '"srv/SetStep.srv"')} />
+
+The package also declares the code generators and that it is an interface package:
+
+<Listing {...code.interfacesXml} highlight={at(code.interfacesXml, 'rosidl_default_generators', 'rosidl_default_runtime', 'rosidl_interface_packages')} />
+
+<Terminal run={[r['counter-build'], r['setstep-show']]} />
+
+## Writing a server
+
+A server is a callback, as a subscription is. It receives the request, fills in the response, and returns; ROS sends the response to whoever asked. The counter offers two: `/reset`, of the standard type `std_srvs/srv/Trigger` (no request fields; a `success` and a `message` back), and `/set_step`, of our own type:
+
+<Listing {...code.counter} highlight={at(code.counter, 'reset_ = create_service<Trigger>(', 'set_step_ = create_service<SetStep>(', 'response->accepted = false;', 'response->accepted = true;')} />
+
+<Terminal run={[r.counter, r['counter-info']]} />
+
+`ros2 node info` lists services under *Service Servers*: the counter's two, and the parameter services every node has (Lesson 12). Now calling them:
+
+<Terminal run={[r['count-before'], r['call-step'], r['call-step-bad'], r['count-steps'], r['call-reset']]} />
+
+The refused request still got a response: `accepted=False` and a message saying why. A server should answer every request, and say so when it cannot do what was asked.
+
+## Writing a client
+
+<Listing {...code.stepClient} highlight={at(code.stepClient, 'auto client = node->create_client<SetStep>("set_step");', 'while (!client->wait_for_service(1s))', 'auto future = client->async_send_request(request);', 'rclcpp::spin_until_future_complete(node, future, 5s)')} />
+
+<Terminal run={[r['step-client'], r['counter-log']]} />
+
+Started before the counter, the client waits for the service, then gets its answer as soon as the counter appears:
+
+<Terminal run={r['client-waits']} />
+
+<PlainWords>
+
+`async_send_request` posts the question and hands back a **future**, a box the answer will be put in. The answer is delivered by ROS when the node is spun, so the client spins until the box is full. Inside a node's own callback you must not do that: the callback is already running on the thread that would deliver the answer, so it would wait forever. There, pass a second argument to `async_send_request`, a function that ROS calls with the response when it arrives.
+
+</PlainWords>
+
+<Bridge title="ETH's course">
+
+ETH's third lecture covers services: one-to-one rather than one-to-many, custom `.srv` interfaces (it points out that standard service types are rare, so most are custom), the `ros2 service` commands, and a server and client in C++ after the ROS 2 tutorial. It ends with an activity worth doing here too: for each of a list of jobs, decide whether it is a topic, a service, an action or a parameter.
+
+</Bridge>
+
+## Lab: a speed limiter with two modes
+
+Write a node that sits between whatever sends velocity commands and the robot, and limits how fast the robot may go forward or back:
+
+| | |
+| --- | --- |
+| Service type | `speed_limiter_interfaces/srv/SetMode`, in a package of that name. Request: `string mode`. Response: `bool success`, `string message`, `float64 max_speed` |
+| Package, node | `speed_limiter`, the program and node `speed_limiter` |
+| Topics | subscribes `/cmd_vel_in` and publishes `/cmd_vel_out`, both `geometry_msgs/msg/Twist`: the same command with `linear.x` kept between −limit and +limit |
+| Service | `/set_mode`: `normal` sets the limit to 1.0 m/s, `careful` to 0.3 m/s; both answer `success` true and the limit now in force. Any other mode answers `success` false, says why, and changes nothing |
+
+Check with `python3 /labs/lesson10/check.py`; it publishes commands, calls `/set_mode` with good and bad modes, and measures what comes out. A reference solution is in `labs/lesson10/solution`. Once it passes, put it between `teleop_twist_keyboard` and the Lesson 9 simulation: `ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r cmd_vel:=cmd_vel_in` and `ros2 run speed_limiter speed_limiter --ros-args -r cmd_vel_out:=cmd_vel`.
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1', first: 'cd /labs/ws/src && ros2 pkg create --build-type ament_cmake speed_limiter_interfaces', height: 240 },
+    { title: 'Terminal 2', first: 'cd /labs/ws && colcon build && source install/setup.bash', height: 240 },
+  ]}
+/>
+
+<LabQuestions questions={lesson10Lab} />
+
+## Quiz
+
+<Quiz questions={lesson10Quiz} />
+
+<Recap>
+
+- A **service** is a request and a response: any number of **clients**, one **server** per service name. Use it for quick questions and commands that need an answer; use topics for streams.
+- A `.srv` file has the request above `---` and the response below; put it in an interfaces package built with `rosidl_generate_interfaces`.
+- `ros2 service list -t`, `type` and `call`, and `ros2 interface show`, from the terminal.
+- A server is a callback that fills in the response, and should answer every request, even to refuse it.
+- A client waits for its server (`wait_for_service`), sends with `async_send_request`, and gets the answer by spinning, or in a callback when inside a node.
+- Next: requests that take a while, with progress and cancelling: actions.
+
+</Recap>

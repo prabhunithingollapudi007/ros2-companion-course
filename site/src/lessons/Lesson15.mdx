@@ -1,0 +1,109 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { ExecutorLoop } from '../figures/lesson15'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { DeadlockPlayground } from '../playgrounds/lesson15/DeadlockPlayground'
+import { ExecutorPlayground } from '../playgrounds/lesson15/ExecutorPlayground'
+import { lesson15 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson15.code'
+import { lesson15Lab } from './lesson15.lab'
+import { lesson15Quiz } from './lesson15.quiz'
+
+export const r = lesson15.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+Every piece of a node's code that reacts to something is a callback: a timer firing, a message arriving, a request or an answer. None of them runs by itself. An **executor** decides which ready callback runs, and on which of its threads; **callback groups** decide which callbacks may run at the same time. Get them wrong and a slow callback starves the others, or a node waits for an answer that only it can deliver, and freezes. This lesson shows both, and the ways out.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson15} />
+
+## Callbacks, executors and groups
+
+<ExecutorLoop />
+
+`rclcpp::spin(node)`, which every node so far has used, creates a **SingleThreadedExecutor**: one thread, one callback at a time, in the order things became ready. It is simple, and nothing in the node can run at the same time as anything else, so nothing needs locking. Its weakness is a callback that takes long: everything else waits.
+
+## A slow callback starves a fast one
+
+`busy_node` has a slow timer, every 2 s, that works for 1.5 s, and a fast one every 0.1 s. It runs for 4.5 s and counts:
+
+<Listing {...code.busyNode} lines={[lineOf(code.busyNode.code, 'class BusyNode'), lineOf(code.busyNode.code, 'fast_ = create_wall_timer')]} highlight={at(code.busyNode, 'slow_group_ = create_callback_group', 'fast_group_ = create_callback_group', '}, slow_group_);', 'fast_ = create_wall_timer')} />
+
+<Terminal run={[r['demo-build'], r['busy-1-same'], r['busy-2-same'], r['busy-2-separate']]} />
+
+The fast timer should tick 45 times. With one thread it manages about 26: for 1.5 s in every 2 s it waits. With two threads but both timers in the node's **default callback group**, nothing changes, because that group is **mutually exclusive**: its callbacks never overlap, however many threads there are. Only two threads *and* a group for each timer let it keep up.
+
+<PlainWords>
+
+Two details cost real debugging time, and both were found while making this lesson. A node keeps only a weak reference to a callback group: create one as a local variable and it is destroyed at the end of the constructor, taking its callbacks with it, so they silently never run. Keep groups as members, as `busy_node` does. And a `MultiThreadedExecutor` only starts its threads in `spin()`; `spin_until_future_complete()` runs on the calling thread alone.
+
+</PlainWords>
+
+<ExecutorPlayground />
+
+<TryThis>
+
+- **Shorten the slow work to 0.1 s.** Even with one thread, the fast timer barely notices. Keeping callbacks short is the first remedy, before any threads.
+- **Two threads, separate groups, work of 1.9 s.** The fast timer is unaffected; the slow one could now overlap itself if its work exceeded its period, but its group stops that.
+
+</TryThis>
+
+## The blocking-call deadlock
+
+A service answer, like a message, is delivered by the executor. So a callback that sends a request and then waits for the answer is waiting for the very thread it is running on:
+
+<Listing {...code.caller} lines={[lineOf(code.caller.code, 'void ask()'), lineOf(code.caller.code, 'client_->remove_pending_request(future);')]} highlight={at(code.caller, 'request, [this, a = request->a]', 'auto future = client_->async_send_request(request);', 'if (future.wait_for(2s)')} />
+
+<Terminal run={[r['caller-wait'], r['caller-groups'], r['caller-callback']]} />
+
+Waiting with one thread, the answer never comes in time; here a timeout turns the freeze into a warning, but with `future.wait()` and no timeout the node would stop for good. Two ways out: give the client a callback group of its own and the executor a second thread (`groups`), or do not wait at all, and handle the answer in a callback (`callback`). The second needs no threads, no locks, and leaves nothing in the node blocked: prefer it.
+
+<DeadlockPlayground />
+
+<Bridge title="ETH's course">
+
+ETH's fourth lecture, on migrating from ROS 1, names executors and callbacks as ROS 2's second big failure mode: a ROS 1 node that happened to work with blocking calls can deadlock in ROS 2. It compares single- and multi-threaded executors, introduces mutually exclusive and reentrant callback groups, and suggests keeping the control loop and state changes mutually exclusive while making I/O-like callbacks reentrant.
+
+</Bridge>
+
+## Lab: a battery monitor that freezes
+
+`battery_monitor` asks a service how full the battery is for each voltage it hears, and publishes the answer. It answers once, then never again; it does not even answer `ros2 param list`:
+
+<Listing {...code.batteryMonitor} lines={[lineOf(code.batteryMonitor.code, 'subscription_ = create_subscription'), lineOf(code.batteryMonitor.code, 'publisher_->publish(charge);')]} />
+
+<Terminal run={[r['lab-frozen-echo'], r['lab-frozen-params']]} />
+
+Copy `labs/lesson15/lab/battery_interfaces` and `labs/lesson15/lab/battery_monitor` into `/labs/ws/src`, build, and fix `battery_monitor` so that it publishes a charge for every voltage and stays responsive. Run `labs/lesson15/estimator.py` (with the workspace sourced) for the service. Check with `python3 /labs/lesson15/check.py`. A reference solution is in `labs/lesson15/solution`.
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1', first: 'cd /labs/ws && colcon build && source install/setup.bash && python3 /labs/lesson15/estimator.py', height: 220 },
+    { title: 'Terminal 2', first: 'source /labs/ws/install/setup.bash && ros2 run battery_monitor battery_monitor', height: 220 },
+  ]}
+/>
+
+<LabQuestions questions={lesson15Lab} />
+
+## Quiz
+
+<Quiz questions={lesson15Quiz} />
+
+<Recap>
+
+- An **executor** runs callbacks when what they wait for is ready; `rclcpp::spin` uses a **SingleThreadedExecutor**.
+- One thread means one callback at a time: a long callback delays all others, and missed timer periods are skipped.
+- A **callback group** says what may overlap: **mutually exclusive** (the default), or **reentrant**. More threads help only for callbacks in different groups, or in a reentrant one.
+- Keep groups alive as members; start multi-threaded executors with `spin()`.
+- Never wait for a service answer inside a callback of the same single-threaded node: handle the answer in a response callback, or give the client its own group and a second thread.
+- Next: reading the ROS 1 code that a lot of robots still run.
+
+</Recap>

@@ -1,0 +1,4 @@
+# Lesson 15 lab: how full is a battery at this voltage?
+float64 voltage  # volts
+---
+float64 charge  # a fraction, 0 to 1

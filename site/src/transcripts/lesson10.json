@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "service-list": {
+      "command": "ros2 service list -t",
+      "output": "/add_two_ints [example_interfaces/srv/AddTwoInts]\n/add_two_ints_server/describe_parameters [rcl_interfaces/srv/DescribeParameters]\n/add_two_ints_server/get_parameter_types [rcl_interfaces/srv/GetParameterTypes]\n/add_two_ints_server/get_parameters [rcl_interfaces/srv/GetParameters]\n/add_two_ints_server/get_type_description [type_description_interfaces/srv/GetTypeDescription]\n/add_two_ints_server/list_parameters [rcl_interfaces/srv/ListParameters]\n/add_two_ints_server/set_parameters [rcl_interfaces/srv/SetParameters]\n/add_two_ints_server/set_parameters_atomically [rcl_interfaces/srv/SetParametersAtomically]",
+      "ended": "exit"
+    },
+    "add-type": {
+      "command": "ros2 service type /add_two_ints",
+      "output": "example_interfaces/srv/AddTwoInts",
+      "ended": "exit"
+    },
+    "add-show": {
+      "command": "ros2 interface show example_interfaces/srv/AddTwoInts",
+      "output": "int64 a\nint64 b\n---\nint64 sum",
+      "ended": "exit"
+    },
+    "add-call": {
+      "command": "ros2 service call /add_two_ints example_interfaces/srv/AddTwoInts \"{a: 2, b: 3}\"",
+      "output": "waiting for service to become available...\nrequester: making request: example_interfaces.srv.AddTwoInts_Request(a=2, b=3)\n\nresponse:\nexample_interfaces.srv.AddTwoInts_Response(sum=5)",
+      "ended": "exit"
+    },
+    "add-server-log": {
+      "command": "ros2 run demo_nodes_cpp add_two_ints_server",
+      "output": "[INFO] [1795439203.226676383] [add_two_ints_server]: Incoming request\na: 2 b: 3",
+      "ended": "running"
+    },
+    "no-server": {
+      "command": "ros2 service call /nobody_home std_srvs/srv/Trigger",
+      "output": "waiting for service to become available...",
+      "ended": "stopped"
+    },
+    "add-server": {
+      "command": "ros2 run demo_nodes_cpp add_two_ints_server",
+      "output": "[INFO] [1795439203.226676383] [add_two_ints_server]: Incoming request\na: 2 b: 3",
+      "ended": "running"
+    },
+    "counter-build": {
+      "command": "colcon build",
+      "output": "Starting >>> counter_interfaces\nFinished <<< counter_interfaces [5.78s]\nStarting >>> counter_demo\nFinished <<< counter_demo [7.33s]\n\nSummary: 2 packages finished [13.2s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "setstep-show": {
+      "command": "source install/setup.bash && ros2 interface show counter_interfaces/srv/SetStep",
+      "output": "# Lesson 10 example: change how much the counter adds each time.\n# The request, above the line:\nint64 step  # from 1 to 100\n---\n# The response, below it:\nbool accepted\nstring message",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "counter-info": {
+      "command": "ros2 node info /counter",
+      "output": "/counter\n  Subscribers:\n    /parameter_events: rcl_interfaces/msg/ParameterEvent\n  Publishers:\n    /count: std_msgs/msg/Int64\n    /parameter_events: rcl_interfaces/msg/ParameterEvent\n    /rosout: rcl_interfaces/msg/Log\n  Service Servers:\n    /counter/describe_parameters: rcl_interfaces/srv/DescribeParameters\n    /counter/get_parameter_types: rcl_interfaces/srv/GetParameterTypes\n    /counter/get_parameters: rcl_interfaces/srv/GetParameters\n    /counter/get_type_description: type_description_interfaces/srv/GetTypeDescription\n    /counter/list_parameters: rcl_interfaces/srv/ListParameters\n    /counter/set_parameters: rcl_interfaces/srv/SetParameters\n    /counter/set_parameters_atomically: rcl_interfaces/srv/SetParametersAtomically\n    /reset: std_srvs/srv/Trigger\n    /set_step: counter_interfaces/srv/SetStep\n  Service Clients:\n\n  Action Servers:\n\n  Action Clients:",
+      "ended": "exit"
+    },
+    "count-before": {
+      "command": "ros2 topic echo --once /count",
+      "output": "data: 5\n---",
+      "ended": "exit"
+    },
+    "call-step": {
+      "command": "source install/setup.bash && ros2 service call /set_step counter_interfaces/srv/SetStep \"{step: 10}\"",
+      "output": "waiting for service to become available...\nrequester: making request: counter_interfaces.srv.SetStep_Request(step=10)\n\nresponse:\ncounter_interfaces.srv.SetStep_Response(accepted=True, message='counting in steps of 10')",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "call-step-bad": {
+      "command": "source install/setup.bash && ros2 service call /set_step counter_interfaces/srv/SetStep \"{step: 500}\"",
+      "output": "waiting for service to become available...\nrequester: making request: counter_interfaces.srv.SetStep_Request(step=500)\n\nresponse:\ncounter_interfaces.srv.SetStep_Response(accepted=False, message='step must be from 1 to 100, not 500')",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "count-steps": {
+      "command": "ros2 topic echo /count",
+      "output": "data: 36\n---\ndata: 46\n---",
+      "ended": "stopped",
+      "truncated": true
+    },
+    "call-reset": {
+      "command": "ros2 service call /reset std_srvs/srv/Trigger",
+      "output": "waiting for service to become available...\nrequester: making request: std_srvs.srv.Trigger_Request()\n\nresponse:\nstd_srvs.srv.Trigger_Response(success=True, message='was at 66')",
+      "ended": "exit"
+    },
+    "step-client": {
+      "command": "source install/setup.bash && ros2 run counter_demo step_client 3",
+      "output": "[INFO] [1795439237.072772620] [step_client]: accepted: yes, counting in steps of 3",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "counter-log": {
+      "command": "source install/setup.bash && ros2 run counter_demo counter",
+      "output": "[INFO] [1795439230.227912187] [counter]: counting in steps of 10\n[INFO] [1795439236.668992547] [counter]: counting in steps of 3",
+      "ended": "running"
+    },
+    "counter": {
+      "command": "source install/setup.bash && ros2 run counter_demo counter",
+      "output": "[INFO] [1795439230.227912187] [counter]: counting in steps of 10\n[INFO] [1795439236.668992547] [counter]: counting in steps of 3",
+      "ended": "running",
+      "cwd": "/labs/ws"
+    },
+    "client-waits": {
+      "command": "source install/setup.bash && ros2 run counter_demo step_client 4",
+      "output": "[INFO] [1795439254.249774959] [step_client]: waiting for /set_step...\n[INFO] [1795439255.250030833] [step_client]: waiting for /set_step...\n[INFO] [1795439255.915127937] [step_client]: accepted: yes, counting in steps of 4",
+      "ended": "running",
+      "cwd": "/labs/ws"
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson10/check.py",
+      "output": "Lesson 10 lab: checking /labs/ws\n  FAIL  there are packages src/speed_limiter_interfaces and src/speed_limiter\n        Create both in /labs/ws/src with ros2 pkg create.\n  FAIL  speed_limiter_interfaces/srv/SetMode is built, with request 'string mode' and response 'bool success, string message, float64 max_speed'\n        Build the interfaces package with colcon build.\n  FAIL  the node speed_limiter is built and installed\n        Install it in CMakeLists.txt, then colcon build.\n  FAIL  in normal mode, 0.8 m/s passes through unchanged\n        Needs the node: build it first.\n  FAIL  /set_mode careful succeeds and reports a limit of 0.3\n        Needs the node: build it first.\n  FAIL  in careful mode, 0.8 comes out as 0.3, and -0.8 as -0.3\n        Needs the node: build it first.\n  FAIL  an unknown mode fails, and leaves the limit as it was\n        Needs the node: build it first.\n  FAIL  /set_mode normal puts the limit back to 1.0\n        Needs the node: build it first.\n0 of 8 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build",
+      "output": "Starting >>> speed_limiter_interfaces\nFinished <<< speed_limiter_interfaces [5.75s]\nStarting >>> speed_limiter\nFinished <<< speed_limiter [11.1s]\n\nSummary: 2 packages finished [16.9s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-call": {
+      "command": "source install/setup.bash && (ros2 run speed_limiter speed_limiter > /dev/null 2>&1 &) && sleep 2 && ros2 service call /set_mode speed_limiter_interfaces/srv/SetMode \"{mode: careful}\"",
+      "output": "waiting for service to become available...\nrequester: making request: speed_limiter_interfaces.srv.SetMode_Request(mode='careful')\n\nresponse:\nspeed_limiter_interfaces.srv.SetMode_Response(success=True, message='mode careful', max_speed=0.3)",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson10/check.py",
+      "output": "Lesson 10 lab: checking /labs/ws\n  PASS  there are packages src/speed_limiter_interfaces and src/speed_limiter\n  PASS  speed_limiter_interfaces/srv/SetMode is built, with request 'string mode' and response 'bool success, string message, float64 max_speed'\n  PASS  the node speed_limiter is built and installed\n  PASS  in normal mode, 0.8 m/s passes through unchanged\n  PASS  /set_mode careful succeeds and reports a limit of 0.3\n  PASS  in careful mode, 0.8 comes out as 0.3, and -0.8 as -0.3\n  PASS  an unknown mode fails, and leaves the limit as it was\n  PASS  /set_mode normal puts the limit back to 1.0\nAll 8 checks passed.",
+      "ended": "exit"
+    }
+  }
+}

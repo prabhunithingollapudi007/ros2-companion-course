@@ -333,7 +333,7 @@ export const PARTS: Part[] = [
           'Reacting to a change while the node runs',
         ],
         playgrounds: ['Where a parameter value comes from: default, YAML file, launch file, terminal'],
-        lab: 'Move every hard-coded number in your nodes into a YAML file.',
+        lab: "Move the speed limiter's limits into parameters with ranges, a YAML file and a launch file, and refuse settings that make no sense.",
         sources: [
           eth(3, 'ROS 2 parameters'),
           docs('Concepts/Basic/About-Parameters', 'Concepts: parameters'),
@@ -355,7 +355,7 @@ export const PARTS: Part[] = [
           'Keeping a stack easy to debug',
         ],
         playgrounds: ['Pick the interface: a set of cases', 'A requirements list turning into a graph'],
-        lab: 'Design the node graph for a given robot and justify each choice.',
+        lab: "Find a flaw in the rover's stack, then fix it in the safety layer with a watchdog node wired in by the launch file.",
         sources: [
           eth(3, 'Robot software architecture'),
           docs('Concepts/Basic/About-Topics', 'Concepts: topics'),

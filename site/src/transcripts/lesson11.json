@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "drive-build": {
+      "command": "colcon build",
+      "output": "Starting >>> drive_interfaces\nFinished <<< drive_interfaces [7.88s]\nStarting >>> drive_demo\nFinished <<< drive_demo [7.18s]\n\nSummary: 2 packages finished [15.2s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "drive-show": {
+      "command": "source install/setup.bash && ros2 interface show drive_interfaces/action/DriveDistance",
+      "output": "# Lesson 11 example: drive straight for a distance.\n# The goal:\nfloat64 distance  # metres, more than 0\nfloat64 speed     # metres per second, more than 0\n---\n# The result, at the end:\nfloat64 travelled  # metres\n---\n# Feedback, while it drives:\nfloat64 remaining  # metres",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "action-list": {
+      "command": "ros2 action list -t",
+      "output": "/drive_distance [drive_interfaces/action/DriveDistance]",
+      "ended": "exit"
+    },
+    "action-info": {
+      "command": "ros2 action info /drive_distance",
+      "output": "Action: /drive_distance\nAction clients: 0\nAction servers: 1\n    /drive_server",
+      "ended": "exit"
+    },
+    "send-goal": {
+      "command": "source install/setup.bash && ros2 action send_goal /drive_distance drive_interfaces/action/DriveDistance \"{distance: 1.0, speed: 0.5}\"",
+      "output": "Waiting for an action server to become available...\nSending goal:\n     distance: 1.0\nspeed: 0.5\n\nGoal accepted with ID: e6c52cf403c5471b82d67698517a9bf5\n\nResult:\n    travelled: 1.0\n\nGoal finished with status: SUCCEEDED",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "send-goal-feedback": {
+      "command": "source install/setup.bash && ros2 action send_goal --feedback /drive_distance drive_interfaces/action/DriveDistance \"{distance: 0.3, speed: 0.5}\"",
+      "output": "Waiting for an action server to become available...\nSending goal:\n     distance: 0.3\nspeed: 0.5\n\nGoal accepted with ID: d23244ba48d14880947d9239d7359a29\n\nFeedback:\n    remaining: 0.25\n\nFeedback:\n    remaining: 0.19999999999999998\n\nFeedback:\n    remaining: 0.14999999999999997\n\nFeedback:\n    remaining: 0.09999999999999998\n\nFeedback:\n    remaining: 0.04999999999999999\n\nFeedback:\n    remaining: 0.0\n\nResult:\n    travelled: 0.3\n\nGoal finished with status: SUCCEEDED",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "send-goal-bad": {
+      "command": "source install/setup.bash && ros2 action send_goal /drive_distance drive_interfaces/action/DriveDistance \"{distance: -1.0, speed: 0.5}\"",
+      "output": "Waiting for an action server to become available...\nSending goal:\n     distance: -1.0\nspeed: 0.5\n\nGoal was rejected.",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "send-goal-busy": {
+      "command": "source install/setup.bash && ros2 action send_goal /drive_distance drive_interfaces/action/DriveDistance \"{distance: 1.0, speed: 1.0}\"",
+      "output": "Waiting for an action server to become available...\nSending goal:\n     distance: 1.0\nspeed: 1.0\n\nGoal was rejected.",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "client-cancel": {
+      "command": "source install/setup.bash && ros2 run drive_demo drive_client 3.0 1.0 1.0 2>&1 | grep -v 'to go'",
+      "output": "[INFO] [1795440558.611908465] [drive_client]: goal accepted\n[INFO] [1795440559.710889573] [drive_client]: canceled: travelled 1.50 m",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "server-log": {
+      "command": "source install/setup.bash && ros2 run drive_demo drive_server",
+      "output": "[INFO] [1795440548.022088378] [drive_server]: rejected: distance and speed must be more than 0\n[INFO] [1795440549.242679813] [drive_server]: accepted: 3.0 m at 0.5 m/s\n[INFO] [1795440552.221108445] [drive_server]: rejected: already driving\n[INFO] [1795440555.343392767] [drive_server]: arrived after 3.00 m\n[INFO] [1795440558.209899188] [drive_server]: accepted: 3.0 m at 1.0 m/s\n[INFO] [1795440559.612787615] [drive_server]: cancel requested\n[INFO] [1795440559.710711957] [drive_server]: cancelled after 1.50 m",
+      "ended": "running",
+      "tail": true
+    },
+    "action-topics": {
+      "command": "ros2 topic list --include-hidden-topics | grep drive_distance && ros2 service list --include-hidden-services | grep drive_distance",
+      "output": "/drive_distance/_action/feedback\n/drive_distance/_action/status\n/drive_distance/_action/cancel_goal\n/drive_distance/_action/get_result\n/drive_distance/_action/send_goal",
+      "ended": "exit"
+    },
+    "drive-server": {
+      "command": "source install/setup.bash && ros2 run drive_demo drive_server",
+      "output": "[INFO] [1795440543.019112180] [drive_server]: accepted: 1.0 m at 0.5 m/s\n[INFO] [1795440545.019974633] [drive_server]: arrived after 1.00 m\n[INFO] [1795440546.258713541] [drive_server]: accepted: 0.3 m at 0.5 m/s\n[INFO] [1795440546.861165858] [drive_server]: arrived after 0.30 m\n[INFO] [1795440548.022088378] [drive_server]: rejected: distance and speed must be more than 0\n[INFO] [1795440549.242679813] [drive_server]: accepted: 3.0 m at 0.5 m/s\n[INFO] [1795440552.221108445] [drive_server]: rejected: already driving\n[INFO] [1795440555.343392767] [drive_server]: arrived after 3.00 m\n[INFO] [1795440558.209899188] [drive_server]: accepted: 3.0 m at 1.0 m/s\n[INFO] [1795440559.612787615] [drive_server]: cancel requested\n[INFO] [1795440559.710711957] [drive_server]: cancelled after 1.50 m",
+      "ended": "running",
+      "cwd": "/labs/ws"
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson11/check.py",
+      "output": "Lesson 11 lab: checking /labs/ws\n  FAIL  there are packages src/charger_interfaces and src/charger\n        Create both in /labs/ws/src with ros2 pkg create.\n  FAIL  charger_interfaces/action/Charge has goal 'float64 target_level', result 'float64 level' and feedback 'float64 level'\n        Build the interfaces package with colcon build.\n  FAIL  the node charger is built and installed\n        Install it in CMakeLists.txt, then colcon build.\n  FAIL  a goal of 0.5 is accepted, and succeeds with the level at 0.5 after about 3 s\n        Needs the node: build it first.\n  FAIL  its feedback climbs from just above 0.2 to 0.5\n        Needs the node: build it first.\n  FAIL  goals below the level now, or above 1.0, are rejected\n        Needs the node: build it first.\n  FAIL  cancelled after 1 s, a goal of 1.0 ends canceled, at about 0.6\n        Needs the node: build it first.\n  FAIL  the charge is kept between goals: 0.9 then succeeds from there\n        Needs the node: build it first.\n0 of 8 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build",
+      "output": "Starting >>> charger_interfaces\nFinished <<< charger_interfaces [8.38s]\nStarting >>> charger\nFinished <<< charger [5.18s]\n\nSummary: 2 packages finished [13.7s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-client": {
+      "command": "source install/setup.bash && (ros2 run charger charger > /dev/null 2>&1 &) && sleep 2 && python3 /labs/lesson11/goal_client.py 0.3",
+      "output": "{\"accepted\": true, \"feedback\": [0.21000000000000002, 0.22000000000000003, 0.23000000000000004, 0.24000000000000005, 0.25000000000000006, 0.26000000000000006, 0.2700000000000001, 0.2800000000000001, 0.2900000000000001, 0.3], \"status\": \"succeeded\", \"level\": 0.3, \"seconds\": 1.0}",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson11/check.py",
+      "output": "Lesson 11 lab: checking /labs/ws\n  PASS  there are packages src/charger_interfaces and src/charger\n  PASS  charger_interfaces/action/Charge has goal 'float64 target_level', result 'float64 level' and feedback 'float64 level'\n  PASS  the node charger is built and installed\n  PASS  a goal of 0.5 is accepted, and succeeds with the level at 0.5 after about 3 s\n  PASS  its feedback climbs from just above 0.2 to 0.5\n  PASS  goals below the level now, or above 1.0, are rejected\n  PASS  cancelled after 1 s, a goal of 1.0 ends canceled, at about 0.6\n  PASS  the charge is kept between goals: 0.9 then succeeds from there\nAll 8 checks passed.",
+      "ended": "exit"
+    }
+  }
+}

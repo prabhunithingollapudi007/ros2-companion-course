@@ -1,0 +1,138 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { DiscoveryModes, RmwLayers } from '../figures/lesson14'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { LossyLinkPlayground } from '../playgrounds/lesson14/LossyLinkPlayground'
+import { QosMatrixPlayground } from '../playgrounds/lesson14/QosMatrixPlayground'
+import { lesson14 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson14.code'
+import { lesson14Lab } from './lesson14.lab'
+import { lesson14Quiz } from './lesson14.quiz'
+
+export const r = lesson14.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+Two nodes on the same topic, both running, and not one message passes. This is the most common ROS 2 puzzle, and the code is rarely to blame. Below your node, a middleware does two jobs the code never sees: **discovery**, nodes finding each other, and **quality of service** (QoS), the terms on which messages are delivered. If two nodes cannot see each other, or their terms do not match, they stay silent. This lesson shows both, and a routine for finding out which it is.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson14} />
+
+## What is under your node
+
+<RmwLayers />
+
+<Terminal run={[r['doctor-rmw'], r['rmw-packages']]} />
+
+The middleware can be swapped with the variable `RMW_IMPLEMENTATION`, which is why its behaviour is worth knowing: changing it can change discovery and QoS defaults. This container has one, Fast DDS.
+
+## Quality of service
+
+Every publisher **offers** a QoS profile and every subscription **requests** one. The three policies that matter most:
+
+- **Reliability**: *reliable* resends lost messages until they arrive; *best effort* sends each once.
+- **Durability**: *transient local* keeps the last messages for subscriptions that join later; *volatile* does not.
+- **History and depth**: how many messages are queued: *keep last N*, which Lesson 4's slow listener showed.
+
+They connect only if the offer is at least the request. A publisher offering best effort, as sensor drivers usually do, and a subscription requesting reliable:
+
+<Terminal run={[r['pub-best-effort'], r['echo-reliable'], r['echo-best-effort']]} />
+
+No error, no crash: a warning, and silence. `ros2 topic info -v` shows what each side offers and requests:
+
+<Terminal run={r['topic-info-qos']} />
+
+<QosMatrixPlayground />
+
+## Late joiners
+
+A publisher that sends a value once, such as a map, a robot description or a static transform, needs **transient local** durability so that a node started later still gets it. Both sides must ask for it:
+
+<Terminal run={[r['pub-latched'], r['echo-late-tl'], r['echo-late-volatile']]} />
+
+The volatile subscription gets nothing: it only wants messages sent after it joined. `robot_state_publisher`'s `/robot_description` and `/tf_static` are transient local, which is how RViz, started after them, could still draw the rover in Lesson 7.
+
+<LossyLinkPlayground />
+
+<TryThis>
+
+- **Set the loss to 0.** Both deliver everything on time: on a good link, reliable costs nothing.
+- **Set it to 30 %.** Best effort loses about a third; reliable loses nothing, but some messages arrive hundreds of milliseconds late, and hold up the ones behind them.
+- **Think of a lidar at 10 Hz.** A scan 300 ms late is worse than no scan: the next one is already on its way. That is why sensors default to best effort.
+
+</TryThis>
+
+## Discovery
+
+Before any message moves, the two sides must find each other. By default every participant announces itself on the network, and those on the same **domain** (`ROS_DOMAIN_ID`, Lesson 2) and within the **discovery range** match up. Jazzy's `ROS_AUTOMATIC_DISCOVERY_RANGE` can be `SUBNET` (the default here), `LOCALHOST`, `OFF` or `SYSTEM_DEFAULT`. With discovery off, a talker is invisible even on the same computer:
+
+<Terminal run={[r['off-node-list'], r['off-echo']]} />
+
+<DiscoveryModes />
+
+Where multicast is blocked, or there are so many participants that discovery traffic swamps the network, a **discovery server** helps. Fast DDS ships one:
+
+<Terminal run={[r['ds-server'], r['ds-heard'], r['ds-plain-list'], r['ds-super-list']]} />
+
+The talker and listener, both told `ROS_DISCOVERY_SERVER`, find each other through it. A plain `ros2 node list` sees nothing, because it still looks for announcements that no longer come; told about the server and made a **super client**, which receives everything the server knows, it sees both.
+
+## A routine for a silent topic
+
+<PlainWords>
+
+Work from the top down and stop at the first thing that is wrong:
+
+1. **Names.** `ros2 topic list`: is the topic's full name what both sides use? Namespaces and relative names catch everyone.
+2. **Types.** `ros2 topic info`: one type on the topic, the one both sides expect?
+3. **QoS.** `ros2 topic info -v`, and the warnings in the nodes' logs: does every offer meet its request?
+4. **Discovery.** `ros2 node list`, `printenv | grep ROS_`: same domain, a discovery range that reaches, the same discovery server?
+
+</PlainWords>
+
+<Bridge title="ETH's course">
+
+ETH's fourth lecture, on migrating from ROS 1, names QoS and discovery as one of ROS 2's two big failure modes. ROS 1 had a central master and reliable TCP by default; ROS 2 makes both explicit choices. It recommends checking QoS with `ros2 topic info -v` before touching code, sensor-data QoS for sensors and reliable with small queues for commands, and the Fast DDS discovery server, with super clients for tooling, when discovery struggles on Wi-Fi.
+
+</Bridge>
+
+## Lab: three silent graphs
+
+`silent_graphs.py` runs three small graphs, `lidar`, `map` and `odom`. In each, one node should hear another and hears nothing. Do not change the program; find out why each is silent, then fix all three with one parameters file, `/labs/ws/lesson14/fixes.yaml`, keyed by node name. The parameters each node has are in its constructor:
+
+<Listing {...code.silentGraphs} lines={[lineOf(code.silentGraphs.code, 'class ObstacleWatch'), lineOf(code.silentGraphs.code, 'self.create_subscription(Odometry, topic')]} />
+
+<Terminal run={[r['lab-lidar'], r['lab-map'], r['lab-odom']]} />
+
+Run a graph with your file with `python3 /labs/lesson14/silent_graphs.py lidar --ros-args --params-file /labs/ws/lesson14/fixes.yaml`, and with `--seconds 30` it runs long enough for you to inspect it with `ros2 topic info -v` in another terminal. Check with `python3 /labs/lesson14/check.py`. A reference solution is in `labs/lesson14/solution`.
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1', first: 'python3 /labs/lesson14/silent_graphs.py odom --seconds 30', height: 240 },
+    { title: 'Terminal 2', first: 'ros2 topic list', height: 240 },
+  ]}
+/>
+
+<LabQuestions questions={lesson14Lab} />
+
+## Quiz
+
+<Quiz questions={lesson14Quiz} />
+
+<Recap>
+
+- Under rclcpp and rclpy sit rcl, rmw and a middleware (here Fast DDS), which does **discovery** and **QoS**.
+- QoS is offered by publishers and requested by subscriptions; they connect only if the offer meets the request. **Reliability** (reliable, best effort) and **durability** (transient local, volatile) are the usual culprits; a mismatch gives a warning and silence.
+- **Transient local** on both sides lets late joiners get the last message: maps, descriptions, static transforms.
+- **Best effort** suits sensors, where a late message is worthless; **reliable** suits commands and things that must arrive.
+- Discovery needs the same domain and a range that reaches; a **discovery server** replaces multicast with a hub, and tools need to be its super clients.
+- Debug a silent topic top down: names, types, QoS, discovery.
+- Next: when your callbacks run, and how a node can freeze itself.
+
+</Recap>

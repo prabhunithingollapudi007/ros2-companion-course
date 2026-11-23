@@ -21,8 +21,8 @@
     {
       "name": "bridge rules",
       "steps": [
-        { "id": "bridge-both", "cmd": "ros2 run ros_gz_bridge parameter_bridge /chat@std_msgs/msg/String@gz.msgs.StringMsg /cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist", "seconds": 2, "ignore": ["getifaddrs", "signal_handler"] },
-        { "id": "bridge-bad", "cmd": "ros2 run ros_gz_bridge parameter_bridge /cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Odometry", "seconds": 2, "ignore": ["getifaddrs", "signal_handler"] }
+        { "id": "bridge-both", "cmd": "ros2 run ros_gz_bridge parameter_bridge /chat@std_msgs/msg/String@gz.msgs.StringMsg /cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist", "seconds": 4, "ignore": ["getifaddrs", "signal_handler"] },
+        { "id": "bridge-bad", "cmd": "ros2 run ros_gz_bridge parameter_bridge /cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Odometry", "seconds": 4, "ignore": ["getifaddrs", "signal_handler"] }
       ]
     },
     {

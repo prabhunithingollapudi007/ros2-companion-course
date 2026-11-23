@@ -1,0 +1,29 @@
+{
+  "scenarios": [
+    {
+      "name": "the stack so far",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cd /labs/ws/src && cp -r /labs/lesson07/examples/rover_description /labs/lesson09/examples/rover_sim /labs/lesson10/solution/speed_limiter_interfaces /labs/lesson12/solution/speed_limiter /labs/lesson13/examples/rover_stack ." },
+        { "id": "stack-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "stack-launch", "cmd": "source install/setup.bash && ros2 launch rover_stack stack.launch.py gui:=false", "cwd": "/labs/ws", "background": true, "settle": 15, "lines": 8, "mask": "numbers", "ignore": ["getifaddrs"], "check": false, "why": "Lines from five processes arrive in varying order; stack-nodes checks what started." },
+        { "id": "stack-nodes", "cmd": "ros2 node list" },
+        { "id": "limiter-info", "cmd": "ros2 node info /speed_limiter | sed -n 1,9p" },
+        { "id": "stack-drive", "cmd": "ros2 topic pub -r 10 -t 30 /cmd_vel_in geometry_msgs/msg/Twist \"{linear: {x: 1.5}}\"", "lines": 2, "mask": "numbers" },
+        { "id": "stack-speed", "cmd": "ros2 topic echo --once /odom --field twist.twist.linear.x", "mask": "numbers" },
+        { "id": "stack-speed-later", "cmd": "sleep 2 && ros2 topic echo --once /odom --field twist.twist.linear.x", "mask": "numbers" }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cd /labs/ws/src && cp -r /labs/lesson07/examples/rover_description /labs/lesson09/examples/rover_sim /labs/lesson10/solution/speed_limiter_interfaces /labs/lesson12/solution/speed_limiter /labs/lesson13/examples/rover_stack . && cd /labs/ws && colcon build > /dev/null" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson13/check.py", "mayFail": true },
+        { "cmd": "rm -rf /labs/ws/src/rover_stack && cp -r /labs/lesson13/solution/rover_stack /labs/lesson13/solution/cmd_watchdog /labs/ws/src/" },
+        { "id": "lab-build", "cmd": "colcon build --packages-select cmd_watchdog rover_stack", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson13/check.py" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { ActionParts } from '../figures/lesson11'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { GoalLifePlayground } from '../playgrounds/lesson11/GoalLifePlayground'
+import { lesson11 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson11.code'
+import { lesson11Lab } from './lesson11.lab'
+import { lesson11Quiz } from './lesson11.quiz'
+
+export const r = lesson11.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+Some requests take a while: drive two metres, charge to 80 %, move the arm to the shelf. A service would leave the client waiting blind, with no way to stop it. An **action** is a request for a long job: the client sends a **goal**, the server accepts or rejects it, reports **feedback** while it works, and sends a **result** at the end; and the client can **cancel** at any time. This lesson defines an action, writes a server and a client in C++, and drives them from the terminal.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson11} />
+
+## Goal, feedback and result
+
+An `.action` file has three parts, separated by `---`: the goal, the result, and the feedback.
+
+<Listing {...code.driveDistance} />
+
+It is built like a service type, with `rosidl_generate_interfaces` in an interfaces package (Lesson 10):
+
+<Terminal run={[r['drive-build'], r['drive-show']]} />
+
+Under the hood an action is made of parts you know: three services and two topics.
+
+<ActionParts />
+
+<GoalLifePlayground />
+
+<TryThis>
+
+- **Reject a goal.** It is over at once: the client learns that before any work starts.
+- **Cancel while executing.** The goal moves to CANCELING, and the server still decides when it stops: it may even finish first and report SUCCEEDED.
+- **Abort.** A server that cannot finish, say because the robot is blocked, aborts the goal with whatever result it has.
+
+</TryThis>
+
+## The server
+
+An action server is three callbacks: one decides whether to accept a goal, one whether to accept a cancel request, and one starts the work on an accepted goal.
+
+<Listing {...code.driveServer} highlight={at(code.driveServer, 'server_ = rclcpp_action::create_server<DriveDistance>(', 'return rclcpp_action::GoalResponse::REJECT;', 'return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;', 'return rclcpp_action::CancelResponse::ACCEPT;', 'std::thread{[this, handle] {execute(handle);}}.detach();', 'if (handle->is_canceling()) {', 'handle->publish_feedback(feedback);', 'handle->succeed(result);')} />
+
+The work runs on a thread of its own. If it ran inside the callback, the node's executor would be busy until the goal finished, and a cancel request would only be read when it no longer mattered. The loop checks `is_canceling()` on each pass, publishes feedback, and ends the goal with `succeed()` or `canceled()`.
+
+The server needs `rclcpp_action` besides `rclcpp`:
+
+<Listing {...code.demoCmake} highlight={at(code.demoCmake, 'find_package(rclcpp_action REQUIRED)', 'ament_target_dependencies')} />
+
+## Actions from the terminal
+
+<Terminal run={[r['drive-server'], r['action-list'], r['action-info']]} />
+
+`ros2 action send_goal` waits for the result, and with `--feedback` prints each piece of feedback too:
+
+<Terminal run={[r['send-goal'], r['send-goal-feedback']]} />
+
+The feedback steps of 0.05 m are the server's loop: 0.5 m/s, ten times a second. A goal with a negative distance is rejected by the goal callback, and so is a second goal while the server is still busy with one from `drive_client`:
+
+<Terminal run={[r['send-goal-bad'], r['send-goal-busy']]} />
+
+## The client
+
+The client gives the library three callbacks, for the server's answer to the goal, for feedback, and for the result, and then spins:
+
+<Listing {...code.driveClient} highlight={at(code.driveClient, 'auto client = rclcpp_action::create_client<DriveDistance>(node, "drive_distance");', 'options.goal_response_callback', 'client->async_cancel_goal(handle);', 'options.feedback_callback', 'options.result_callback', 'client->async_send_goal(goal, options);')} />
+
+With a third argument it cancels after that many seconds. Here, 3 m at 1 m/s, cancelled after 1 s (its feedback lines are filtered out):
+
+<Terminal run={[r['client-cancel'], r['server-log']]} />
+
+The server's log tells the whole story: the rejected goals, the goal it finished, and the cancel request, honoured at the next pass of its loop. How far the robot got first depends on timing, so your numbers will differ.
+
+<PlainWords>
+
+A cancel is a request, not an order. The server says whether it will cancel, and then stops at a moment of its choosing: a robot arm should not let go of a cup halfway to the table. That is why the result of a cancelled goal is still sent: it says how far the work got.
+
+</PlainWords>
+
+The hidden parts, made visible:
+
+<Terminal run={r['action-topics']} />
+
+<Bridge title="ETH's course">
+
+ETH's third lecture comes to actions straight after services, for requests that need more time: the `ros2 action` commands, a custom `.action` file, and a C++ server that sends feedback and handles cancellation, following the ROS 2 tutorial's Fibonacci example. Navigation in ROS 2 (Nav2) is driven through actions too, such as NavigateToPose; the capstone in Lesson 17 sends its robot to a goal through an action of its own.
+
+</Bridge>
+
+## Lab: a battery charger
+
+Write a pretend charger as an action server:
+
+| | |
+| --- | --- |
+| Action type | `charger_interfaces/action/Charge`, in a package of that name. Goal: `float64 target_level`. Result: `float64 level`. Feedback: `float64 level` |
+| Package, node | `charger`, the program and node `charger`, offering the action `/charge` |
+| Behaviour | The battery starts at 0.2. While a goal runs it charges by 0.01 every 0.1 s, sending the level as feedback, and succeeds at the target |
+| Rejects | a target not above the level now, a target above 1.0, and any goal while one is running |
+| Cancel | stops charging and ends the goal canceled, with the level reached; the level stays there for the next goal |
+
+`labs/lesson11/goal_client.py TARGET [CANCEL_AFTER]` sends one goal and prints what happened; `python3 /labs/lesson11/check.py` uses it to send good, bad and cancelled goals. A reference solution is in `labs/lesson11/solution`.
+
+<Terminal run={r['lab-client']} />
+
+<ContainerTerminals
+  terminals={[
+    { title: 'Terminal 1', first: 'cd /labs/ws/src && ros2 pkg create --build-type ament_cmake charger_interfaces', height: 240 },
+    { title: 'Terminal 2', first: 'cd /labs/ws && colcon build && source install/setup.bash', height: 240 },
+  ]}
+/>
+
+<LabQuestions questions={lesson11Lab} />
+
+## Quiz
+
+<Quiz questions={lesson11Quiz} />
+
+<Recap>
+
+- An **action** is for long work: a **goal**, accepted or rejected; **feedback** while it runs; a **result**; and **cancelling** on request.
+- An `.action` file has goal, result and feedback, separated by `---`; it is built like a service type.
+- Underneath: three services (send_goal, cancel_goal, get_result) and two topics (feedback, status).
+- A server is three callbacks (accept the goal? accept the cancel? execute), with the work on its own thread checking `is_canceling()`.
+- A client sends with `async_send_goal` and callbacks for the answer, the feedback and the result; `async_cancel_goal` asks to stop.
+- `ros2 action list`, `info` and `send_goal --feedback` from the terminal.
+- Next: configuring nodes without recompiling them, with parameters.
+
+</Recap>

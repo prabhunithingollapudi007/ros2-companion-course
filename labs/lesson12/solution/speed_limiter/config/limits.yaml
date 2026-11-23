@@ -1,0 +1,5 @@
+# Reference solution for the Lesson 12 lab. Try the lab before reading it.
+speed_limiter:
+  ros__parameters:
+    normal_speed: 0.8
+    careful_speed: 0.2

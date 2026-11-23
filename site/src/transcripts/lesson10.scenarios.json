@@ -1,0 +1,55 @@
+{
+  "scenarios": [
+    {
+      "name": "a service from the demos",
+      "steps": [
+        { "id": "add-server", "cmd": "ros2 run demo_nodes_cpp add_two_ints_server", "background": true, "settle": 2 },
+        { "id": "service-list", "cmd": "ros2 service list -t" },
+        { "id": "add-type", "cmd": "ros2 service type /add_two_ints" },
+        { "id": "add-show", "cmd": "ros2 interface show example_interfaces/srv/AddTwoInts" },
+        { "id": "add-call", "cmd": "ros2 service call /add_two_ints example_interfaces/srv/AddTwoInts \"{a: 2, b: 3}\"" },
+        { "id": "add-server-log", "tail": "add-server", "lines": 2 },
+        { "id": "no-server", "cmd": "ros2 service call /nobody_home std_srvs/srv/Trigger", "seconds": 4, "lines": 2 }
+      ]
+    },
+    {
+      "name": "a service of our own",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson10/examples/counter_interfaces /labs/lesson10/examples/counter_demo /labs/ws/src/" },
+        { "id": "counter-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "setstep-show", "cmd": "source install/setup.bash && ros2 interface show counter_interfaces/srv/SetStep", "cwd": "/labs/ws" },
+        { "id": "counter", "cmd": "source install/setup.bash && ros2 run counter_demo counter", "cwd": "/labs/ws", "background": true, "settle": 3.5 },
+        { "id": "counter-info", "cmd": "ros2 node info /counter" },
+        { "id": "count-before", "cmd": "ros2 topic echo --once /count", "mask": "numbers" },
+        { "id": "call-step", "cmd": "source install/setup.bash && ros2 service call /set_step counter_interfaces/srv/SetStep \"{step: 10}\"", "cwd": "/labs/ws" },
+        { "id": "call-step-bad", "cmd": "source install/setup.bash && ros2 service call /set_step counter_interfaces/srv/SetStep \"{step: 500}\"", "cwd": "/labs/ws" },
+        { "id": "count-steps", "cmd": "ros2 topic echo /count", "seconds": 5, "lines": 4, "mask": "numbers" },
+        { "id": "call-reset", "cmd": "ros2 service call /reset std_srvs/srv/Trigger", "mask": "numbers" },
+        { "id": "step-client", "cmd": "source install/setup.bash && ros2 run counter_demo step_client 3", "cwd": "/labs/ws" },
+        { "id": "counter-log", "tail": "counter", "lines": 2 }
+      ]
+    },
+    {
+      "name": "a client waiting for its server",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson10/examples/counter_interfaces /labs/lesson10/examples/counter_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null" },
+        { "id": "client-waits", "cmd": "source install/setup.bash && ros2 run counter_demo step_client 4", "cwd": "/labs/ws", "background": true, "settle": 2.5, "check": false, "why": "How often it says it is waiting depends on timing; lesson10.test.ts checks that it got its answer." },
+        { "cmd": "source install/setup.bash && ros2 run counter_demo counter", "cwd": "/labs/ws", "background": true, "settle": 3 }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson10/check.py", "mayFail": true },
+        { "cmd": "cp -r /labs/lesson10/solution/speed_limiter_interfaces /labs/lesson10/solution/speed_limiter /labs/ws/src/" },
+        { "id": "lab-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-call", "cmd": "source install/setup.bash && (ros2 run speed_limiter speed_limiter > /dev/null 2>&1 &) && sleep 2 && ros2 service call /set_mode speed_limiter_interfaces/srv/SetMode \"{mode: careful}\"", "cwd": "/labs/ws" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson10/check.py" }
+      ]
+    }
+  ]
+}

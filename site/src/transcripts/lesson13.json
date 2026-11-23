@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "stack-build": {
+      "command": "colcon build",
+      "output": "Starting >>> rover_description\nStarting >>> speed_limiter_interfaces\nFinished <<< rover_description [0.80s]\nStarting >>> rover_sim\nFinished <<< rover_sim [0.75s]\nFinished <<< speed_limiter_interfaces [5.36s]\nStarting >>> speed_limiter\nFinished <<< speed_limiter [8.52s]\nStarting >>> rover_stack\nFinished <<< rover_stack [0.70s]\n\nSummary: 5 packages finished [14.7s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "stack-nodes": {
+      "command": "ros2 node list",
+      "output": "/robot_state_publisher\n/ros_gz_bridge\n/speed_limiter",
+      "ended": "exit"
+    },
+    "limiter-info": {
+      "command": "ros2 node info /speed_limiter | sed -n 1,9p",
+      "output": "/speed_limiter\n  Subscribers:\n    /cmd_vel_in: geometry_msgs/msg/Twist\n    /parameter_events: rcl_interfaces/msg/ParameterEvent\n  Publishers:\n    /cmd_vel: geometry_msgs/msg/Twist\n    /parameter_events: rcl_interfaces/msg/ParameterEvent\n    /rosout: rcl_interfaces/msg/Log\n  Service Servers:",
+      "ended": "exit"
+    },
+    "stack-drive": {
+      "command": "ros2 topic pub -r 10 -t 30 /cmd_vel_in geometry_msgs/msg/Twist \"{linear: {x: 1.5}}\"",
+      "output": "publisher: beginning loop\npublishing #1: geometry_msgs.msg.Twist(linear=geometry_msgs.msg.Vector3(x=1.5, y=0.0, z=0.0), angular=geometry_msgs.msg.Vector3(x=0.0, y=0.0, z=0.0))",
+      "ended": "exit",
+      "truncated": true
+    },
+    "stack-speed": {
+      "command": "ros2 topic echo --once /odom --field twist.twist.linear.x",
+      "output": "0.8000000000001783\n---",
+      "ended": "exit"
+    },
+    "stack-speed-later": {
+      "command": "sleep 2 && ros2 topic echo --once /odom --field twist.twist.linear.x",
+      "output": "0.8000000000001339\n---",
+      "ended": "exit"
+    },
+    "stack-launch": {
+      "command": "source install/setup.bash && ros2 launch rover_stack stack.launch.py gui:=false",
+      "output": "[INFO] [launch]: All log files can be found below /root/.ros/log/2026-11-23-13-23-56-956933-ros-companion-907\n[INFO] [launch]: Default logging verbosity is set to INFO\n[INFO] [gazebo-1]: process started with pid [911]\n[INFO] [robot_state_publisher-2]: process started with pid [912]\n[INFO] [create-3]: process started with pid [914]\n[INFO] [parameter_bridge-4]: process started with pid [915]\n[INFO] [speed_limiter-5]: process started with pid [916]\n[create-3] [INFO] [1795440237.448792449] [ros_gz_sim]: Requesting list of world names.",
+      "ended": "running",
+      "cwd": "/labs/ws",
+      "truncated": true
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson13/check.py",
+      "output": "Lesson 13 lab: checking /labs/ws\n  FAIL  the stack's packages are built: rover_description, rover_sim, speed_limiter_interfaces, speed_limiter, rover_stack, cmd_watchdog\n        Missing: cmd_watchdog. Copy the examples or solutions of earlier lessons into src, then colcon build.\n  FAIL  the node cmd_watchdog is built and installed\n        Install it in CMakeLists.txt, then colcon build.\n  FAIL  it has a parameter timeout, 0.5 by default\n        Needs the node: build it first.\n  FAIL  commands on cmd_vel_in come out on cmd_vel_out unchanged\n        Needs the node: build it first.\n  FAIL  a second after commands stop, it is publishing stops (all zero)\n        Needs the node: build it first.\n  FAIL  stack.launch.py starts both the speed limiter and the watchdog\n        Needs the whole stack built first.\n  FAIL  driven at 1.5 m/s on /cmd_vel_in, the rover goes at the limit from stack.yaml, 0.8 m/s\n        Needs the whole stack built first.\n  FAIL  two seconds after the commands stop, the rover has stopped\n        Needs the whole stack built first.\n0 of 8 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build --packages-select cmd_watchdog rover_stack",
+      "output": "Starting >>> cmd_watchdog\nFinished <<< cmd_watchdog [7.70s]\nStarting >>> rover_stack\nFinished <<< rover_stack [0.33s]\n\nSummary: 2 packages finished [8.14s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson13/check.py",
+      "output": "Lesson 13 lab: checking /labs/ws\n  PASS  the stack's packages are built: rover_description, rover_sim, speed_limiter_interfaces, speed_limiter, rover_stack, cmd_watchdog\n  PASS  the node cmd_watchdog is built and installed\n  PASS  it has a parameter timeout, 0.5 by default\n  PASS  commands on cmd_vel_in come out on cmd_vel_out unchanged\n  PASS  a second after commands stop, it is publishing stops (all zero)\n  PASS  stack.launch.py starts both the speed limiter and the watchdog\n  PASS  driven at 1.5 m/s on /cmd_vel_in, the rover goes at the limit from stack.yaml, 0.8 m/s\n  PASS  two seconds after the commands stop, the rover has stopped\nAll 8 checks passed.",
+      "ended": "exit"
+    }
+  }
+}

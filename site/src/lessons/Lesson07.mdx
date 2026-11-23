@@ -156,7 +156,7 @@ The sliders are only one publisher of `/joint_states`. With robot_state_publishe
 
 <Bridge title="ETH's course">
 
-ETH's second lecture covers robot models in URDF and xacro alongside the simulation description format SDF and Gazebo, which here are Lesson 9. Its exercises load a robot's description from a launch file the same way: xacro run by `Command`, handed to robot_state_publisher as `robot_description`.
+ETH's second lecture covers robot models in URDF and xacro alongside the simulation description format SDF and Gazebo, which here are Lesson 9. It too runs xacro from the launch file, but through xacro's Python module, `xacro.process_file(path).toxml()`, rather than `Command`. Either way robot_state_publisher gets the expanded URDF as `robot_description`; `Command` has the advantage of running when the launch runs, so launch arguments can be passed to xacro.
 
 </Bridge>
 

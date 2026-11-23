@@ -1,0 +1,49 @@
+{
+  "scenarios": [
+    {
+      "name": "parameters from the terminal",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson12/examples/params_demo /labs/ws/src/" },
+        { "id": "params-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "blinker", "cmd": "source install/setup.bash && ros2 run params_demo blinker", "cwd": "/labs/ws", "background": true, "settle": 2 },
+        { "id": "param-list", "cmd": "ros2 param list /blinker" },
+        { "id": "param-get", "cmd": "ros2 param get /blinker rate" },
+        { "id": "param-describe", "cmd": "ros2 param describe /blinker rate" },
+        { "id": "param-set", "cmd": "ros2 param set /blinker rate 5.0" },
+        { "id": "param-set-range", "cmd": "ros2 param set /blinker rate 50.0" },
+        { "id": "param-set-empty", "cmd": "ros2 param set /blinker label ''" },
+        { "id": "param-set-type", "cmd": "ros2 param set /blinker rate fast" },
+        { "id": "param-dump", "cmd": "ros2 param dump /blinker" },
+        { "id": "blinker-log", "tail": "blinker", "lines": 2 }
+      ]
+    },
+    {
+      "name": "where a value comes from",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson12/examples/params_demo /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null" },
+        { "id": "start-default", "cmd": "source install/setup.bash && ros2 run params_demo blinker", "cwd": "/labs/ws", "seconds": 3, "lines": 1 },
+        { "id": "start-p", "cmd": "source install/setup.bash && ros2 run params_demo blinker --ros-args -p rate:=4.0", "cwd": "/labs/ws", "seconds": 3, "lines": 1 },
+        { "id": "start-file", "cmd": "source install/setup.bash && ros2 run params_demo blinker --ros-args --params-file install/params_demo/share/params_demo/config/porch.yaml", "cwd": "/labs/ws", "seconds": 3, "lines": 1 },
+        { "id": "start-file-then-p", "cmd": "source install/setup.bash && ros2 run params_demo blinker --ros-args --params-file install/params_demo/share/params_demo/config/porch.yaml -p rate:=4.0", "cwd": "/labs/ws", "seconds": 3, "lines": 1 },
+        { "id": "start-p-then-file", "cmd": "source install/setup.bash && ros2 run params_demo blinker --ros-args -p rate:=4.0 --params-file install/params_demo/share/params_demo/config/porch.yaml", "cwd": "/labs/ws", "seconds": 3, "lines": 1 },
+        { "id": "start-out-of-range", "cmd": "source install/setup.bash && ros2 run params_demo blinker --ros-args -p rate:=50.0", "cwd": "/labs/ws", "seconds": 4, "lines": 3, "mayFail": true },
+        { "id": "porch-launch", "cmd": "source install/setup.bash && ros2 launch params_demo porch.launch.py", "cwd": "/labs/ws", "seconds": 4, "lines": 7 }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        { "cmd": "mkdir -p /labs/ws/src && cp -r /labs/lesson10/solution/speed_limiter_interfaces /labs/lesson10/solution/speed_limiter /labs/ws/src/ && cd /labs/ws && colcon build > /dev/null" },
+        { "id": "lab-check-early", "cmd": "python3 /labs/lesson12/check.py", "mayFail": true },
+        { "cmd": "rm -rf /labs/ws/src/speed_limiter && cp -r /labs/lesson12/solution/speed_limiter /labs/ws/src/" },
+        { "id": "lab-build", "cmd": "colcon build", "cwd": "/labs/ws", "mask": "numbers" },
+        { "id": "lab-describe", "cmd": "source install/setup.bash && (ros2 run speed_limiter speed_limiter > /dev/null 2>&1 &) && sleep 2 && ros2 param describe /speed_limiter careful_speed", "cwd": "/labs/ws" },
+        { "id": "lab-check", "cmd": "python3 /labs/lesson12/check.py" },
+        { "id": "lab-check-10", "cmd": "python3 /labs/lesson10/check.py" }
+      ]
+    }
+  ]
+}

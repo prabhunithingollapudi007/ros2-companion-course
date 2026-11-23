@@ -1,0 +1,134 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Listing } from '../components/Listing'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { StackLayers } from '../figures/lesson13'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { PickInterfacePlayground } from '../playgrounds/lesson13/PickInterfacePlayground'
+import { RequirementsGraphPlayground } from '../playgrounds/lesson13/RequirementsGraphPlayground'
+import { lesson13 } from '../transcripts'
+import { lineOf } from './lesson04.code'
+import { code } from './lesson13.code'
+import { lesson13Lab } from './lesson13.lab'
+import { lesson13Quiz } from './lesson13.quiz'
+
+export const r = lesson13.runs
+export const at = (file, ...texts) => texts.map((t) => lineOf(file.code, t))
+
+<BigPicture>
+
+You now have every way ROS nodes talk: topics, services, actions and parameters. This lesson is about using them well: going from a list of things a robot must do to a graph of nodes, each with one job, connected by the right kind of interface, started and configured from one place. The running example is the rover's own stack, built from the pieces of Lessons 7 to 12, and the lab fixes a real flaw it has.
+
+</BigPicture>
+
+<RecordedIn transcript={lesson13} />
+
+## One job per node
+
+A node should do one thing that can be described in a sentence: drive the motors, estimate where the robot is, limit its speed. Small nodes are easier to test alone, to replace (Gazebo for real motors, a keyboard for a planner), to restart when they fail, and to reuse on the next robot. The cost is more interfaces, so each one should be chosen with care.
+
+<StackLayers />
+
+Most mobile robots divide their software into layers like these. Commands go down, measurements come up, and each layer depends only on the interfaces of its neighbours. The safety layer is where the speed limiter belongs: below everything that might ask for too much.
+
+## Topic, service, action or parameter?
+
+The choice follows from the shape of the exchange:
+
+- **topic**: data that flows, for whoever wants it, with no answer: sensor readings, state, events.
+- **service**: a quick request that needs an answer: do this and tell me if it worked; what is the value now?
+- **action**: a request for long work, with progress and the chance to call it off.
+- **parameter**: a setting of one node, chosen at start, changed rarely.
+
+<PickInterfacePlayground />
+
+## From requirements to a graph
+
+Write the requirements down, then give each one a node, or a change to a node, and the interfaces it needs:
+
+<RequirementsGraphPlayground />
+
+<TryThis>
+
+- **Turn off "Never faster than 0.8 m/s".** Teleop drives `/cmd_vel` directly. Nothing else had to change: that is what keeping the limiter separate buys.
+- **Add "Drive to a point on request".** A second source of commands appears, `go_to`, and it goes through the same safety stages as the keyboard. It also needs odometry, a measurement coming up. That node is the capstone of Lesson 17.
+- **Add the watchdog.** A new topic appears between the limiter and the watchdog. Neither node's code knows its name: the launch file gives it.
+
+</TryThis>
+
+## The stack so far
+
+A **bringup package** has no code of its own: it holds the launch files and configuration that start one robot. `rover_stack` starts the Lesson 9 simulation and the Lesson 12 speed limiter, remapped to sit between the commands and the robot:
+
+<Listing {...code.stackLaunch} highlight={at(code.stackLaunch, 'config = PathJoinSubstitution', 'IncludeLaunchDescription(', "remappings=[('cmd_vel_out', 'cmd_vel')],")} />
+
+Every setting of the stack is in one file, by node name, so what makes this robot this robot can be read in one place:
+
+<Listing {...code.stackYaml} />
+
+<Terminal run={[r['stack-build'], r['stack-launch']]} />
+
+<Terminal run={[r['stack-nodes'], r['limiter-info']]} />
+
+Asking for 1.5 m/s on `/cmd_vel_in` gets 0.8, the limit from `stack.yaml`. But look at the speed two seconds after the commands stop:
+
+<Terminal run={[r['stack-drive'], r['stack-speed'], r['stack-speed-later']]} />
+
+<PlainWords>
+
+Gazebo's DiffDrive keeps the last command it got (Lesson 9). On a real robot the same happens with many motor drivers. So if teleop crashes, the network drops, or a planner hangs mid-command, the robot carries on at whatever speed it was last told. Teleop sending a stop when you let go of the key would not cover any of those. The fix belongs in the safety layer, where it holds whatever is giving the commands.
+
+</PlainWords>
+
+## Keeping a stack easy to debug
+
+- **Name topics for what they carry**, and keep generic names in the code (`cmd_vel_in`, `cmd_vel_out`): the launch file wires them up.
+- **Make every node's state visible**: publish it, log changes once rather than every cycle, and expose settings as parameters someone can read with `ros2 param dump`.
+- **Look at the graph**: `ros2 node list`, `ros2 node info` and `ros2 topic info -v` tell you what is connected to what, which is the first question when something does not move.
+- **Record a bag** of the interfaces between layers (Lesson 6): a problem you can replay is a problem you can fix at a desk.
+
+<Bridge title="ETH's course">
+
+ETH's third lecture ends with robot software architecture: a list of requirements from a real robot arm (talking to the actuators, kinematics, visualisation for debugging, a "go to position" interface instead of joint commands, a human interface, a depth camera with calibration and filtering) turned into a stack under the rule of one feature per node. The activity just before it, choosing between service, action, parameter and topic, is the first playground above.
+
+</Bridge>
+
+## Lab: a watchdog for the stack
+
+Write a node that stops the robot when commands stop, and add it to the stack:
+
+| | |
+| --- | --- |
+| Package, node | `cmd_watchdog`, the program and node `cmd_watchdog` |
+| Topics | subscribes `cmd_vel_in` and publishes `cmd_vel_out` (`geometry_msgs/msg/Twist`): each command passed on unchanged |
+| Parameter | `timeout`, a double, 0.5 by default: after that many seconds without a command, publish an all-zero Twist ten times a second until commands come again |
+| Stack | in your copy of `rover_stack`, put it between the speed limiter and the robot: the limiter publishes `/cmd_vel_limited`, the watchdog turns that into `/cmd_vel`. Set `timeout` in `stack.yaml` |
+
+You need the whole stack in `/labs/ws/src`: `rover_description` (Lesson 7), `rover_sim` (Lesson 9), `speed_limiter_interfaces` and `speed_limiter` (Lessons 10 and 12; the reference solutions will do), and `rover_stack` from `labs/lesson13/examples`. Check with `python3 /labs/lesson13/check.py`, which tests the watchdog alone, then drives the whole stack in Gazebo and stops sending commands. A reference solution is in `labs/lesson13/solution`.
+
+<ContainerTerminals
+  desktop
+  terminals={[
+    { title: 'Terminal 1', first: 'cd /labs/ws && colcon build && source install/setup.bash && ros2 launch rover_stack stack.launch.py', height: 220 },
+    { title: 'Terminal 2', first: 'ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r cmd_vel:=cmd_vel_in', height: 220 },
+  ]}
+/>
+
+<LabQuestions questions={lesson13Lab} />
+
+## Quiz
+
+<Quiz questions={lesson13Quiz} />
+
+<Recap>
+
+- **One job per node**, describable in a sentence; nodes small enough to test, replace and reuse.
+- Layers: interfaces, planning, control, **safety**, estimation, drivers. Commands go down, measurements come up.
+- **Topic** for flowing data, **service** for quick requests with answers, **action** for long work, **parameter** for settings.
+- A **bringup package** starts and configures a robot: launch files that include others, remappings that wire generic names together, one YAML file of settings by node name.
+- Safety goes where it holds whatever gives the commands: the speed limiter, and the watchdog of this lab.
+- Next: what happens between nodes when messages travel: discovery and quality of service.
+
+</Recap>

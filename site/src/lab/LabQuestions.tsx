@@ -67,9 +67,9 @@ function Question({ n, q, onRight }: { n: number; q: LabQuestion; onRight: () =>
       {shown && (
         <div className="lab-q-how">
           <p className="small">
-            Answer: <strong>{q.answer}</strong>. Recorded with the robot running:
+            Answer: <strong>{q.answer}</strong>.{q.how.length > 0 && ' Recorded with the robot running:'}
           </p>
-          <Terminal run={q.how} />
+          {q.how.length > 0 && <Terminal run={q.how} />}
         </div>
       )}
     </li>

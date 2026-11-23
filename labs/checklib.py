@@ -61,6 +61,9 @@ def dependencies(root):
 
 
 def _script(command, workspace):
+    """ROS set up, then the workspace on top unless it is None, then the command."""
+    if workspace is None:
+        return f"source /opt/ros/jazzy/setup.bash && {command}"
     return f"source /opt/ros/jazzy/setup.bash && source {workspace}/install/setup.bash && {command}"
 
 

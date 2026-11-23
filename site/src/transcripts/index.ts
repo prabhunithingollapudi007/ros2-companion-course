@@ -8,6 +8,12 @@ import lesson06Data from './lesson06.json'
 import lesson07Data from './lesson07.json'
 import lesson08Data from './lesson08.json'
 import lesson09Data from './lesson09.json'
+import lesson10Data from './lesson10.json'
+import lesson11Data from './lesson11.json'
+import lesson12Data from './lesson12.json'
+import lesson13Data from './lesson13.json'
+import lesson14Data from './lesson14.json'
+import lesson15Data from './lesson15.json'
 
 // The terminal sessions the lessons show, as recorded in the course container
 // by scripts/transcripts.mjs. The .json files are written by that script; do
@@ -35,3 +41,9 @@ export const lesson06 = lesson06Data as Transcript
 export const lesson07 = lesson07Data as Transcript
 export const lesson08 = lesson08Data as Transcript
 export const lesson09 = lesson09Data as Transcript
+export const lesson10 = lesson10Data as Transcript
+export const lesson11 = lesson11Data as Transcript
+export const lesson12 = lesson12Data as Transcript
+export const lesson13 = lesson13Data as Transcript
+export const lesson14 = lesson14Data as Transcript
+export const lesson15 = lesson15Data as Transcript

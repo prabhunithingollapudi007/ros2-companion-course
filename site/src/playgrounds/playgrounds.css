@@ -320,6 +320,96 @@
   margin-top: 10px;
 }
 
+/* Lesson 14: the QoS matrix. */
+.qos-matrix th,
+.qos-matrix td {
+  text-align: center;
+  vertical-align: middle;
+}
+.qos-cell {
+  width: 2.2em;
+  height: 2.2em;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--page);
+  font: inherit;
+  cursor: pointer;
+}
+.qos-cell.is-ok {
+  color: var(--series-3);
+}
+.qos-cell.is-bad {
+  color: var(--bad);
+  background: var(--bad-wash);
+}
+.qos-cell.is-here {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Lesson 16: two files side by side. */
+.side-col {
+  min-width: 0;
+}
+.side-title {
+  margin-bottom: 4px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--text-secondary);
+}
+.side-code {
+  max-height: 420px;
+  overflow: auto;
+  font-size: 0.72rem;
+}
+.side-line.is-mapped {
+  text-decoration: underline dotted var(--accent);
+  cursor: pointer;
+}
+.side-line.is-marked {
+  display: inline-block;
+  min-width: 100%;
+  background: var(--accent-wash);
+}
+.side-note {
+  margin: 6px 0 10px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--page);
+}
+.side-note.is-meaning {
+  border-left-color: var(--series-2);
+}
+
+/* Lesson 13: a list of cases to classify. */
+.pick-list {
+  margin: 0;
+  padding-left: 1.4em;
+}
+.pick-item {
+  margin-bottom: 12px;
+}
+.pick-job {
+  margin-bottom: 4px;
+}
+.btn.btn-wrong {
+  border-color: var(--bad);
+  background: var(--bad-wash);
+  color: var(--bad);
+}
+.req-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 10px;
+}
+.req-list label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.92rem;
+}
+
 @media (max-width: 700px) {
   .graph-editor,
   .joint-tree-layout,

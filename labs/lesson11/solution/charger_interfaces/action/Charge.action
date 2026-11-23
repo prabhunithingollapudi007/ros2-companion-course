@@ -1,0 +1,6 @@
+# Reference solution for the Lesson 11 lab. Try the lab before reading it.
+float64 target_level  # the charge to stop at, a fraction: more than now, at most 1.0
+---
+float64 level  # the charge when it stopped
+---
+float64 level  # the charge now

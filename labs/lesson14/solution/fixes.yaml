@@ -1,0 +1,17 @@
+# Reference solution for the Lesson 14 lab. Try the lab before reading it.
+# One file for all three graphs: each section is used only by the node it names.
+
+# lidar: the driver offers best effort, so the listener must accept best effort.
+obstacle_watch:
+  ros__parameters:
+    scan_reliability: best_effort
+
+# map: the late joiner asks for transient_local, so the publisher must offer it.
+map_server_lite:
+  ros__parameters:
+    map_durability: transient_local
+
+# odom: the odometer publishes the relative name odom in the namespace robot1.
+dashboard:
+  ros__parameters:
+    odom_topic: /robot1/odom

@@ -1,0 +1,10 @@
+# Lesson 11 example: drive straight for a distance.
+# The goal:
+float64 distance  # metres, more than 0
+float64 speed     # metres per second, more than 0
+---
+# The result, at the end:
+float64 travelled  # metres
+---
+# Feedback, while it drives:
+float64 remaining  # metres
