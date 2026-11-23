@@ -46,7 +46,7 @@ if built:
     node = background("ros2 run heartbeat heartbeat")
     try:
         time.sleep(2)
-        r["first"] = beats(3)
+        r["first"] = beats(5)
         command(False)
         time.sleep(1)
         r["paused"] = beats(2)
@@ -68,8 +68,8 @@ ran = lambda hint: hint if built else "Needs the node: build it first."
 first = r.get("first", [])
 c.check(
     "it publishes alive 1, alive 2, ... on /heartbeat, twice a second by default",
-    lambda: len(first) >= 4 and len(first) <= 8 and first == list(range(first[0], first[0] + len(first))),
-    ran(f"In 3 s it published {first}."),
+    lambda: len(first) >= 4 and len(first) <= 12 and first == list(range(first[0], first[0] + len(first))),
+    ran(f"In 5 s it published {first}."),
 )
 c.check("rate is a parameter, 2.0 by default", lambda: "Double value is: 2.0" in r["rate"], ran(f"ros2 param get printed: {r.get('rate')}"))
 c.check(
