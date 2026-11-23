@@ -77,7 +77,10 @@
           "cmd": "ros2 topic hz /chatter",
           "seconds": 5.6,
           "lines": 2,
-          "mask": "numbers"
+          "mask": "numbers",
+          "ignore": [
+            "^WARNING: topic \\[.*\\] does not appear to be published yet$"
+          ]
         },
         {
           "id": "topic-pub",
@@ -251,7 +254,10 @@
           "cmd": "ros2 topic hz /joint_states",
           "seconds": 5.6,
           "lines": 2,
-          "mask": "numbers"
+          "mask": "numbers",
+          "ignore": [
+            "^WARNING: topic \\[.*\\] does not appear to be published yet$"
+          ]
         },
         {
           "id": "lab-cmd-vel-echo",

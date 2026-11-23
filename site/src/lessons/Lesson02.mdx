@@ -138,7 +138,7 @@ The listener prints nothing and reports no error: it is waiting on a `/chatter` 
 | how often | `ros2 topic hz /topic` |
 | how a node reacts to a message | `ros2 topic pub --once /topic type "{field: value}"` |
 
-`echo` and `hz` run until you press Ctrl+C:
+`echo` and `hz` run until you press Ctrl+C. If `hz` starts before it has found the publisher, it first warns that the topic does not appear to be published yet; the rates follow a moment later.
 
 <TerminalPair>
   <Terminal run={r['topic-echo']} />

@@ -1,0 +1,139 @@
+import { BigPicture, Bridge, PlainWords, Recap, TryThis } from '../components/Blocks'
+import { Quiz } from '../components/Quiz'
+import { RecordedIn } from '../components/RecordedIn'
+import { Terminal } from '../components/Terminal'
+import { DeclareTwice, WorkspaceFolders } from '../figures/lesson03'
+import { ContainerTerminals } from '../lab/ContainerTerminals'
+import { LabQuestions } from '../lab/LabQuestions'
+import { BuildStepper } from '../playgrounds/lesson03/BuildStepper'
+import { OverlayStack } from '../playgrounds/lesson03/OverlayStack'
+import { lesson03 } from '../transcripts'
+import { lesson03Lab } from './lesson03.lab'
+import { lesson03Quiz } from './lesson03.quiz'
+
+export const r = lesson03.runs
+
+<BigPicture>
+
+So far every node came with ROS. From here on you write your own, and ROS needs three things from you before it can run them: the code has to live in a **package**, packages live in a **workspace**, and a workspace has to be **built** and then **sourced**. This lesson is that machinery, with no ROS code yet. Get it right once and every later lab is just "edit, build, run".
+
+</BigPicture>
+
+<RecordedIn transcript={lesson03} />
+
+## The workspace
+
+<WorkspaceFolders />
+
+A workspace starts as nothing more than a folder with `src` in it. `ros2 pkg create` writes a package skeleton into `src`:
+
+<Terminal run={[r['tree-empty'], r.create, r['tree-src']]} />
+
+## What is in a package
+
+A package is a folder with a `package.xml`. For a C++ package there is also a `CMakeLists.txt`. They describe the same package for different readers:
+
+<Terminal run={r['package-xml']} />
+
+`package.xml` is the **manifest**: the name, version, licence, what the package depends on, and, at the bottom, how it is built (`ament_cmake`, ROS's flavour of CMake). The generated `CMakeLists.txt` is a normal CMake file plus two ROS lines, `find_package(ament_cmake REQUIRED)` near the top and `ament_package()` at the end:
+
+<Terminal run={r.cmakelists} />
+
+The `BUILD_TESTING` block sets up ROS's style checkers, which only run when you ask for tests with `colcon test`. It can stay as it is.
+
+## Building with colcon
+
+`colcon` is the build tool. Run from the workspace folder, it finds every package under `src`, works out their order from their dependencies, and builds each one.
+
+<BuildStepper />
+
+<TryThis>
+
+- **Step through all four stages.** Note that step 3 adds three folders but no ROS-visible change: until step 4, `ros2 pkg prefix` still says the package does not exist.
+- **Look at `install` in step 3.** Each package gets its own folder there, and the workspace gets `setup.bash`, the file you source.
+
+</TryThis>
+
+Two habits save a lot of confusion. First, always build from the workspace folder. colcon treats the folder it runs in as the workspace, so running it inside `src` builds in there instead:
+
+<Terminal run={[r['wrong-dir-build'], r['wrong-dir-ls']]} title="colcon run inside src by mistake" />
+
+If that happens, delete the three folders it made inside `src`. Second, when a build behaves strangely, deleting `build`, `install` and `log` in the workspace folder is safe, because the next build recreates them:
+
+<Terminal run={r.clean} />
+
+## Using what you built: overlays
+
+Sourcing `install/setup.bash` does what sourcing `/opt/ros/jazzy/setup.bash` did in Lesson 1, for your workspace. It also puts your workspace **in front of** Jazzy: ROS now searches yours first.
+
+<Terminal run={[r['prefix-before'], r['prefix-after'], r['ament-after']]} />
+
+Your workspace is now an **overlay** on top of Jazzy, the **underlay**. The order matters when both contain a package with the same name. To show it, the recording builds a tiny Python package that is deliberately named `demo_nodes_py`, like the demo package that ships with ROS:
+
+<Terminal run={[r['over-create'], r['over-build']]} />
+
+<OverlayStack />
+
+<PlainWords>
+
+Sourcing a workspace is stacking it on top of everything sourced before. When ROS looks for a package it starts at the top of the stack and stops at the first workspace that has it, and takes the whole package from there. That is how you can fix a bug in a ROS package without touching `/opt/ros`: put a corrected copy in your workspace and source it. It is also how a stale copy in some workspace you forgot about can silently win.
+
+</PlainWords>
+
+## Dependencies: declare them twice
+
+A package that uses another names it in **both** files. `ros2 pkg create --dependencies` writes both for you:
+
+<Terminal run={[r['create-node'], r['node-deps'], r['node-cmake']]} />
+
+<DeclareTwice />
+
+Here is what happens when a source file includes `std_msgs` but the package does not declare it:
+
+<Terminal run={[r['broken-include'], r['build-broken']]} />
+
+The compiler cannot find the header, because nothing told CMake where `std_msgs` lives. Adding it to both files fixes the build:
+
+<Terminal run={[r['fixed-deps'], r['build-fixed']]} />
+
+`--node-name hello` also wrote a first program, `src/hello.cpp`. It is plain C++ that only prints a line; Lesson 4 turns it into a real ROS node.
+
+<Terminal run={[r['node-cpp'], r['build-node'], r['run-node'], r['select-build']]} />
+
+`--packages-select` builds only the packages you name, which is quicker when a workspace grows.
+
+<Bridge title="ETH's course">
+
+ETH's first lecture covers the same ground in one stretch: `colcon_ws/src`, build only from the workspace root, `colcon build --packages-up-to`, source `install/setup.bash` after building a new package, and `rm -rf build install log` when in doubt. `--packages-up-to` builds a package together with everything it depends on; `--packages-select` builds only the ones named.
+
+</Bridge>
+
+## Lab: your first package
+
+Your workspace for every lab from now on is `/labs/ws` in the container, which is the `labs/ws` folder of the course on your computer. Files there survive when the container stops, and you can edit them with any editor.
+
+1. Create the package: in `/labs/ws/src`, run `ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies rclcpp --node-name hello hello_ros`.
+2. Build from `/labs/ws`, source `install/setup.bash`, and run `ros2 run hello_ros hello`.
+3. Change the greeting in `labs/ws/src/hello_ros/src/hello.cpp` to `Hello from my first package` and save it.
+4. Run it again before building, then build and run once more.
+5. Check your work with `python3 /labs/lesson03/check.py`.
+
+<ContainerTerminals terminals={[{ title: 'Terminal', first: 'mkdir -p /labs/ws/src && cd /labs/ws/src', height: 380 }]} />
+
+<LabQuestions questions={lesson03Lab} />
+
+## Quiz
+
+<Quiz questions={lesson03Quiz} />
+
+<Recap>
+
+- A **workspace** is a folder with `src`. You edit `src`; `colcon build`, run from the workspace folder, creates `build`, `install` and `log`.
+- A **package** is a folder with `package.xml` (what it is and needs) and, for C++, `CMakeLists.txt` (how to build it). `ros2 pkg create` writes both.
+- After building, **source** `install/setup.bash`. Until you do, ROS does not know the package exists.
+- A sourced workspace is an **overlay**: it is searched before the **underlay** beneath it, and the first copy of a package wins, whole.
+- Declare every dependency **twice**: `<depend>` in `package.xml`, and `find_package` plus `ament_target_dependencies` in `CMakeLists.txt`.
+- After changing code, **build again**: `ros2 run` starts the compiled program in `install`, not your source.
+- Next: a real C++ node that publishes and subscribes.
+
+</Recap>

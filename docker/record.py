@@ -25,12 +25,18 @@ A scenario is a JSON list of steps. A step is one of:
   {"cmd": "sleep 1"}
       No id: run it, record nothing.
 
+  {"id": "build", "cmd": "colcon build", "cwd": "/root/ws"}
+      Run it in that folder. The lesson page shows the folder in the prompt.
+
   {"id": "no-ros", "cmd": "ros2 --help", "fresh": true}
       Run it in a clean shell where ROS has not been set up (no setup file
       sourced, no ROS variables), as on a computer with ROS installed but not
       yet sourced.
 
 `lines` keeps only the first lines of the output (the last ones for `tail`).
+`ignore` is a list of regular expressions: lines matching one are left out
+before that. It is for lines that appear only on some runs, such as a warning
+printed while discovery is still going on, and the lesson says so where it matters.
 """
 
 import json
@@ -55,14 +61,16 @@ def clean(text):
 CLEAN_ENV = {"HOME": "/root", "TERM": "xterm", "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"}
 
 
-def start(cmd, log_path, fresh=False):
+def start(cmd, log_path, fresh=False, cwd=None):
     log = open(log_path, "wb")
     if fresh:
         argv, env = ["bash", "--norc", "--noprofile", "-c", cmd], dict(CLEAN_ENV)
     else:
         argv, env = ["bash", "-c", f"{SETUP}; {cmd}"], {**os.environ, "PYTHONUNBUFFERED": "1"}
     # Its own process group, so the command and everything it starts can be stopped together.
-    return subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True, env=env)
+    return subprocess.Popen(
+        argv, stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True, env=env, cwd=cwd
+    )
 
 
 def stop(proc):
@@ -85,7 +93,10 @@ def read(log_path):
         return clean(f.read().decode("utf-8", errors="replace"))
 
 
-def keep(text, lines, from_end=False):
+def keep(text, lines, from_end=False, ignore=()):
+    if ignore and text:
+        patterns = [re.compile(p) for p in ignore]
+        text = "\n".join(line for line in text.split("\n") if not any(p.search(line) for p in patterns))
     if not lines or not text:
         return text, False
     rows = text.split("\n")
@@ -112,13 +123,13 @@ def main():
 
         if "tail" in step:
             _, source, log_path = background[step["tail"]]
-            output, truncated = keep(read(log_path), step.get("lines"), from_end=True)
+            output, truncated = keep(read(log_path), step.get("lines"), from_end=True, ignore=step.get("ignore", ()))
             runs.append({"id": step_id, "command": source["cmd"], "output": output, "ended": "running", "truncated": False, "tail": truncated})
             continue
 
         cmd = step["cmd"]
         log_path = f"{LOGS}/{name}.log"
-        proc = start(cmd, log_path, fresh=step.get("fresh", False))
+        proc = start(cmd, log_path, fresh=step.get("fresh", False), cwd=step.get("cwd"))
 
         if step.get("background"):
             background[name] = (proc, step, log_path)
@@ -139,14 +150,17 @@ def main():
                 break
             ended = "stopped"
         # Take the output before interrupting, so the interrupt's own noise is not part of it.
-        output, truncated = keep(read(log_path), step.get("lines"))
+        output, truncated = keep(read(log_path), step.get("lines"), ignore=step.get("ignore", ()))
         stop(proc)
+        if not step_id and ended == "exit" and proc.returncode != 0 and not step.get("mayFail"):
+            failed = f"{name}: the set-up command `{cmd}` failed (code {proc.returncode}):\n{read(log_path)}"
+            break
         if step_id:
             runs.append({"id": step_id, "command": cmd, "output": output, "ended": ended, "code": proc.returncode if ended == "exit" else None, "truncated": truncated})
 
     for name, (proc, step, log_path) in background.items():
         if step.get("id"):
-            output, truncated = keep(read(log_path), step.get("lines"))
+            output, truncated = keep(read(log_path), step.get("lines"), ignore=step.get("ignore", ()))
             runs.append({"id": step["id"], "command": step["cmd"], "output": output, "ended": "running", "truncated": truncated})
     for proc, _, _ in background.values():
         stop(proc)

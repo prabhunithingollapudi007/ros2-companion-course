@@ -11,7 +11,12 @@ export interface Run {
   truncated?: boolean
   /** Only the last lines of the output were kept: it had printed more before them. */
   tail?: boolean
+  /** The folder it ran in, shown in the prompt. */
+  cwd?: string
 }
+
+/** /root/ws as a shell prompt shows it: ~/ws. */
+const shortPath = (cwd: string) => cwd.replace(/^\/root(?=\/|$)/, '~')
 
 interface Props {
   /** A recorded run, or several typed one after another in the same terminal. */
@@ -56,6 +61,7 @@ export function Terminal({ run, title = 'Terminal', simulated = false }: Props) 
       <pre className="terminal-body">
         {runs.map((r, i) => (
           <Fragment key={i}>
+            {r.cwd && <span className="terminal-cwd">{shortPath(r.cwd)} </span>}
             <span className="terminal-prompt">$ </span>
             <span className="terminal-cmd">{r.command}</span>
             {'\n'}

@@ -1,0 +1,303 @@
+{
+  "scenarios": [
+    {
+      "name": "create and build a package",
+      "steps": [
+        {
+          "cmd": "mkdir -p /root/ws/src"
+        },
+        {
+          "id": "tree-empty",
+          "cmd": "find . | sort",
+          "cwd": "/root/ws"
+        },
+        {
+          "id": "create",
+          "cmd": "ros2 pkg create --build-type ament_cmake --license Apache-2.0 my_robot",
+          "cwd": "/root/ws/src"
+        },
+        {
+          "id": "tree-src",
+          "cmd": "find . | sort",
+          "cwd": "/root/ws"
+        },
+        {
+          "id": "package-xml",
+          "cmd": "cat package.xml",
+          "cwd": "/root/ws/src/my_robot"
+        },
+        {
+          "id": "cmakelists",
+          "cmd": "cat CMakeLists.txt",
+          "cwd": "/root/ws/src/my_robot"
+        },
+        {
+          "id": "colcon-list",
+          "cmd": "colcon list",
+          "cwd": "/root/ws"
+        },
+        {
+          "id": "build",
+          "cmd": "colcon build",
+          "cwd": "/root/ws",
+          "mask": "numbers"
+        },
+        {
+          "id": "ls-after",
+          "cmd": "ls",
+          "cwd": "/root/ws"
+        },
+        {
+          "id": "tree-install",
+          "cmd": "find install -maxdepth 2 | sort",
+          "cwd": "/root/ws"
+        },
+        {
+          "id": "prefix-before",
+          "cmd": "ros2 pkg prefix my_robot",
+          "cwd": "/root/ws",
+          "mayFail": true
+        },
+        {
+          "id": "prefix-after",
+          "cmd": "source install/setup.bash && ros2 pkg prefix my_robot",
+          "cwd": "/root/ws"
+        },
+        {
+          "id": "ament-after",
+          "cmd": "source install/setup.bash && echo $AMENT_PREFIX_PATH",
+          "cwd": "/root/ws"
+        },
+        {
+          "id": "clean",
+          "cmd": "rm -rf build install log && ls",
+          "cwd": "/root/ws"
+        },
+        {
+          "id": "wrong-dir-build",
+          "cmd": "colcon build",
+          "cwd": "/root/ws/src",
+          "mask": "numbers"
+        },
+        {
+          "id": "wrong-dir-ls",
+          "cmd": "ls",
+          "cwd": "/root/ws/src"
+        }
+      ]
+    },
+    {
+      "name": "a package with a node",
+      "steps": [
+        {
+          "cmd": "mkdir -p /root/ws/src"
+        },
+        {
+          "id": "create-node",
+          "cmd": "ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies rclcpp --node-name hello hello_ros",
+          "cwd": "/root/ws/src"
+        },
+        {
+          "id": "node-cpp",
+          "cmd": "cat src/hello.cpp",
+          "cwd": "/root/ws/src/hello_ros"
+        },
+        {
+          "id": "node-deps",
+          "cmd": "grep -n depend package.xml",
+          "cwd": "/root/ws/src/hello_ros"
+        },
+        {
+          "id": "node-cmake",
+          "cmd": "grep -n -E 'find_package|add_executable|ament_target_dependencies|install|DESTINATION' CMakeLists.txt",
+          "cwd": "/root/ws/src/hello_ros"
+        },
+        {
+          "id": "build-node",
+          "cmd": "colcon build",
+          "cwd": "/root/ws",
+          "mask": "numbers"
+        },
+        {
+          "id": "run-node",
+          "cmd": "source install/setup.bash && ros2 run hello_ros hello",
+          "cwd": "/root/ws"
+        },
+        {
+          "id": "select-build",
+          "cmd": "colcon build --packages-select hello_ros",
+          "cwd": "/root/ws",
+          "mask": "numbers"
+        }
+      ]
+    },
+    {
+      "name": "a missing dependency",
+      "steps": [
+        {
+          "cmd": "mkdir -p /root/ws/src && cd /root/ws/src && ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies rclcpp --node-name greeter greeter > /dev/null"
+        },
+        {
+          "cmd": "sed -i '1i #include \"std_msgs/msg/string.hpp\"' /root/ws/src/greeter/src/greeter.cpp"
+        },
+        {
+          "id": "broken-include",
+          "cmd": "head -3 src/greeter.cpp",
+          "cwd": "/root/ws/src/greeter"
+        },
+        {
+          "id": "build-broken",
+          "cmd": "colcon build",
+          "cwd": "/root/ws",
+          "mayFail": true,
+          "mask": "numbers"
+        },
+        {
+          "cmd": "cd /root/ws/src/greeter && sed -i 's|<depend>rclcpp</depend>|<depend>rclcpp</depend>\\n  <depend>std_msgs</depend>|' package.xml && sed -i 's|^find_package(rclcpp REQUIRED)$|find_package(rclcpp REQUIRED)\\nfind_package(std_msgs REQUIRED)|; s|^  \"rclcpp\"$|  \"rclcpp\"\\n  \"std_msgs\"|' CMakeLists.txt"
+        },
+        {
+          "id": "fixed-deps",
+          "cmd": "grep -n -E 'std_msgs' package.xml CMakeLists.txt",
+          "cwd": "/root/ws/src/greeter"
+        },
+        {
+          "id": "build-fixed",
+          "cmd": "colcon build",
+          "cwd": "/root/ws",
+          "mask": "numbers"
+        }
+      ]
+    },
+    {
+      "name": "an overlay hides the underlay",
+      "steps": [
+        {
+          "cmd": "mkdir -p /root/over/src"
+        },
+        {
+          "id": "over-create",
+          "cmd": "ros2 pkg create --build-type ament_python --license Apache-2.0 --node-name talker demo_nodes_py",
+          "cwd": "/root/over/src"
+        },
+        {
+          "id": "over-build",
+          "cmd": "colcon build",
+          "cwd": "/root/over",
+          "mask": "numbers"
+        },
+        {
+          "id": "under-prefix",
+          "cmd": "ros2 pkg prefix demo_nodes_py",
+          "cwd": "/root/over"
+        },
+        {
+          "id": "under-run",
+          "cmd": "ros2 run demo_nodes_py talker",
+          "cwd": "/root/over",
+          "seconds": 3,
+          "lines": 2,
+          "mask": "numbers"
+        },
+        {
+          "id": "under-executables",
+          "cmd": "ros2 pkg executables demo_nodes_py",
+          "cwd": "/root/over"
+        },
+        {
+          "id": "over-prefix",
+          "cmd": "source install/setup.bash && ros2 pkg prefix demo_nodes_py",
+          "cwd": "/root/over"
+        },
+        {
+          "id": "over-run",
+          "cmd": "source install/setup.bash && ros2 run demo_nodes_py talker",
+          "cwd": "/root/over",
+          "seconds": 5
+        },
+        {
+          "id": "over-executables",
+          "cmd": "source install/setup.bash && ros2 pkg executables demo_nodes_py",
+          "cwd": "/root/over"
+        },
+        {
+          "id": "over-missing",
+          "cmd": "source install/setup.bash && ros2 run demo_nodes_py listener",
+          "cwd": "/root/over",
+          "mayFail": true
+        },
+        {
+          "id": "over-ament",
+          "cmd": "source install/setup.bash && echo $AMENT_PREFIX_PATH",
+          "cwd": "/root/over"
+        }
+      ]
+    },
+    {
+      "name": "lab solution",
+      "labs": true,
+      "steps": [
+        {
+          "cmd": "mkdir -p /labs/ws/src"
+        },
+        {
+          "cmd": "ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies rclcpp --node-name hello hello_ros > /dev/null",
+          "cwd": "/labs/ws/src"
+        },
+        {
+          "id": "lab-check-early",
+          "cmd": "python3 /labs/lesson03/check.py",
+          "mayFail": true
+        },
+        {
+          "id": "lab-build",
+          "cmd": "colcon build",
+          "cwd": "/labs/ws",
+          "mask": "numbers"
+        },
+        {
+          "id": "lab-ls",
+          "cmd": "ls",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "lab-run-first",
+          "cmd": "source install/setup.bash && ros2 run hello_ros hello",
+          "cwd": "/labs/ws"
+        },
+        {
+          "cmd": "sed -i \"s/hello world hello_ros package/Hello from my first package/\" /labs/ws/src/hello_ros/src/hello.cpp"
+        },
+        {
+          "id": "lab-edited",
+          "cmd": "grep printf src/hello.cpp",
+          "cwd": "/labs/ws/src/hello_ros"
+        },
+        {
+          "id": "lab-run-stale",
+          "cmd": "source install/setup.bash && ros2 run hello_ros hello",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "lab-rebuild",
+          "cmd": "colcon build --packages-select hello_ros",
+          "cwd": "/labs/ws",
+          "mask": "numbers"
+        },
+        {
+          "id": "lab-run-new",
+          "cmd": "source install/setup.bash && ros2 run hello_ros hello",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "lab-prefix",
+          "cmd": "source install/setup.bash && ros2 pkg prefix hello_ros",
+          "cwd": "/labs/ws"
+        },
+        {
+          "id": "lab-check",
+          "cmd": "python3 /labs/lesson03/check.py"
+        }
+      ]
+    }
+  ]
+}

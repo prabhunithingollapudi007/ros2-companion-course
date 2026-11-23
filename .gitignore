@@ -1,4 +1,8 @@
 node_modules/
 dist/
+__pycache__/
 # The ETH slides and exercises are for local reference only; do not publish them.
 materials/
+# The reader's own workspace for the labs: only its README belongs to the course.
+labs/ws/*
+!labs/ws/README.md

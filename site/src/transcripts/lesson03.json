@@ -1,0 +1,288 @@
+{
+  "meta": {
+    "image": "ros-companion:jazzy",
+    "recorded": "2026-11-23",
+    "versions": {
+      "ubuntu": "24.04",
+      "rclcpp": "28.1.23",
+      "rmw-fastrtps-cpp": "8.4.5",
+      "ros2cli": "0.32.14"
+    }
+  },
+  "runs": {
+    "tree-empty": {
+      "command": "find . | sort",
+      "output": ".\n./src",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "create": {
+      "command": "ros2 pkg create --build-type ament_cmake --license Apache-2.0 my_robot",
+      "output": "going to create a new package\npackage name: my_robot\ndestination directory: /root/ws/src\npackage format: 3\nversion: 0.0.0\ndescription: TODO: Package description\nmaintainer: ['root <root@todo.todo>']\nlicenses: ['Apache-2.0']\nbuild type: ament_cmake\ndependencies: []\ncreating folder ./my_robot\ncreating ./my_robot/package.xml\ncreating source and include folder\ncreating folder ./my_robot/src\ncreating folder ./my_robot/include/my_robot\ncreating ./my_robot/CMakeLists.txt",
+      "ended": "exit",
+      "cwd": "/root/ws/src"
+    },
+    "tree-src": {
+      "command": "find . | sort",
+      "output": ".\n./src\n./src/my_robot\n./src/my_robot/CMakeLists.txt\n./src/my_robot/LICENSE\n./src/my_robot/include\n./src/my_robot/include/my_robot\n./src/my_robot/package.xml\n./src/my_robot/src",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "package-xml": {
+      "command": "cat package.xml",
+      "output": "<?xml version=\"1.0\"?>\n<?xml-model href=\"http://download.ros.org/schema/package_format3.xsd\" schematypens=\"http://www.w3.org/2001/XMLSchema\"?>\n<package format=\"3\">\n  <name>my_robot</name>\n  <version>0.0.0</version>\n  <description>TODO: Package description</description>\n  <maintainer email=\"root@todo.todo\">root</maintainer>\n  <license>Apache-2.0</license>\n\n  <buildtool_depend>ament_cmake</buildtool_depend>\n\n  <test_depend>ament_lint_auto</test_depend>\n  <test_depend>ament_lint_common</test_depend>\n\n  <export>\n    <build_type>ament_cmake</build_type>\n  </export>\n</package>",
+      "ended": "exit",
+      "cwd": "/root/ws/src/my_robot"
+    },
+    "cmakelists": {
+      "command": "cat CMakeLists.txt",
+      "output": "cmake_minimum_required(VERSION 3.8)\nproject(my_robot)\n\nif(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES \"Clang\")\n  add_compile_options(-Wall -Wextra -Wpedantic)\nendif()\n\n# find dependencies\nfind_package(ament_cmake REQUIRED)\n# uncomment the following section in order to fill in\n# further dependencies manually.\n# find_package(<dependency> REQUIRED)\n\nif(BUILD_TESTING)\n  find_package(ament_lint_auto REQUIRED)\n  # the following line skips the linter which checks for copyrights\n  # comment the line when a copyright and license is added to all source files\n  set(ament_cmake_copyright_FOUND TRUE)\n  # the following line skips cpplint (only works in a git repo)\n  # comment the line when this package is in a git repo and when\n  # a copyright and license is added to all source files\n  set(ament_cmake_cpplint_FOUND TRUE)\n  ament_lint_auto_find_test_dependencies()\nendif()\n\nament_package()",
+      "ended": "exit",
+      "cwd": "/root/ws/src/my_robot"
+    },
+    "colcon-list": {
+      "command": "colcon list",
+      "output": "my_robot\tsrc/my_robot\t(ros.ament_cmake)",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "build": {
+      "command": "colcon build",
+      "output": "Starting >>> my_robot\nFinished <<< my_robot [0.59s]\n\nSummary: 1 package finished [0.69s]",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "ls-after": {
+      "command": "ls",
+      "output": "build\ninstall\nlog\nsrc",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "tree-install": {
+      "command": "find install -maxdepth 2 | sort",
+      "output": "install\ninstall/.colcon_install_layout\ninstall/COLCON_IGNORE\ninstall/_local_setup_util_ps1.py\ninstall/_local_setup_util_sh.py\ninstall/local_setup.bash\ninstall/local_setup.ps1\ninstall/local_setup.sh\ninstall/local_setup.zsh\ninstall/my_robot\ninstall/my_robot/share\ninstall/setup.bash\ninstall/setup.ps1\ninstall/setup.sh\ninstall/setup.zsh",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "prefix-before": {
+      "command": "ros2 pkg prefix my_robot",
+      "output": "Package not found",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "prefix-after": {
+      "command": "source install/setup.bash && ros2 pkg prefix my_robot",
+      "output": "/root/ws/install/my_robot",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "ament-after": {
+      "command": "source install/setup.bash && echo $AMENT_PREFIX_PATH",
+      "output": "/root/ws/install/my_robot:/opt/ros/jazzy",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "clean": {
+      "command": "rm -rf build install log && ls",
+      "output": "src",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "wrong-dir-build": {
+      "command": "colcon build",
+      "output": "Starting >>> my_robot\nFinished <<< my_robot [0.61s]\n\nSummary: 1 package finished [0.69s]",
+      "ended": "exit",
+      "cwd": "/root/ws/src"
+    },
+    "wrong-dir-ls": {
+      "command": "ls",
+      "output": "build\ninstall\nlog\nmy_robot",
+      "ended": "exit",
+      "cwd": "/root/ws/src"
+    },
+    "create-node": {
+      "command": "ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies rclcpp --node-name hello hello_ros",
+      "output": "going to create a new package\npackage name: hello_ros\ndestination directory: /root/ws/src\npackage format: 3\nversion: 0.0.0\ndescription: TODO: Package description\nmaintainer: ['root <root@todo.todo>']\nlicenses: ['Apache-2.0']\nbuild type: ament_cmake\ndependencies: ['rclcpp']\nnode_name: hello\ncreating folder ./hello_ros\ncreating ./hello_ros/package.xml\ncreating source and include folder\ncreating folder ./hello_ros/src\ncreating folder ./hello_ros/include/hello_ros\ncreating ./hello_ros/CMakeLists.txt\ncreating ./hello_ros/src/hello.cpp",
+      "ended": "exit",
+      "cwd": "/root/ws/src"
+    },
+    "node-cpp": {
+      "command": "cat src/hello.cpp",
+      "output": "#include <cstdio>\n\nint main(int argc, char ** argv)\n{\n  (void) argc;\n  (void) argv;\n\n  printf(\"hello world hello_ros package\\n\");\n  return 0;\n}",
+      "ended": "exit",
+      "cwd": "/root/ws/src/hello_ros"
+    },
+    "node-deps": {
+      "command": "grep -n depend package.xml",
+      "output": "10:  <buildtool_depend>ament_cmake</buildtool_depend>\n12:  <depend>rclcpp</depend>\n14:  <test_depend>ament_lint_auto</test_depend>\n15:  <test_depend>ament_lint_common</test_depend>",
+      "ended": "exit",
+      "cwd": "/root/ws/src/hello_ros"
+    },
+    "node-cmake": {
+      "command": "grep -n -E 'find_package|add_executable|ament_target_dependencies|install|DESTINATION' CMakeLists.txt",
+      "output": "9:find_package(ament_cmake REQUIRED)\n10:find_package(rclcpp REQUIRED)\n12:add_executable(hello src/hello.cpp)\n17:ament_target_dependencies(\n22:install(TARGETS hello\n23:  DESTINATION lib/${PROJECT_NAME})\n26:  find_package(ament_lint_auto REQUIRED)",
+      "ended": "exit",
+      "cwd": "/root/ws/src/hello_ros"
+    },
+    "build-node": {
+      "command": "colcon build",
+      "output": "Starting >>> hello_ros\nFinished <<< hello_ros [0.84s]\n\nSummary: 1 package finished [0.94s]",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "run-node": {
+      "command": "source install/setup.bash && ros2 run hello_ros hello",
+      "output": "hello world hello_ros package",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "select-build": {
+      "command": "colcon build --packages-select hello_ros",
+      "output": "Starting >>> hello_ros\nFinished <<< hello_ros [0.07s]\n\nSummary: 1 package finished [0.17s]",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "broken-include": {
+      "command": "head -3 src/greeter.cpp",
+      "output": "#include \"std_msgs/msg/string.hpp\"\n#include <cstdio>",
+      "ended": "exit",
+      "cwd": "/root/ws/src/greeter"
+    },
+    "build-broken": {
+      "command": "colcon build",
+      "output": "Starting >>> greeter\n--- stderr: greeter\n/root/ws/src/greeter/src/greeter.cpp:1:10: fatal error: std_msgs/msg/string.hpp: No such file or directory\n    1 | #include \"std_msgs/msg/string.hpp\"\n      |          ^~~~~~~~~~~~~~~~~~~~~~~~~\ncompilation terminated.\ngmake[2]: *** [CMakeFiles/greeter.dir/build.make:76: CMakeFiles/greeter.dir/src/greeter.cpp.o] Error 1\ngmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/greeter.dir/all] Error 2\ngmake: *** [Makefile:146: all] Error 2\n---\nFailed   <<< greeter [0.80s, exited with code 2]\n\nSummary: 0 packages finished [0.92s]\n  1 package failed: greeter\n  1 package had stderr output: greeter",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "fixed-deps": {
+      "command": "grep -n -E 'std_msgs' package.xml CMakeLists.txt",
+      "output": "package.xml:13:  <depend>std_msgs</depend>\nCMakeLists.txt:11:find_package(std_msgs REQUIRED)\nCMakeLists.txt:21:  \"std_msgs\"",
+      "ended": "exit",
+      "cwd": "/root/ws/src/greeter"
+    },
+    "build-fixed": {
+      "command": "colcon build",
+      "output": "Starting >>> greeter\nFinished <<< greeter [0.88s]\n\nSummary: 1 package finished [0.98s]",
+      "ended": "exit",
+      "cwd": "/root/ws"
+    },
+    "over-create": {
+      "command": "ros2 pkg create --build-type ament_python --license Apache-2.0 --node-name talker demo_nodes_py",
+      "output": "going to create a new package\npackage name: demo_nodes_py\ndestination directory: /root/over/src\npackage format: 3\nversion: 0.0.0\ndescription: TODO: Package description\nmaintainer: ['root <root@todo.todo>']\nlicenses: ['Apache-2.0']\nbuild type: ament_python\ndependencies: []\nnode_name: talker\ncreating folder ./demo_nodes_py\ncreating ./demo_nodes_py/package.xml\ncreating source folder\ncreating folder ./demo_nodes_py/demo_nodes_py\ncreating ./demo_nodes_py/setup.py\ncreating ./demo_nodes_py/setup.cfg\ncreating folder ./demo_nodes_py/resource\ncreating ./demo_nodes_py/resource/demo_nodes_py\ncreating ./demo_nodes_py/demo_nodes_py/__init__.py\ncreating folder ./demo_nodes_py/test\ncreating ./demo_nodes_py/test/test_copyright.py\ncreating ./demo_nodes_py/test/test_flake8.py\ncreating ./demo_nodes_py/test/test_pep257.py\ncreating ./demo_nodes_py/demo_nodes_py/talker.py",
+      "ended": "exit",
+      "cwd": "/root/over/src"
+    },
+    "over-build": {
+      "command": "colcon build",
+      "output": "Starting >>> demo_nodes_py\nFinished <<< demo_nodes_py [0.73s]\n\nSummary: 1 package finished [0.82s]",
+      "ended": "exit",
+      "cwd": "/root/over"
+    },
+    "under-prefix": {
+      "command": "ros2 pkg prefix demo_nodes_py",
+      "output": "/opt/ros/jazzy",
+      "ended": "exit",
+      "cwd": "/root/over"
+    },
+    "under-run": {
+      "command": "ros2 run demo_nodes_py talker",
+      "output": "[INFO] [1795430497.039769676] [talker]: Publishing: \"Hello World: 0\"\n[INFO] [1795430498.030767694] [talker]: Publishing: \"Hello World: 1\"",
+      "ended": "stopped",
+      "cwd": "/root/over"
+    },
+    "under-executables": {
+      "command": "ros2 pkg executables demo_nodes_py",
+      "output": "demo_nodes_py add_two_ints_client\ndemo_nodes_py add_two_ints_client_async\ndemo_nodes_py add_two_ints_server\ndemo_nodes_py async_param_client\ndemo_nodes_py introspection\ndemo_nodes_py listener\ndemo_nodes_py listener_qos\ndemo_nodes_py listener_serialized\ndemo_nodes_py matched_event_detect\ndemo_nodes_py set_parameters_callback\ndemo_nodes_py talker\ndemo_nodes_py talker_qos\ndemo_nodes_py use_logger_service",
+      "ended": "exit",
+      "cwd": "/root/over"
+    },
+    "over-prefix": {
+      "command": "source install/setup.bash && ros2 pkg prefix demo_nodes_py",
+      "output": "/root/over/install/demo_nodes_py",
+      "ended": "exit",
+      "cwd": "/root/over"
+    },
+    "over-run": {
+      "command": "source install/setup.bash && ros2 run demo_nodes_py talker",
+      "output": "Hi from demo_nodes_py.",
+      "ended": "exit",
+      "cwd": "/root/over"
+    },
+    "over-executables": {
+      "command": "source install/setup.bash && ros2 pkg executables demo_nodes_py",
+      "output": "demo_nodes_py talker",
+      "ended": "exit",
+      "cwd": "/root/over"
+    },
+    "over-missing": {
+      "command": "source install/setup.bash && ros2 run demo_nodes_py listener",
+      "output": "No executable found",
+      "ended": "exit",
+      "cwd": "/root/over"
+    },
+    "over-ament": {
+      "command": "source install/setup.bash && echo $AMENT_PREFIX_PATH",
+      "output": "/root/over/install/demo_nodes_py:/opt/ros/jazzy",
+      "ended": "exit",
+      "cwd": "/root/over"
+    },
+    "lab-check-early": {
+      "command": "python3 /labs/lesson03/check.py",
+      "output": "Lesson 3 lab: checking /labs/ws\n  PASS  the workspace has a src folder\n  PASS  there is a package in src/hello_ros\n  PASS  package.xml names it hello_ros\n  PASS  it is a C++ package (ament_cmake)\n  PASS  it depends on rclcpp\n  PASS  CMakeLists.txt builds a program called hello\n  FAIL  the workspace has been built\n        Run colcon build from /labs/ws.\n  FAIL  ros2 run hello_ros hello prints \"Hello from my first package\"\n        Build the workspace first.\n6 of 8 checks passed.",
+      "ended": "exit"
+    },
+    "lab-build": {
+      "command": "colcon build",
+      "output": "Starting >>> hello_ros\nFinished <<< hello_ros [0.82s]\n\nSummary: 1 package finished [0.91s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-ls": {
+      "command": "ls",
+      "output": "build\ninstall\nlog\nsrc",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-run-first": {
+      "command": "source install/setup.bash && ros2 run hello_ros hello",
+      "output": "hello world hello_ros package",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-edited": {
+      "command": "grep printf src/hello.cpp",
+      "output": "  printf(\"Hello from my first package\\n\");",
+      "ended": "exit",
+      "cwd": "/labs/ws/src/hello_ros"
+    },
+    "lab-run-stale": {
+      "command": "source install/setup.bash && ros2 run hello_ros hello",
+      "output": "hello world hello_ros package",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-rebuild": {
+      "command": "colcon build --packages-select hello_ros",
+      "output": "Starting >>> hello_ros\nFinished <<< hello_ros [0.14s]\n\nSummary: 1 package finished [0.22s]",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-run-new": {
+      "command": "source install/setup.bash && ros2 run hello_ros hello",
+      "output": "Hello from my first package",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-prefix": {
+      "command": "source install/setup.bash && ros2 pkg prefix hello_ros",
+      "output": "/labs/ws/install/hello_ros",
+      "ended": "exit",
+      "cwd": "/labs/ws"
+    },
+    "lab-check": {
+      "command": "python3 /labs/lesson03/check.py",
+      "output": "Lesson 3 lab: checking /labs/ws\n  PASS  the workspace has a src folder\n  PASS  there is a package in src/hello_ros\n  PASS  package.xml names it hello_ros\n  PASS  it is a C++ package (ament_cmake)\n  PASS  it depends on rclcpp\n  PASS  CMakeLists.txt builds a program called hello\n  PASS  the workspace has been built\n  PASS  ros2 run hello_ros hello prints \"Hello from my first package\"\nAll 8 checks passed.",
+      "ended": "exit"
+    }
+  }
+}

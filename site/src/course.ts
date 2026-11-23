@@ -132,7 +132,7 @@ export const PARTS: Part[] = [
           'Declaring dependencies',
         ],
         playgrounds: ['What a build puts where', 'Overlays: which copy of a package wins'],
-        lab: 'Create a workspace and an empty C++ package that builds cleanly.',
+        lab: 'Create, build, change and rebuild a C++ package, checked by a script in the container.',
         sources: [
           eth(1, 'Package structure, colcon workspace and build system'),
           docs('Tutorials/Beginner-Client-Libraries/Creating-A-Workspace/Creating-A-Workspace', 'Creating a workspace'),

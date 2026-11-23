@@ -65,6 +65,54 @@
   stroke-width: 1.8;
 }
 
+/* A recorded folder listing beside the commands that produced it. */
+.stepper {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(0, 2fr);
+  gap: 14px;
+  align-items: start;
+}
+.stepper-explain {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+}
+.stepper-run > .terminal {
+  margin-top: 0;
+}
+.file-tree {
+  margin: 0;
+  padding: 10px 12px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--page);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.file-tree-root {
+  font-weight: 650;
+}
+.file-tree .is-new {
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.file-tree-tag {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--accent-wash);
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+}
+@media (max-width: 700px) {
+  .stepper {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* A node the reader can click. */
 .clickable-node {
   cursor: pointer;

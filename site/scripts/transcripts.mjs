@@ -52,7 +52,9 @@ function normalise(text, mask) {
 
 function runScenario(scenario) {
   const mounts = ['-v', `${path.join(repo, 'docker', 'record.py')}:/tools/record.py:ro`]
-  if (scenario.labs) mounts.push('-v', `${path.join(repo, 'labs')}:/labs:ro`)
+  // The labs folder, read-only, with an empty scratch workspace where /labs/ws would be,
+  // so a recording can build in the same place a reader does without touching the repository.
+  if (scenario.labs) mounts.push('-v', `${path.join(repo, 'labs')}:/labs:ro`, '--tmpfs', '/labs/ws:rw,exec,size=512m')
   // No network: discovery still works inside the container, and nothing running
   // in any other container can join the graph being recorded.
   const result = docker(['run', '--rm', '-i', '--network', 'none', ...mounts, IMAGE, 'python3', '/tools/record.py'], JSON.stringify(scenario.steps))
@@ -107,6 +109,8 @@ for (const lesson of lessons) {
     const started = Date.now()
     for (const run of runScenario(scenario)) {
       const entry = { command: run.command, output: run.output, ended: run.ended }
+      const step = scenario.steps.find((s) => s.id === run.id)
+      if (step.cwd) entry.cwd = step.cwd
       if (run.truncated) entry.truncated = true
       if (run.tail) entry.tail = true
       runs[run.id] = entry
